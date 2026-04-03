@@ -1,0 +1,339 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Windows 95 Classic Grey Palette */
+  --win95-grey: #c0c0c0;
+  --win95-dark: #808080;
+  --win95-darker: #404040;
+  --win95-black: #000000;
+  --win95-white: #ffffff;
+  --win95-blue: #000080;
+  --win95-lightblue: #0000aa;
+  --win95-desktop: #008080;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Tahoma", "MS Sans Serif", Arial, sans-serif;
+  background: var(--win95-desktop);
+  color: #000;
+  line-height: 1.5;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+  overflow: hidden; /* OS layout manages its own scroll */
+}
+
+/* Scrollbar minimale retro */
+::-webkit-scrollbar { width: 16px; height: 16px; }
+::-webkit-scrollbar-track { background: #dfdfdf; border-left: 1px solid #fff; border-top: 1px solid #fff; }
+::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+}
+::-webkit-scrollbar-thumb:active { background: #c0c0c0; box-shadow: inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf; }
+::-webkit-scrollbar-corner { background: #c0c0c0; }
+
+/* ===== WIN95 CORE COMPONENTS ===== */
+
+/* Raised border (button / panel relief) */
+.win95-raised {
+  border: 2px solid;
+  border-color: var(--win95-white) var(--win95-dark) var(--win95-dark) var(--win95-white);
+}
+
+/* Sunken border (input / pressed) */
+.win95-sunken {
+  border: 2px solid;
+  border-color: var(--win95-dark) var(--win95-white) var(--win95-white) var(--win95-dark);
+}
+
+/* Window Panel */
+.win95-window {
+  background: var(--win95-grey);
+  border: 2px solid;
+  border-color: var(--win95-white) var(--win95-darker) var(--win95-darker) var(--win95-white);
+  box-shadow: 1px 1px 0 var(--win95-dark);
+}
+
+/* Title bar */
+.win95-titlebar {
+  background: linear-gradient(to right, var(--win95-blue), var(--win95-lightblue));
+  color: var(--win95-white);
+  font-weight: bold;
+  font-size: 11px;
+  padding: 2px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  height: 18px;
+}
+
+.win95-titlebar-inactive {
+  background: var(--win95-dark);
+}
+
+/* Title bar buttons */
+.win95-title-btn {
+  background: var(--win95-grey);
+  border: 2px solid;
+  border-color: var(--win95-white) var(--win95-darker) var(--win95-darker) var(--win95-white);
+  width: 14px;
+  height: 12px;
+  font-size: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 1;
+  font-weight: bold;
+  padding: 0;
+  flex-shrink: 0;
+}
+.win95-title-btn:active {
+  border-color: var(--win95-dark) var(--win95-white) var(--win95-white) var(--win95-dark);
+}
+
+/* Regular button */
+.win95-btn {
+  background: var(--win95-grey);
+  border: 2px solid;
+  border-color: var(--win95-white) var(--win95-darker) var(--win95-darker) var(--win95-white);
+  padding: 3px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  min-width: 75px;
+  text-align: center;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.win95-btn:active, .win95-btn.active {
+  border-color: var(--win95-dark) var(--win95-white) var(--win95-white) var(--win95-dark);
+  padding: 4px 9px 2px 11px;
+}
+.win95-btn:focus {
+  outline: 1px dotted var(--win95-black);
+  outline-offset: -4px;
+}
+
+/* Menu bar */
+.win95-menubar {
+  background: var(--win95-grey);
+  border-bottom: 1px solid var(--win95-dark);
+  padding: 2px 0;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.win95-menu-item {
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  user-select: none;
+}
+.win95-menu-item:hover, .win95-menu-item.active {
+  background: #000080;
+  color: white;
+}
+
+/* Badge / tag */
+.win95-badge {
+  display: inline-block;
+  padding: 0 4px;
+  font-size: 9px;
+  font-weight: bold;
+  border: 1px solid var(--win95-dark);
+}
+.win95-badge-green { background: #008000; color: white; }
+.win95-badge-yellow { background: #808000; color: white; }
+.win95-badge-red { background: #800000; color: white; }
+.win95-badge-blue { background: #000080; color: white; }
+.win95-badge-grey { background: #808080; color: white; }
+
+/* Status bar */
+.win95-statusbar {
+  background: var(--win95-grey);
+  border-top: 1px solid var(--win95-dark);
+  padding: 2px 4px;
+  font-size: 10px;
+  display: flex;
+  gap: 4px;
+}
+.win95-statusbar-panel {
+  border: 1px solid;
+  border-color: var(--win95-dark) var(--win95-white) var(--win95-white) var(--win95-dark);
+  padding: 1px 4px;
+  min-width: 60px;
+}
+
+/* Desktop icon */
+.win95-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  cursor: pointer;
+  width: 72px;
+  text-align: center;
+  word-break: break-word;
+}
+.win95-icon:hover .win95-icon-label { background: #000080; color: white; }
+.win95-icon.selected .win95-icon-label { background: #000080; color: white; }
+.win95-icon-label {
+  font-size: 10px;
+  padding: 0 2px;
+  line-height: 1.2;
+}
+
+/* Taskbar */
+.win95-taskbar {
+  background: var(--win95-grey);
+  border-top: 2px solid var(--win95-white);
+  height: 28px;
+  display: flex;
+  align-items: center;
+  padding: 2px 2px;
+  gap: 4px;
+}
+.win95-start-btn {
+  background: var(--win95-grey);
+  border: 2px solid;
+  border-color: var(--win95-white) var(--win95-darker) var(--win95-darker) var(--win95-white);
+  padding: 2px 8px;
+  font-weight: bold;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+}
+.win95-taskbar-btn {
+  background: var(--win95-grey);
+  border: 2px solid;
+  border-color: var(--win95-white) var(--win95-darker) var(--win95-darker) var(--win95-white);
+  padding: 2px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  height: 22px;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.win95-taskbar-btn.active {
+  border-color: var(--win95-dark) var(--win95-white) var(--win95-white) var(--win95-dark);
+  background: #d4d0c8;
+}
+.win95-clock {
+  border: 2px solid;
+  border-color: var(--win95-dark) var(--win95-white) var(--win95-white) var(--win95-dark);
+  padding: 2px 6px;
+  font-size: 10px;
+  margin-left: auto;
+  height: 22px;
+  display: flex;
+  align-items: center;
+}
+
+/* Separator */
+.win95-separator {
+  height: 0;
+  border-top: 1px solid var(--win95-dark);
+  border-bottom: 1px solid var(--win95-white);
+  margin: 4px 0;
+}
+
+/* Group box */
+.win95-groupbox {
+  border: 1px solid;
+  border-color: var(--win95-dark) var(--win95-white) var(--win95-white) var(--win95-dark);
+  padding: 12px 8px 8px;
+  position: relative;
+  margin-top: 8px;
+}
+.win95-groupbox-label {
+  position: absolute;
+  top: -8px;
+  left: 8px;
+  background: var(--win95-grey);
+  padding: 0 4px;
+  font-size: 11px;
+}
+
+/* Progress bar */
+.win95-progress {
+  background: var(--win95-white);
+  border: 2px solid;
+  border-color: var(--win95-dark) var(--win95-white) var(--win95-white) var(--win95-dark);
+  height: 16px;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+.win95-progress-fill {
+  height: 100%;
+  background: #000080;
+}
+
+/* Utility layout classes used by the React components */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.gap-1 { gap: 4px; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.overflow-hidden { overflow: hidden; }
+.absolute { position: absolute; }
+.relative { position: relative; }
+.flex-1 { flex: 1; }
+.overflow-y-auto { overflow-y: auto; }
+.p-2 { padding: 8px; }
+.p-4 { padding: 16px; }
+
+
+/* ── Mascot animations ─────────────────────── */
+@keyframes mascot-idle {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  20%       { transform: translateY(-4px) rotate(-1.5deg); }
+  50%       { transform: translateY(-2px) rotate(1deg); }
+  75%       { transform: translateY(-5px) rotate(-0.5deg); }
+}
+
+@keyframes mascot-enter {
+  0%   { transform: translateX(100px) scale(0.4) rotate(15deg); opacity: 0; }
+  55%  { transform: translateX(-6px) scale(1.08) rotate(-3deg); opacity: 1; }
+  75%  { transform: translateX(4px) scale(0.96) rotate(1deg); }
+  90%  { transform: translateX(-2px) scale(1.02) rotate(0deg); }
+  100% { transform: translateX(0) scale(1) rotate(0deg); }
+}
+
+@keyframes mascot-attention {
+  0%   { transform: rotate(0deg) scale(1); }
+  12%  { transform: rotate(-10deg) scale(1.12); }
+  28%  { rotate: 8deg scale(1.10); }
+  44%  { rotate: -6deg scale(1.07); }
+  60%  { rotate: 4deg scale(1.04); }
+  76%  { rotate: -2deg scale(1.02); }
+  100% { rotate: 0deg scale(1); }
+}
+
+@keyframes bubble-in {
+  0%   { opacity: 0; transform: translateY(10px) scale(0.92); }
+  60%  { opacity: 1; transform: translateY(-2px) scale(1.02); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.mascot-idle { animation: mascot-idle 2.8s ease-in-out infinite; transform-origin: bottom center; }
+.mascot-enter { animation: mascot-enter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; transform-origin: bottom right; }
+.mascot-attention { animation: mascot-attention 0.7s ease-in-out; transform-origin: bottom center; }
+.mascot-bubble-in { animation: bubble-in 0.25s ease-out forwards; }

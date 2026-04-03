@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Base artistes électroniques — Montpellier</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111318;
+      --panel: #171a21;
+      --panel-2: #1f2430;
+      --text: #eef2f7;
+      --muted: #aab4c3;
+      --line: #2c3442;
+      --accent: #7cc4ff;
+      --accent-2: #9bffb0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      padding: 20px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+    .sub {
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 10px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+    }
+    main {
+      padding: 20px;
+    }
+    .meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      color: var(--muted);
+    }
+    .pill {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+    }
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1300px;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      background: #1a1f28;
+      color: var(--accent);
+      z-index: 5;
+    }
+    tr:hover td {
+      background: rgba(124,196,255,0.05);
+    }
+    a {
+      color: var(--accent-2);
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    .muted { color: var(--muted); }
+    .empty { color: #6d7787; }
+    @media (max-width: 900px) {
+      .controls { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Base artistes électroniques — Montpellier & secteur</h1>
+    <div class="sub">Consultation locale de la base CSV...... sobre, lisible, avec recherche et filtres.</div>
+    <div class="controls">
+      <input id="search" type="text" placeholder="Rechercher un artiste, style, note, zone......" />
+      <select id="zoneFilter">
+        <option value="">Toutes les zones</option>
+      </select>
+      <select id="sourceFilter">
+        <option value="">Toutes les sources</option>
+      </select>
+    </div>
+  </header>
+  <main>
+    <div class="meta">
+      <div class="pill">Total artistes : <strong id="countTotal">0</strong></div>
+      <div class="pill">Résultats affichés : <strong id="countShown">0</strong></div>
+      <div class="pill">Fichier source : <code>music_db/artistes_montpellier.csv</code></div>
+    </div>
+    <div class="table-wrap">
+      <table id="artistsTable">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Zone</th>
+            <th>Style</th>
+            <th>Sous-genre</th>
+            <th>Instagram</th>
+            <th>Facebook</th>
+            <th>SoundCloud</th>
+            <th>Bandcamp</th>
+            <th>Spotify</th>
+            <th>Site</th>
+            <th>Source localité</th>
+            <th>Notes</th>
+            <th>Dernière vérification</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    const csvPath = './artistes_montpellier.csv';
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let cell = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            cell += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          row.push(cell);
+          cell = '';
+        } else if ((char === '\n' || char === '\r') && !inQuotes) {
+          if (char === '\r' && next === '\n') i++;
+          if (cell.length > 0 || row.length > 0) {
+            row.push(cell);
+            rows.push(row);
+            row = [];
+            cell = '';
+          }
+        } else {
+          cell += char;
+        }
+      }
+      if (cell.length > 0 || row.length > 0) {
+        row.push(cell);
+        rows.push(row);
+      }
+      return rows;
+    }
+
+    function linkOrEmpty(url, label = 'lien') {
+      if (!url) return '<span class="empty">—</span>';
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+    }
+
+    let allRows = [];
+
+    function fillSelect(select, values) {
+      values.filter(Boolean).sort((a, b) => a.localeCompare(b, 'fr')).forEach(v => {
+        const option = document.createElement('option');
+        option.value = v;
+        option.textContent = v;
+        select.appendChild(option);
+      });
+    }
+
+    function render() {
+      const search = document.getElementById('search').value.toLowerCase().trim();
+      const zoneFilter = document.getElementById('zoneFilter').value;
+      const sourceFilter = document.getElementById('sourceFilter').value;
+      const tbody = document.querySelector('#artistsTable tbody');
+
+      const filtered = allRows.filter(r => {
+        const hay = Object.values(r).join(' ').toLowerCase();
+        const okSearch = !search || hay.includes(search);
+        const okZone = !zoneFilter || r.zone === zoneFilter;
+        const okSource = !sourceFilter || r.source_localite === sourceFilter;
+        return okSearch && okZone && okSource;
+      });
+
+      tbody.innerHTML = filtered.map(r => `
+        <tr>
+          <td><strong>${r.nom_artiste || ''}</strong></td>
+          <td>${r.zone || '<span class="empty">—</span>'}</td>
+          <td>${r.style || '<span class="empty">—</span>'}</td>
+          <td>${r.sous_genre || '<span class="empty">—</span>'}</td>
+          <td>${linkOrEmpty(r.instagram, 'Instagram')}</td>
+          <td>${linkOrEmpty(r.facebook, 'Facebook')}</td>
+          <td>${linkOrEmpty(r.soundcloud, 'SoundCloud')}</td>
+          <td>${linkOrEmpty(r.bandcamp, 'Bandcamp')}</td>
+          <td>${linkOrEmpty(r.spotify, 'Spotify')}</td>
+          <td>${linkOrEmpty(r.site_officiel, 'Site')}</td>
+          <td>${r.source_localite || '<span class="empty">—</span>'}</td>
+          <td class="muted">${r.notes || '<span class="empty">—</span>'}</td>
+          <td>${r.derniere_verification || '<span class="empty">—</span>'}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('countTotal').textContent = allRows.length;
+      document.getElementById('countShown').textContent = filtered.length;
+    }
+
+    fetch(csvPath)
+      .then(r => r.text())
+      .then(text => {
+        const rows = parseCSV(text);
+        const headers = rows.shift();
+        allRows = rows.map(cols => Object.fromEntries(headers.map((h, i) => [h, cols[i] || ''])));
+
+        fillSelect(document.getElementById('zoneFilter'), [...new Set(allRows.map(r => r.zone))]);
+        fillSelect(document.getElementById('sourceFilter'), [...new Set(allRows.map(r => r.source_localite))]);
+
+        document.getElementById('search').addEventListener('input', render);
+        document.getElementById('zoneFilter').addEventListener('change', render);
+        document.getElementById('sourceFilter').addEventListener('change', render);
+
+        render();
+      })
+      .catch(err => {
+        document.querySelector('main').innerHTML = `<p>Erreur de chargement du CSV...... ${err}</p>`;
+      });
+  </script>
+</body>
+</html>
