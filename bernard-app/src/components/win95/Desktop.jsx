@@ -2,9 +2,16 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { DraggableResizableWindow } from "./DraggableWindow";
 import { StartMenu } from "./StartMenu";
 import { Mascot } from "./Mascot";
+import { DatabaseWindow } from "./DatabaseWindow";
+import { CollectifsWindow } from "./CollectifsWindow";
+import { LieuxWindow } from "./LieuxWindow";
+import { FestivalsWindow } from "./FestivalsWindow";
 
 const DESKTOP_ICONS = [
-  { id: "search", label: "Base Artistes", icon: "🗃" },
+  { id: "artistes", label: "Base Artistes", icon: "🗃" },
+  { id: "collectifs", label: "Base Collectifs", icon: "👥" },
+  { id: "lieux", label: "Base Lieux", icon: "🏢" },
+  { id: "festivals", label: "Base Festivals", icon: "🎪" },
   { id: "stats", label: "Statistiques", icon: "📊" },
   { id: "about", label: "À propos", icon: "ℹ" },
 ];
@@ -19,11 +26,7 @@ function Clock() {
 }
 
 export function Desktop({ 
-  artists, 
-  headers, 
-  fetchArtists, 
-  saveArtists, 
-  renderSearchContent, 
+  artists, collectifs, lieux, festivals, onRefresh, saveData, loading,
   renderStatsContent, 
   renderAboutContent,
   renderCategoryContent
@@ -32,11 +35,11 @@ export function Desktop({
   
   const [windows, setWindows] = useState(() => {
     const m = new Map();
-    m.set("search", { id: "search", x: 100, y: 30, w: 700, h: 460, maximized: false, minimized: false });
+    m.set("artistes", { id: "artistes", x: 100, y: 30, w: 700, h: 460, maximized: false, minimized: false });
     return m;
   });
   
-  const [zOrders, setZOrders] = useState(["search"]);
+  const [zOrders, setZOrders] = useState(["artistes"]);
   const [startMenuOpen, setStartMenuOpen] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(null);
   const [mascotEnabled, setMascotEnabled] = useState(() => {
@@ -81,7 +84,7 @@ export function Desktop({
       const offset = m.size * 24;
       let w = 500, h = 360;
       
-      if (id === "search") { w = 700; h = 460; }
+      if (["artistes", "collectifs", "lieux", "festivals"].includes(id)) { w = 700; h = 460; }
       if (id === "stats") { w = 340; h = 480; }
       if (id === "about") { w = 360; h = 280; }
       
@@ -123,7 +126,10 @@ export function Desktop({
   }, []);
 
   function winTitle(id) {
-    if (id === "search") return "Base de données artistes";
+    if (id === "artistes") return "Base de données artistes";
+    if (id === "collectifs") return "Base de données collectifs";
+    if (id === "lieux") return "Base de données lieux";
+    if (id === "festivals") return "Base de données festivals";
     if (id === "stats") return "Statistiques — Super Bernard 3000";
     if (id === "about") return "À propos de Super Bernard 3000";
     if (id.startsWith("cat:")) return `📁 Catégorie : ${id.slice(4)}`;
@@ -131,7 +137,10 @@ export function Desktop({
   }
 
   function winIcon(id) {
-    if (id === "search") return "🗃";
+    if (id === "artistes") return "🗃";
+    if (id === "collectifs") return "👥";
+    if (id === "lieux") return "🏢";
+    if (id === "festivals") return "🎪";
     if (id === "stats") return "📊";
     if (id === "about") return "ℹ";
     if (id.startsWith("cat:")) return "📄";
@@ -177,7 +186,10 @@ export function Desktop({
             title={winTitle(win.id)}
             icon={winIcon(win.id)}
           >
-            {win.id === "search" && renderSearchContent()}
+            {win.id === "artistes" && <DatabaseWindow artists={artists} loading={loading} saveArtists={(data, action) => saveData('artistes', data, action)} onRefresh={onRefresh} />}
+            {win.id === "collectifs" && <CollectifsWindow collectifs={collectifs} loading={loading} saveCollectifs={(data, action) => saveData('collectifs', data, action)} onRefresh={onRefresh} />}
+            {win.id === "lieux" && <LieuxWindow lieux={lieux} loading={loading} saveLieux={(data, action) => saveData('lieux', data, action)} onRefresh={onRefresh} />}
+            {win.id === "festivals" && <FestivalsWindow festivals={festivals} loading={loading} saveFestivals={(data, action) => saveData('festivals', data, action)} onRefresh={onRefresh} />}
             {win.id === "stats" && renderStatsContent({ onClose: () => closeWindow("stats") })}
             {win.id === "about" && renderAboutContent({ onClose: () => closeWindow("about") })}
             {win.id.startsWith("cat:") && renderCategoryContent(win.id.slice(4))}

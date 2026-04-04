@@ -11,7 +11,7 @@ const app = express();
 const PORT = 3001;
 
 // The CSV lives one level up (in the parent directory alongside the old viewer)
-const CSV_PATH = resolve(__dirname, '..', 'artistes_montpellier.csv');
+const DATA_DIR = resolve(__dirname, '..');
 
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
@@ -51,38 +51,58 @@ function escapeCSVField(field) {
   return '"' + field + '"';
 }
 
-function readArtists() {
-  const text = readFileSync(CSV_PATH, 'utf-8');
+const CONFIG = {
+  artistes: { file: 'artistes_montpellier.csv', cols: ['nom_artiste', 'zone', 'style', 'sous_genre', 'type_performance', 'soundcloud', 'instagram', 'note_perso', 'photo'] },
+  collectifs: { file: 'collectifs_montpellier.csv', cols: ['nom', 'style', 'date_creation', 'instagram', 'notes', 'note_perso', 'photo'] },
+  lieux: { file: 'lieux_montpellier.csv', cols: ['nom', 'capacite', 'adresse', 'type', 'instagram', 'notes', 'note_perso', 'photo'] },
+  festivals: { file: 'festivals_montpellier.csv', cols: ['nom', 'periode', 'duree', 'lieu', 'style', 'instagram', 'notes', 'note_perso', 'photo'] }
+};
+
+function getCsvPath(type) {
+  if (!CONFIG[type]) throw new Error('Invalid type: ' + type);
+  return resolve(DATA_DIR, CONFIG[type].file);
+}
+
+function readData(type) {
+  if (!CONFIG[type]) throw new Error('Invalid type: ' + type);
+  const p = getCsvPath(type);
+  
+  if (!existsSync(p)) {
+    // initialize empty
+    return { headers: CONFIG[type].cols, data: [] };
+  }
+  
+  const text = readFileSync(p, 'utf-8');
   const rows = parseCSV(text);
-  if (rows.length === 0) return { headers: [], artists: [] };
+  if (rows.length === 0) return { headers: CONFIG[type].cols, data: [] };
   const headers = rows.shift();
 
-  // Auto-migrate: add note_perso if missing
-  if (!headers.includes('note_perso')) {
-    headers.push('note_perso');
-  }
+  // Auto-migrate standard columns
+  CONFIG[type].cols.forEach(c => {
+    if (!headers.includes(c)) headers.push(c);
+  });
 
-  const artists = rows.map((cols, idx) => {
+  const data = rows.map((cols, idx) => {
     const obj = { _id: idx };
     headers.forEach((h, i) => { obj[h] = cols[i] || ''; });
     return obj;
   });
-  return { headers, artists };
+  return { headers, data };
 }
 
-function writeArtists(headers, artists) {
+function writeData(type, headers, data) {
+  if (!CONFIG[type]) throw new Error('Invalid type: ' + type);
   const headerLine = headers.map(escapeCSVField).join(',');
-  const dataLines = artists.map(a =>
+  const dataLines = data.map(a =>
     headers.map(h => escapeCSVField(a[h] || '')).join(',')
   );
   const csv = [headerLine, ...dataLines, ''].join('\n');
 
-  // Write to temp file first then atomic replace (safe for cloud sync)
-  const tmpPath = CSV_PATH + '.tmp';
+  const p = getCsvPath(type);
+  const tmpPath = p + '.tmp';
   writeFileSync(tmpPath, csv, 'utf-8');
-  copyFileSync(tmpPath, CSV_PATH);
-  // Remove temp
-  try { writeFileSync(tmpPath, '', 'utf-8'); } catch (_) { /* ignore */ }
+  copyFileSync(tmpPath, p);
+  try { writeFileSync(tmpPath, '', 'utf-8'); } catch (_) { }
 }
 
 // ─── Global history log (in-memory, max 20 entries) ───────────
@@ -99,40 +119,51 @@ function logAction(type, label) {
 
 // ─── API routes ────────────────────────────────────────────────
 
-app.get('/api/artists', (_req, res) => {
+app.get('/api/artists', (req, res) => {
   try {
-    const { headers, artists } = readArtists();
-    res.json({ headers, artists });
+    const { headers, data } = readData('artistes');
+    res.json({ headers, artists: data });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ status: 'error', message: err.message });
   }
 });
 
 app.post('/api/artists', (req, res) => {
   try {
     const { headers, artists, actionLabel } = req.body;
-    if (!headers || !artists) {
-      return res.status(400).json({ error: 'Missing headers or artists' });
-    }
-
-    // Backup before writing
-    const backupPath = CSV_PATH.replace('.csv', '.backup.csv');
-    try {
-      if (existsSync(CSV_PATH)) copyFileSync(CSV_PATH, backupPath);
-    } catch (_) { /* backup failure is non-fatal */ }
-
-    writeArtists(headers, artists);
-
-    // Log action
-    logAction('save', actionLabel || `Sauvegarde (${artists.length} artistes)`);
-
-    res.json({ status: 'ok', count: artists.length });
+    writeData('artistes', headers, artists);
+    logAction('update_artistes', actionLabel || 'Mise à jour des artistes');
+    res.json({ status: 'ok' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ status: 'error', message: err.message });
   }
 });
 
-app.get('/api/history', (_req, res) => {
+app.get('/api/data/:type', (req, res) => {
+  try {
+    const { headers, data } = readData(req.params.type);
+    res.json({ headers, data });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+app.post('/api/data/:type', (req, res) => {
+  try {
+    const { data, actionLabel } = req.body;
+    // Always use the canonical column list from CONFIG to avoid header drift
+    const headers = CONFIG[req.params.type]?.cols || [];
+    writeData(req.params.type, headers, data);
+    logAction('update_' + req.params.type, actionLabel || `Mise à jour de ${req.params.type}`);
+    res.json({ status: 'ok' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+app.get('/api/history', (req, res) => {
   res.json({ history: actionHistory });
 });
 

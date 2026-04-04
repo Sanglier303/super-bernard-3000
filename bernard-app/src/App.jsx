@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Desktop } from './components/win95/Desktop'
-import { DatabaseWindow } from './components/win95/DatabaseWindow'
 
 // --- OS Additional Window Contents ---
 function StatsContent({ artists, onClose }) {
@@ -77,43 +76,55 @@ function CategoryContent({ category, artists }) {
 export default function App() {
   const [headers, setHeaders] = useState([])
   const [artists, setArtists] = useState([])
+  const [collectifs, setCollectifs] = useState([])
+  const [lieux, setLieux] = useState([])
+  const [festivals, setFestivals] = useState([])
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState(null)
 
   // ─── Data API ───
-  const fetchArtists = useCallback(async () => {
+  const fetchGeneric = async (type, setter) => {
     try {
-      setLoading(true)
-      const res = await fetch('/api/artists')
+      const res = await fetch('/api/data/' + type)
       const data = await res.json()
-      setHeaders(data.headers || [])
-      setArtists(data.artists || [])
+      setter(data.data || [])
+      return data.data
     } catch (err) {
       showToast('Erreur : ' + err.message)
-    } finally {
-      setLoading(false)
+      return []
     }
+  }
+
+  const loadAll = useCallback(async () => {
+    setLoading(true)
+    await Promise.all([
+      fetchGeneric('artistes', setArtists),
+      fetchGeneric('collectifs', setCollectifs),
+      fetchGeneric('lieux', setLieux),
+      fetchGeneric('festivals', setFestivals)
+    ]);
+    setLoading(false)
   }, [])
 
-  useEffect(() => { fetchArtists() }, [fetchArtists])
+  useEffect(() => { loadAll() }, [loadAll])
 
   const showToast = (message) => {
     setToast(message)
     setTimeout(() => setToast(null), 3000)
   }
 
-  const saveArtists = async (updatedArtists, actionLabel) => {
+  const saveData = async (type, updatedData, actionLabel) => {
     try {
-      const clean = updatedArtists.map(({ _id, ...rest }) => rest)
-      const res = await fetch('/api/artists', {
+      const clean = updatedData.map(({ _id, ...rest }) => rest)
+      const res = await fetch('/api/data/' + type, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ headers, artists: clean, actionLabel }),
+        body: JSON.stringify({ headers: [], data: clean, actionLabel }), // backend reconstructs headers if we just pass data
       })
       const data = await res.json()
       if (data.status === 'ok') {
         showToast(`✅ Sauvegardé`)
-        await fetchArtists()
+        await loadAll()
       } else {
         showToast('Erreur serveur.')
       }
@@ -126,10 +137,12 @@ export default function App() {
     <>
       <Desktop 
         artists={artists}
-        headers={headers}
-        fetchArtists={fetchArtists}
-        saveArtists={saveArtists}
-        renderSearchContent={() => <DatabaseWindow artists={artists} loading={loading} saveArtists={saveArtists} onRefresh={fetchArtists} />}
+        collectifs={collectifs}
+        lieux={lieux}
+        festivals={festivals}
+        onRefresh={loadAll}
+        saveData={saveData}
+        loading={loading}
         renderStatsContent={({ onClose }) => <StatsContent artists={artists} onClose={onClose} />}
         renderCategoryContent={(categoryId) => <CategoryContent category={categoryId} artists={artists} />}
         renderAboutContent={({ onClose }) => (
