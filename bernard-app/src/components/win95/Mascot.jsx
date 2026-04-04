@@ -13,7 +13,7 @@ const MESSAGES = [
   "Voulez-vous vérifier les statistiques système ?"
 ];
 
-export function Mascot({ enabled, onDisable }) {
+export function Mascot({ enabled, frequency = 600000, onDisable }) {
   const [visible, setVisible] = useState(false);
   const [bubbleVisible, setBubbleVisible] = useState(false);
   const [msgIndex, setMsgIndex] = useState(0);
@@ -47,13 +47,14 @@ export function Mascot({ enabled, onDisable }) {
       isFirstRef.current = true;
       return;
     }
-    const first = setTimeout(() => handleShow(), 5000);
-    const interval = setInterval(() => handleShow(), 40000);
+    // Start after 2 minutes (120,000ms) or first prop frequency
+    const first = setTimeout(() => handleShow(), 120000);
+    const interval = setInterval(() => handleShow(), frequency);
     return () => {
       clearTimeout(first);
       clearInterval(interval);
     };
-  }, [enabled, handleShow]);
+  }, [enabled, frequency, handleShow]);
 
   const handleDismiss = () => {
     setDismissed(true);

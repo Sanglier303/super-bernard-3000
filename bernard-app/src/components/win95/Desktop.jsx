@@ -50,6 +50,9 @@ export function Desktop({
   const [mascotEnabled, setMascotEnabled] = useState(() => {
     try { return localStorage.getItem("super_bernard_mascot") !== "off"; } catch { /* ignore storage error */ return true; }
   });
+  const [mascotFrequency, setMascotFrequency] = useState(() => {
+    try { return parseInt(localStorage.getItem("super_bernard_mascot_freq") ?? "600000"); } catch { /* ignore */ return 600000; }
+  });
 
   // Icon Visibility State
   const [visibleIcons, setVisibleIcons] = useState(() => {
@@ -104,6 +107,11 @@ export function Desktop({
       try { localStorage.setItem("super_bernard_mascot", next ? "on" : "off"); } catch { /* ignore storage error */ }
       return next;
     });
+  }, []);
+
+  const updateMascotFrequency = useCallback((freq) => {
+    setMascotFrequency(freq);
+    try { localStorage.setItem("super_bernard_mascot_freq", freq.toString()); } catch { /* ignore */ }
   }, []);
 
   const toggleIconVisibility = useCallback((id) => {
@@ -372,6 +380,10 @@ export function Desktop({
                 onBackgroundChange={changeBackground}
                 rotation={rotation}
                 onRotationChange={updateRotation}
+                mascotEnabled={mascotEnabled}
+                onMascotToggle={toggleMascot}
+                mascotFrequency={mascotFrequency}
+                onMascotFrequencyChange={updateMascotFrequency}
                 onClose={() => closeWindow('deskSettings')} 
               />
             )}
@@ -454,7 +466,7 @@ export function Desktop({
         <Clock />
       </div>
 
-      <Mascot enabled={mascotEnabled} onDisable={toggleMascot} />
+      <Mascot enabled={mascotEnabled} frequency={mascotFrequency} onDisable={toggleMascot} />
     </div>
   );
 }

@@ -109,30 +109,50 @@ export function DesktopSettings({
         )}
 
         {activeTab === 'icons' && (
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col h-full gap-4">
             <div className="win95-groupbox flex-1 flex flex-col">
-              <span className="win95-groupbox-label">Icônes du bureau</span>
-              <p style={{ fontSize: "10px", color: "#444", marginBottom: "8px" }}>
-                Décochez les icônes que vous souhaitez masquer du bureau.
-              </p>
-              
-              <div className="win95-sunken flex-1 overflow-y-auto" style={{ background: "white" }}>
+              <span className="win95-groupbox-label">Éléments du bureau</span>
+              <div className="win95-sunken flex-1 p-2" style={{ background: "white", overflowY: "auto" }}>
                 {icons.map(ic => (
-                  <div 
-                    key={ic.id} 
-                    className="flex items-center gap-3 py-1 px-2 hover:bg-[#00008033] cursor-pointer" 
-                    onClick={() => onToggle(ic.id)}
-                  >
+                  <label key={ic.id} className="flex items-center gap-2 mb-1 cursor-pointer" style={{ fontSize: "11px" }}>
                     <input 
                       type="checkbox" 
-                      readOnly
-                      checked={visibleIcons.includes(ic.id)} 
-                      style={{ cursor: "pointer" }}
+                      checked={visibleIcons.includes(ic.id)}
+                      onChange={() => onToggle(ic.id)}
                     />
-                    <span style={{ fontSize: "18px" }}>{ic.icon}</span>
-                    <span style={{ fontSize: "11px" }}>{ic.label}</span>
-                  </div>
+                    {ic.icon} {ic.label}
+                  </label>
                 ))}
+              </div>
+            </div>
+
+            <div className="win95-groupbox flex-none">
+              <span className="win95-groupbox-label">Mascotte (Super Bernard)</span>
+              <div className="flex flex-col gap-2 p-1">
+                <label className="flex items-center gap-2 cursor-pointer" style={{ fontSize: "11px" }}>
+                  <input 
+                    type="checkbox" 
+                    checked={mascotEnabled}
+                    onChange={onMascotToggle}
+                  />
+                  Afficher la mascotte
+                </label>
+                
+                <div className="flex items-center gap-2" style={{ fontSize: "11px", opacity: mascotEnabled ? 1 : 0.5 }}>
+                  <label>Bavardage :</label>
+                  <select 
+                    disabled={!mascotEnabled}
+                    value={mascotFrequency}
+                    onChange={(e) => onMascotFrequencyChange(parseInt(e.target.value))}
+                    className="win95-sunken"
+                    style={{ fontSize: "10px", padding: "1px" }}
+                  >
+                    <option value={3600000}>Zen (1h)</option>
+                    <option value={600000}>Rare (10m)</option>
+                    <option value={120000}>Normal (2m)</option>
+                    <option value={30000}>Pipelette (30s)</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
