@@ -7,6 +7,7 @@ import { CollectifsWindow } from "./CollectifsWindow";
 import { LieuxWindow } from "./LieuxWindow";
 import { FestivalsWindow } from "./FestivalsWindow";
 import { DesktopSettings } from "./DesktopSettings";
+import { WALLPAPERS } from "../../constants/wallpapers";
 
 const GRID_X = 80;
 const GRID_Y = 90;
@@ -68,6 +69,15 @@ export function Desktop({
     return { type: 'color', value: '#008080' }; // Default Teal
   });
 
+  // Rotation State
+  const [rotation, setRotation] = useState(() => {
+    try {
+      const saved = localStorage.getItem("super_bernard_desktop_rotation");
+      if (saved) return JSON.parse(saved);
+    } catch { /* ignore */ }
+    return { enabled: false, interval: 60000 }; // 1 min by default
+  });
+
   // Context Menu State
   const [contextMenu, setContextMenu] = useState(null); // { x, y }
 
@@ -109,6 +119,27 @@ export function Desktop({
     try { localStorage.setItem("super_bernard_desktop_bg", JSON.stringify(bg)); } catch { /* ignore */ }
   }, []);
 
+  const updateRotation = useCallback((patch) => {
+    setRotation(prev => {
+      const next = { ...prev, ...patch };
+      try { localStorage.setItem("super_bernard_desktop_rotation", JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }, []);
+
+  // Wallpaper Rotation Effect
+  useEffect(() => {
+    if (!rotation.enabled) return;
+    
+    const interval = setInterval(() => {
+      const currentIndex = WALLPAPERS.findIndex(w => w.value === background.value);
+      const nextIndex = (currentIndex + 1) % WALLPAPERS.length;
+      changeBackground(WALLPAPERS[nextIndex]);
+    }, rotation.interval);
+    
+    return () => clearInterval(interval);
+  }, [rotation, background.value, changeBackground]);
+
   const activeWin = zOrders[zOrders.length - 1] ?? null;
 
   const focusWin = useCallback((id) => {
@@ -142,7 +173,7 @@ export function Desktop({
       if (["artistes", "collectifs", "lieux", "festivals"].includes(id)) { w = 700; h = 460; }
       if (id === "stats") { w = 340; h = 480; }
       if (id === "about") { w = 360; h = 280; }
-      if (id === "deskSettings") { w = 360; h = 440; }
+      if (id === "deskSettings") { w = 360; h = 480; }
       
       const nm = new Map(m);
       nm.set(id, {
@@ -339,6 +370,8 @@ export function Desktop({
                 onToggle={toggleIconVisibility} 
                 currentBackground={background}
                 onBackgroundChange={changeBackground}
+                rotation={rotation}
+                onRotationChange={updateRotation}
                 onClose={() => closeWindow('deskSettings')} 
               />
             )}

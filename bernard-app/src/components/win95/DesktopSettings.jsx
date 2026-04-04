@@ -1,13 +1,5 @@
 import React, { useState } from "react";
-
-const WALLPAPERS = [
-  { name: "(Aucun - Vert)", value: "#008080", type: "color" },
-  { name: "Bernard Bliss 🐗", value: "/wallpapers/boar_bliss.webp", type: "image", stretch: true },
-  { name: "Bernard Pixel 👾", value: "/wallpapers/boar_pixel.webp", type: "image", stretch: true },
-  { name: "Classic Bliss", value: "/wallpapers/bliss.webp", type: "image", stretch: true },
-  { name: "Windows Logo", value: "/wallpapers/win95.webp", type: "image", stretch: true },
-  { name: "Deep Black", value: "#000000", type: "color" },
-];
+import { WALLPAPERS } from "../../constants/wallpapers";
 
 export function DesktopSettings({ 
   icons, 
@@ -15,6 +7,8 @@ export function DesktopSettings({
   onToggle, 
   currentBackground, 
   onBackgroundChange, 
+  rotation,
+  onRotationChange,
   onClose 
 }) {
   const [activeTab, setActiveTab] = useState("bg"); // 'bg' or 'icons'
@@ -67,15 +61,15 @@ export function DesktopSettings({
 
             <div className="win95-groupbox flex-1 flex flex-col">
               <span className="win95-groupbox-label">Modèle</span>
-              <div className="win95-sunken flex-1 overflow-y-auto" style={{ background: "white" }}>
+              <div className="win95-sunken flex-1 overflow-y-auto" style={{ background: "white", minHeight: "80px" }}>
                 {WALLPAPERS.map(wp => (
                   <div 
                     key={wp.name}
                     className="px-2 py-1 cursor-pointer"
                     style={{ 
                       fontSize: "11px", 
-                      background: currentBackground.name === wp.name || currentBackground.value === wp.value ? "#000080" : "transparent",
-                      color: currentBackground.name === wp.name || currentBackground.value === wp.value ? "white" : "black"
+                      background: currentBackground.value === wp.value ? "#000080" : "transparent",
+                      color: currentBackground.value === wp.value ? "white" : "black"
                     }}
                     onClick={() => onBackgroundChange(wp)}
                   >
@@ -83,8 +77,32 @@ export function DesktopSettings({
                   </div>
                 ))}
               </div>
-              <div className="mt-2 text-[10px] text-gray-600">
-                L'arrière-plan sera appliqué immédiatement à votre bureau.
+              
+              <div className="mt-4 flex flex-col gap-2">
+                <label className="flex items-center gap-2 cursor-pointer" style={{ fontSize: "11px" }}>
+                  <input 
+                    type="checkbox" 
+                    checked={rotation.enabled}
+                    onChange={(e) => onRotationChange({ enabled: e.target.checked })}
+                  />
+                  Rotation automatique
+                </label>
+                
+                <div className="flex items-center gap-2" style={{ fontSize: "11px", opacity: rotation.enabled ? 1 : 0.5 }}>
+                  <label>Fréquence :</label>
+                  <select 
+                    disabled={!rotation.enabled}
+                    value={rotation.interval}
+                    onChange={(e) => onRotationChange({ interval: parseInt(e.target.value) })}
+                    className="win95-sunken"
+                    style={{ fontSize: "10px", padding: "1px" }}
+                  >
+                    <option value={60000}>1 minute</option>
+                    <option value={300000}>5 minutes</option>
+                    <option value={900000}>15 minutes</option>
+                    <option value={3600000}>1 heure</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
