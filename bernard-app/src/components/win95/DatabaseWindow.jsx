@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 // Helper components that were originally in App.jsx
 function Win95Button({ children, onClick, active, disabled, style, type = "button" }) {
@@ -65,6 +65,14 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeStyle, setActiveStyle] = useState(null)
   const [selectedArtist, setSelectedArtist] = useState(null)
+  
+  // Menu states
+  const [openMenu, setOpenMenu] = useState(null)
+  const [showFilters, setShowFilters] = useState(true)
+  const [compactMode, setCompactMode] = useState(false)
+  const [showAvatars, setShowAvatars] = useState(false)
+  
+  const searchInputRef = useRef(null)
   
   // Modals
   const [detailOpen, setDetailOpen] = useState(false)
@@ -135,14 +143,73 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
 
   const getFavStr = a => a.note_perso || a.notePerso || ''
 
+  const exportCSV = () => {
+    setOpenMenu(null);
+    let csv = "Nom,Zone,Style,Sous-Genre,Performance\n";
+    artists.forEach(a => {
+      csv += `"${(a.nom_artiste || a.nom || '').replace(/"/g, '""')}","${(a.zone || '').replace(/"/g, '""')}","${(a.style || '').replace(/"/g, '""')}","${(a.sous_genre || '').replace(/"/g, '""')}","${(a.type_performance || '').replace(/"/g, '""')}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = "export_artistes.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleRefresh = () => {
+    setOpenMenu(null);
+    if (onRefresh) onRefresh();
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#c0c0c0' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#c0c0c0', position: 'relative' }}>
+      {openMenu && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 199 }} onMouseDown={() => setOpenMenu(null)} />
+      )}
       
       {/* Menu bar */}
-      <div className="win95-menubar">
-        {['Fichier', 'Edition', 'Affichage', 'Recherche', 'Aide'].map(m => (
-          <span key={m} className="win95-menu-item">{m}</span>
+      <div className="win95-menubar" style={{ position: 'relative', zIndex: 200 }}>
+        {['Fichier', 'Affichage', 'Recherche'].map(m => (
+          <div
+            key={m}
+            className={`win95-menu-item ${openMenu === m ? 'active' : ''}`}
+            onClick={() => setOpenMenu(openMenu === m ? null : m)}
+            style={{ fontSize: "10px", padding: '2px 6px', background: openMenu === m ? '#000080' : 'transparent', color: openMenu === m ? '#fff' : '#000' }}
+          >
+            {m}
+          </div>
         ))}
+
+        {/* Dropdowns */}
+        {openMenu === 'Fichier' && (
+          <div style={{ position: 'absolute', top: '100%', left: '2px', background: '#c0c0c0', padding: '2px', ...raised, display: 'flex', flexDirection: 'column', minWidth: '150px' }}>
+            <div className="win95-menu-item" style={{ fontSize: '11px', padding: '3px 12px' }} onClick={() => { setOpenMenu(null); handleAdd(); }}>Nouveau profil</div>
+            <div className="win95-menu-item" style={{ fontSize: '11px', padding: '3px 12px' }} onClick={exportCSV}>Exporter (CSV)</div>
+          </div>
+        )}
+        {openMenu === 'Affichage' && (
+          <div style={{ position: 'absolute', top: '100%', left: '44px', background: '#c0c0c0', padding: '2px', ...raised, display: 'flex', flexDirection: 'column', minWidth: '180px' }}>
+            <div className="win95-menu-item" style={{ fontSize: '11px', padding: '3px 12px' }} onClick={handleRefresh}>Actualiser (F5)</div>
+            <div style={{ borderBottom: '1px solid #808080', borderTop: '1px solid #fff', margin: '2px 0' }} />
+            <div className="win95-menu-item" style={{ fontSize: '11px', padding: '3px 12px', display: 'flex', gap: '6px' }} onClick={() => { setShowFilters(!showFilters); setOpenMenu(null); }}>
+              <span style={{ width: '12px' }}>{showFilters ? '✔' : ''}</span> Afficher la sidebar Filtres
+            </div>
+            <div className="win95-menu-item" style={{ fontSize: '11px', padding: '3px 12px', display: 'flex', gap: '6px' }} onClick={() => { setCompactMode(!compactMode); setOpenMenu(null); }}>
+              <span style={{ width: '12px' }}>{compactMode ? '✔' : ''}</span> Mode Listage Compact
+            </div>
+            <div className="win95-menu-item" style={{ fontSize: '11px', padding: '3px 12px', display: 'flex', gap: '6px' }} onClick={() => { setShowAvatars(!showAvatars); setOpenMenu(null); }}>
+              <span style={{ width: '12px' }}>{showAvatars ? '✔' : ''}</span> Afficher les avatars
+            </div>
+          </div>
+        )}
+        {openMenu === 'Recherche' && (
+          <div style={{ position: 'absolute', top: '100%', left: '96px', background: '#c0c0c0', padding: '2px', ...raised, display: 'flex', flexDirection: 'column', minWidth: '150px' }}>
+            <div className="win95-menu-item" style={{ fontSize: '11px', padding: '3px 12px' }} onClick={() => { setOpenMenu(null); searchInputRef.current?.focus(); }}>Trouver (Focus)</div>
+            <div className="win95-menu-item" style={{ fontSize: '11px', padding: '3px 12px' }} onClick={() => { setOpenMenu(null); setSearchQuery(''); setActiveStyle(null); }}>Vider la recherche</div>
+          </div>
+        )}
       </div>
 
       {/* Toolbar */}
@@ -153,6 +220,7 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
         <div style={{ width: '1px', background: '#808080', height: '20px', margin: '0 4px', borderRight: '1px solid #fff' }} />
         <span style={{ ...winFont, color: '#444' }}>Rechercher :</span>
         <input
+          ref={searchInputRef}
           type="text"
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
@@ -168,61 +236,63 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
       {/* Main content area */}
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {/* Left panel — filters */}
-        <div style={{ width: '200px', borderRight: '2px solid', borderColor: '#808080 #dfdfdf #dfdfdf #808080', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-          <div style={{ ...winFont, fontWeight: 'bold', padding: '4px 6px', background: '#000080', color: '#fff', fontSize: '10px' }}>
-            INDEX / STYLES
-          </div>
-          <div style={{ overflowY: 'auto', flex: 1, background: '#fff', ...sunken, margin: '2px' }}>
-            <div
-              onClick={() => setActiveStyle(null)}
-              style={{
-                ...winFont, padding: '2px 8px', cursor: 'default', display: 'flex', justifyContent: 'space-between',
-                background: !activeStyle ? '#000080' : 'transparent', color: !activeStyle ? '#fff' : '#000',
-              }}
-            >
-              <span>Tous les styles</span>
-              <span style={{ color: !activeStyle ? '#adf' : '#666' }}>[{artists.length}]</span>
+        {showFilters && (
+          <div style={{ width: '200px', borderRight: '2px solid', borderColor: '#808080 #dfdfdf #dfdfdf #808080', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+            <div style={{ ...winFont, fontWeight: 'bold', padding: '4px 6px', background: '#000080', color: '#fff', fontSize: '10px' }}>
+              INDEX / STYLES
             </div>
-            {mainStyles.map(style => {
-              const count = artists.filter(a => {
-                const s = (a.style || '').toLowerCase()
-                const g = (a.sous_genre || '').toLowerCase()
-                const searchRaw = style.toLowerCase()
-                return s.includes(searchRaw) || g.includes(searchRaw)
-              }).length
-
-              const isActive = activeStyle === style
-              return (
-                <div
-                  key={style}
-                  onClick={() => setActiveStyle(style)}
-                  style={{
-                    ...winFont, padding: '2px 8px', cursor: 'default', display: 'flex', justifyContent: 'space-between',
-                    background: isActive ? '#000080' : 'transparent', color: isActive ? '#fff' : '#000',
-                  }}
-                >
-                  <span>{style}</span>
-                  <span style={{ color: isActive ? '#adf' : '#666' }}>[{count}]</span>
-                </div>
-              )
-            })}
-          </div>
-
-          <div style={{ borderTop: '2px solid', borderColor: '#808080 #dfdfdf #dfdfdf #808080', padding: '6px', background: '#c0c0c0' }}>
-            <div style={{ ...sunken, background: '#fff', padding: '6px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', paddingBottom: '6px', borderBottom: '1px solid #ddd' }}>
-                <img src="/sanglier.png" style={{ width: 40, height: 40, objectFit: 'cover', flexShrink: 0, ...raised }} alt="logo" />
-                <div>
-                  <div style={{ ...winFont, fontSize: '10px', fontWeight: 'bold', color: '#000080', lineHeight: 1.2 }}>Super Bernard</div>
-                  <div style={{ ...winFont, fontSize: '10px', fontWeight: 'bold', color: '#000080', lineHeight: 1.2 }}>3000</div>
-                </div>
+            <div style={{ overflowY: 'auto', flex: 1, background: '#fff', ...sunken, margin: '2px' }}>
+              <div
+                onClick={() => setActiveStyle(null)}
+                style={{
+                  ...winFont, padding: '2px 8px', cursor: 'default', display: 'flex', justifyContent: 'space-between',
+                  background: !activeStyle ? '#000080' : 'transparent', color: !activeStyle ? '#fff' : '#000',
+                }}
+              >
+                <span>Tous les styles</span>
+                <span style={{ color: !activeStyle ? '#adf' : '#666' }}>[{artists.length}]</span>
               </div>
-              <div style={{ ...winFont, fontSize: '10px' }}>Artistes : <b>{artists.length}</b></div>
-              <div style={{ ...winFont, fontSize: '10px' }}>Styles : <b>{mainStyles.length}</b></div>
-              <div style={{ ...winFont, fontSize: '10px' }}>Zones : <b>{uniqueZones}</b></div>
+              {mainStyles.map(style => {
+                const count = artists.filter(a => {
+                  const s = (a.style || '').toLowerCase()
+                  const g = (a.sous_genre || '').toLowerCase()
+                  const searchRaw = style.toLowerCase()
+                  return s.includes(searchRaw) || g.includes(searchRaw)
+                }).length
+
+                const isActive = activeStyle === style
+                return (
+                  <div
+                    key={style}
+                    onClick={() => setActiveStyle(style)}
+                    style={{
+                      ...winFont, padding: '2px 8px', cursor: 'default', display: 'flex', justifyContent: 'space-between',
+                      background: isActive ? '#000080' : 'transparent', color: isActive ? '#fff' : '#000',
+                    }}
+                  >
+                    <span>{style}</span>
+                    <span style={{ color: isActive ? '#adf' : '#666' }}>[{count}]</span>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div style={{ borderTop: '2px solid', borderColor: '#808080 #dfdfdf #dfdfdf #808080', padding: '6px', background: '#c0c0c0' }}>
+              <div style={{ ...sunken, background: '#fff', padding: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', paddingBottom: '6px', borderBottom: '1px solid #ddd' }}>
+                  <img src="/sanglier.png" style={{ width: 40, height: 40, objectFit: 'cover', flexShrink: 0, ...raised }} alt="logo" />
+                  <div>
+                    <div style={{ ...winFont, fontSize: '10px', fontWeight: 'bold', color: '#000080', lineHeight: 1.2 }}>Super Bernard</div>
+                    <div style={{ ...winFont, fontSize: '10px', fontWeight: 'bold', color: '#000080', lineHeight: 1.2 }}>3000</div>
+                  </div>
+                </div>
+                <div style={{ ...winFont, fontSize: '10px' }}>Artistes : <b>{artists.length}</b></div>
+                <div style={{ ...winFont, fontSize: '10px' }}>Styles : <b>{mainStyles.length}</b></div>
+                <div style={{ ...winFont, fontSize: '10px' }}>Zones : <b>{uniqueZones}</b></div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Right panel — list view */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, padding: 2 }}>
@@ -256,24 +326,27 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
                           borderBottom: '1px solid #e0e0e0',
                         }}
                       >
-                        <div style={{ ...winFont, padding: '2px 6px', borderRight: '1px dotted #ccc', fontWeight: favStr ? 'bold' : 'normal', display: 'flex', alignItems: 'center', gap: '4px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                          <span style={{ fontSize: '10px' }}>▶</span>
-                          {artist.nom_artiste || artist.nom || ''}
+                        <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', fontWeight: favStr ? 'bold' : 'normal', display: 'flex', alignItems: 'center', gap: compactMode ? '4px' : '10px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                          {showAvatars && (
+                            <img src={artist.photo || artist.image_url || "/sanglier.png"} style={{ width: compactMode ? 14 : 48, height: compactMode ? 14 : 48, objectFit: 'cover', flexShrink: 0, background: '#ccc', border: compactMode ? 'none' : '1px solid #808080' }} alt="" />
+                          )}
+                          {!showAvatars && <span style={{ fontSize: compactMode ? '10px' : '12px' }}>▶</span>}
+                          <span style={{ fontSize: compactMode ? '11px' : '13px' }}>{artist.nom_artiste || artist.nom || ''}</span>
                           {favStr && <span style={{ color: isSelected ? '#ffff00' : '#cc0000', fontSize: '10px', marginLeft: 2 }}>{favStr}</span>}
                         </div>
-                        <div style={{ ...winFont, padding: '2px 6px', borderRight: '1px dotted #ccc', fontSize: '10px', color: isSelected ? '#ddd' : '#555', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                        <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', fontSize: compactMode ? '10px' : '12px', color: isSelected ? '#ddd' : '#555', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center' }}>
                           {artist.zone || ''}
                         </div>
-                        <div style={{ ...winFont, padding: '2px 6px', borderRight: '1px dotted #ccc', fontSize: '10px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                        <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', fontSize: compactMode ? '10px' : '12px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center' }}>
                           {artist.style || ''}
                         </div>
-                        <div style={{ ...winFont, padding: '2px 6px', borderRight: '1px dotted #ccc', fontSize: '10px', color: isSelected ? '#cce' : '#666', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                        <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', fontSize: compactMode ? '10px' : '12px', color: isSelected ? '#cce' : '#666', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center' }}>
                           {artist.sous_genre || artist.sousGenre || ''}
                         </div>
-                        <div style={{ ...winFont, padding: '2px 6px', borderRight: '1px dotted #ccc', fontSize: '10px', color: isSelected ? '#ddd' : '#555', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                        <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', fontSize: compactMode ? '10px' : '12px', color: isSelected ? '#ddd' : '#555', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center' }}>
                           {artist.type_performance || artist.typePerf || '—'}
                         </div>
-                        <div style={{ padding: '2px 4px', display: 'flex', gap: '2px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <div style={{ padding: compactMode ? '2px 4px' : '10px 8px', display: 'flex', gap: '4px', alignItems: 'center', flexWrap: 'wrap' }}>
                           {artist.soundcloud && <a href={artist.soundcloud} target="_blank" onClick={e => e.stopPropagation()} style={{ ...raised, ...winFont, background: '#c0c0c0', color: '#000', textDecoration: 'none', padding: '1px 3px', fontSize: '9px', fontWeight: 'bold' }}>SC</a>}
                           {artist.instagram && <a href={artist.instagram} target="_blank" onClick={e => e.stopPropagation()} style={{ ...raised, ...winFont, background: '#c0c0c0', color: '#000', textDecoration: 'none', padding: '1px 3px', fontSize: '9px', fontWeight: 'bold' }}>IG</a>}
                         </div>
