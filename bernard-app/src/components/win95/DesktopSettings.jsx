@@ -1,0 +1,165 @@
+import React, { useState } from "react";
+
+const WALLPAPERS = [
+  { name: "(Aucun - Vert)", value: "#008080", type: "color" },
+  { name: "Clouds", value: "https://win98icons.alexmeub.com/images/wallpaper/clouds.png", type: "image", stretch: true },
+  { name: "Blue Lace", value: "https://win98icons.alexmeub.com/images/wallpaper/blue-lace.png", type: "image", stretch: false },
+  { name: "Red Blocks", value: "https://win98icons.alexmeub.com/images/wallpaper/red-blocks.png", type: "image", stretch: false },
+  { name: "Windows Logo", value: "https://win98icons.alexmeub.com/images/wallpaper/windows-logo.png", type: "image", stretch: false },
+  { name: "Black", value: "#000000", type: "color" },
+];
+
+export function DesktopSettings({ 
+  icons, 
+  visibleIcons, 
+  onToggle, 
+  currentBackground, 
+  onBackgroundChange, 
+  onClose 
+}) {
+  const [activeTab, setActiveTab] = useState("bg"); // 'bg' or 'icons'
+
+  return (
+    <div style={{ background: "#c0c0c0", height: "100%", display: "flex", flexDirection: "column", fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' }}>
+      {/* Tabs */}
+      <div style={{ display: "flex", padding: "6px 6px 0 6px", gap: "2px" }}>
+        <div 
+          className={`win95-tab ${activeTab === 'bg' ? 'active' : ''}`}
+          onClick={() => setActiveTab('bg')}
+        >
+          Arrière-plan
+        </div>
+        <div 
+          className={`win95-tab ${activeTab === 'icons' ? 'active' : ''}`}
+          onClick={() => setActiveTab('icons')}
+        >
+          Icônes
+        </div>
+      </div>
+
+      {/* Tab Content Container */}
+      <div className="win95-tab-content flex-1 flex flex-col p-4" style={{ marginTop: "-2px" }}>
+        
+        {activeTab === 'bg' && (
+          <div className="flex flex-col h-full gap-4">
+            {/* Monitor Preview */}
+            <div className="flex justify-center">
+              <div style={{
+                width: "140px",
+                height: "110px",
+                background: "#333",
+                padding: "8px",
+                borderRadius: "4px",
+                boxShadow: "inset 2px 2px 5px black, 2px 2px 0 #fff"
+              }}>
+                <div style={{
+                  width: "100%",
+                  height: "100%",
+                  backgroundColor: "#008080",
+                  backgroundImage: currentBackground.type === 'image' ? `url(${currentBackground.value})` : 'none',
+                  backgroundSize: currentBackground.stretch ? 'cover' : 'auto',
+                  backgroundRepeat: currentBackground.stretch ? 'no-repeat' : 'repeat',
+                  backgroundPosition: 'center',
+                  border: "2px solid #000"
+                }} />
+              </div>
+            </div>
+
+            <div className="win95-groupbox flex-1 flex flex-col">
+              <span className="win95-groupbox-label">Modèle</span>
+              <div className="win95-sunken flex-1 overflow-y-auto" style={{ background: "white" }}>
+                {WALLPAPERS.map(wp => (
+                  <div 
+                    key={wp.name}
+                    className="px-2 py-1 cursor-pointer"
+                    style={{ 
+                      fontSize: "11px", 
+                      background: currentBackground.name === wp.name || currentBackground.value === wp.value ? "#000080" : "transparent",
+                      color: currentBackground.name === wp.name || currentBackground.value === wp.value ? "white" : "black"
+                    }}
+                    onClick={() => onBackgroundChange(wp)}
+                  >
+                    {wp.name}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2 text-[10px] text-gray-600">
+                L'arrière-plan sera appliqué immédiatement à votre bureau.
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'icons' && (
+          <div className="flex flex-col h-full">
+            <div className="win95-groupbox flex-1 flex flex-col">
+              <span className="win95-groupbox-label">Icônes du bureau</span>
+              <p style={{ fontSize: "10px", color: "#444", marginBottom: "8px" }}>
+                Décochez les icônes que vous souhaitez masquer du bureau.
+              </p>
+              
+              <div className="win95-sunken flex-1 overflow-y-auto" style={{ background: "white" }}>
+                {icons.map(ic => (
+                  <div 
+                    key={ic.id} 
+                    className="flex items-center gap-3 py-1 px-2 hover:bg-[#00008033] cursor-pointer" 
+                    onClick={() => onToggle(ic.id)}
+                  >
+                    <input 
+                      type="checkbox" 
+                      readOnly
+                      checked={visibleIcons.includes(ic.id)} 
+                      style={{ cursor: "pointer" }}
+                    />
+                    <span style={{ fontSize: "18px" }}>{ic.icon}</span>
+                    <span style={{ fontSize: "11px" }}>{ic.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* Footer Buttons */}
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", padding: "12px" }}>
+        <button className="win95-btn win95-btn-primary" style={{ width: "80px" }} onClick={onClose}>OK</button>
+        <button className="win95-btn" style={{ width: "80px" }} onClick={onClose}>Annuler</button>
+        <button className="win95-btn" style={{ width: "80px" }} onClick={onClose}>Appliquer</button>
+      </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .win95-tab {
+          padding: 4px 12px;
+          background: #c0c0c0;
+          border: 1px solid #fff;
+          border-bottom: none;
+          border-radius: 4px 4px 0 0;
+          font-size: 11px;
+          cursor: pointer;
+          position: relative;
+          z-index: 1;
+        }
+        .win95-tab.active {
+          padding-top: 6px;
+          margin-top: -2px;
+          z-index: 3;
+          font-weight: bold;
+        }
+        .win95-tab:not(.active) {
+          border-color: #fff #808080 #808080 #fff;
+          transform: translateY(2px);
+          z-index: 1;
+        }
+        .win95-tab-content {
+          border: 1px solid #fff;
+          border-color: #fff #808080 #808080 #fff;
+          box-shadow: 1px 1px 0 #000;
+          background: #c0c0c0;
+          z-index: 2;
+        }
+      ` }} />
+    </div>
+  );
+}

@@ -6,6 +6,10 @@ import { DatabaseWindow } from "./DatabaseWindow";
 import { CollectifsWindow } from "./CollectifsWindow";
 import { LieuxWindow } from "./LieuxWindow";
 import { FestivalsWindow } from "./FestivalsWindow";
+import { DesktopSettings } from "./DesktopSettings";
+
+const GRID_X = 80;
+const GRID_Y = 90;
 
 const DESKTOP_ICONS = [
   { id: "artistes", label: "Base Artistes", icon: "🗃" },
@@ -46,12 +50,63 @@ export function Desktop({
     try { return localStorage.getItem("super_bernard_mascot") !== "off"; } catch { /* ignore storage error */ return true; }
   });
 
+  // Icon Visibility State
+  const [visibleIcons, setVisibleIcons] = useState(() => {
+    try {
+      const saved = localStorage.getItem("super_bernard_visible_icons");
+      if (saved) return JSON.parse(saved);
+    } catch { /* ignore */ }
+    return DESKTOP_ICONS.map(ic => ic.id); // all visible by default
+  });
+
+  // Background State
+  const [background, setBackground] = useState(() => {
+    try {
+      const saved = localStorage.getItem("super_bernard_desktop_bg");
+      if (saved) return JSON.parse(saved);
+    } catch { /* ignore */ }
+    return { type: 'color', value: '#008080' }; // Default Teal
+  });
+
+  // Context Menu State
+  const [contextMenu, setContextMenu] = useState(null); // { x, y }
+
+  // Icon Dragging State
+  const [iconPositions, setIconPositions] = useState(() => {
+    try {
+      const saved = localStorage.getItem("super_bernard_desktop_icons");
+      if (saved) return JSON.parse(saved);
+    } catch { /* ignore */ }
+    
+    // Default initial positions (stacked vertically on the left) aligned to GRID
+    const pos = {};
+    DESKTOP_ICONS.forEach((ic, i) => {
+      pos[ic.id] = { x: 0, y: i * GRID_Y };
+    });
+    return pos;
+  });
+
+  const [dragging, setDragging] = useState(null); // { id, startX, startY, iconX, iconY }
+
   const toggleMascot = useCallback(() => {
     setMascotEnabled(v => {
       const next = !v;
       try { localStorage.setItem("super_bernard_mascot", next ? "on" : "off"); } catch { /* ignore storage error */ }
       return next;
     });
+  }, []);
+
+  const toggleIconVisibility = useCallback((id) => {
+    setVisibleIcons(prev => {
+      const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
+      try { localStorage.setItem("super_bernard_visible_icons", JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }, []);
+
+  const changeBackground = useCallback((bg) => {
+    setBackground(bg);
+    try { localStorage.setItem("super_bernard_desktop_bg", JSON.stringify(bg)); } catch { /* ignore */ }
   }, []);
 
   const activeWin = zOrders[zOrders.length - 1] ?? null;
@@ -87,6 +142,7 @@ export function Desktop({
       if (["artistes", "collectifs", "lieux", "festivals"].includes(id)) { w = 700; h = 460; }
       if (id === "stats") { w = 340; h = 480; }
       if (id === "about") { w = 360; h = 280; }
+      if (id === "deskSettings") { w = 360; h = 440; }
       
       const nm = new Map(m);
       nm.set(id, {
@@ -125,6 +181,61 @@ export function Desktop({
     });
   }, []);
 
+  const handleIconMouseDown = (e, id) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setSelectedIcon(id);
+    setStartMenuOpen(false);
+    setContextMenu(null);
+    
+    const pos = iconPositions[id];
+    setDragging({
+      id,
+      startX: e.clientX,
+      startY: e.clientY,
+      iconX: pos.x,
+      iconY: pos.y
+    });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - dragging.startX;
+    const dy = e.clientY - dragging.startY;
+    
+    setDragging(prev => ({
+      ...prev,
+      iconX: dragging.iconX + dx,
+      iconY: dragging.iconY + dy,
+      startX: e.clientX,
+      startY: e.clientY
+    }));
+  };
+
+  const handleMouseUp = () => {
+    if (!dragging) return;
+    
+    // Strict snap to grid based on icon dimensions
+    const finalX = Math.max(0, Math.round(dragging.iconX / GRID_X) * GRID_X);
+    const finalY = Math.max(0, Math.round(dragging.iconY / GRID_Y) * GRID_Y);
+    
+    const newPositions = {
+      ...iconPositions,
+      [dragging.id]: { x: finalX, y: finalY }
+    };
+    
+    setIconPositions(newPositions);
+    localStorage.setItem("super_bernard_desktop_icons", JSON.stringify(newPositions));
+    setDragging(null);
+  };
+
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+    setStartMenuOpen(false);
+    setSelectedIcon(null);
+  };
+
   function winTitle(id) {
     if (id === "artistes") return "Base de données artistes";
     if (id === "collectifs") return "Base de données collectifs";
@@ -132,6 +243,7 @@ export function Desktop({
     if (id === "festivals") return "Base de données festivals";
     if (id === "stats") return "Statistiques — Super Bernard 3000";
     if (id === "about") return "À propos de Super Bernard 3000";
+    if (id === "deskSettings") return "Propriétés du Bureau";
     if (id.startsWith("cat:")) return `📁 Catégorie : ${id.slice(4)}`;
     return id;
   }
@@ -143,34 +255,64 @@ export function Desktop({
     if (id === "festivals") return "🎪";
     if (id === "stats") return "📊";
     if (id === "about") return "ℹ";
+    if (id === "deskSettings") return "🎨";
     if (id.startsWith("cat:")) return "📄";
     return "📄";
   }
 
+  const getDesktopBackgroundStyle = () => {
+    if (background.type === 'color') return { background: background.value };
+    return {
+      backgroundImage: `url(${background.value})`,
+      backgroundSize: background.stretch ? 'cover' : 'auto',
+      backgroundRepeat: background.stretch ? 'no-repeat' : 'repeat',
+      backgroundPosition: 'center',
+      backgroundColor: '#008080'
+    };
+  };
+
   return (
     <div
       className="flex flex-col"
-      style={{ height: "100vh", background: "#008080", overflow: "hidden", position: "relative" }}
-      onClick={() => { setStartMenuOpen(false); setSelectedIcon(null); }}
+      style={{ 
+        height: "100vh", 
+        overflow: "hidden", 
+        position: "relative",
+        ...getDesktopBackgroundStyle()
+      }}
+      onClick={() => { setStartMenuOpen(false); setSelectedIcon(null); setContextMenu(null); }}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onContextMenu={handleContextMenu}
     >
       {/* Desktop area */}
       <div ref={desktopRef} className="flex-1 relative overflow-hidden">
         {/* Desktop icons */}
-        <div className="absolute flex flex-col gap-3" style={{ top: 12, left: 8 }}>
-          {DESKTOP_ICONS.map(ic => (
+        {DESKTOP_ICONS.filter(ic => visibleIcons.includes(ic.id)).map(ic => {
+          const pos = dragging?.id === ic.id ? { x: dragging.iconX, y: dragging.iconY } : iconPositions[ic.id];
+          return (
             <div
               key={ic.id}
               className={`win95-icon ${selectedIcon === ic.id ? "selected" : ""}`}
-              onClick={e => { e.stopPropagation(); setSelectedIcon(ic.id); setStartMenuOpen(false); }}
+              style={{
+                position: "absolute",
+                left: pos?.x ?? 0,
+                top: pos?.y ?? 0,
+                zIndex: dragging?.id === ic.id ? 1000 : 1,
+                cursor: "default"
+              }}
+              onMouseDown={e => handleIconMouseDown(e, ic.id)}
               onDoubleClick={() => openWindow(ic.id)}
+              onContextMenu={e => e.stopPropagation()} // Prevent desktop context menu on icons
             >
-              <div style={{ fontSize: "32px" }}>{ic.icon}</div>
-              <div className="win95-icon-label" style={{ color: "white", textShadow: "1px 1px 2px black" }}>
+              <div style={{ fontSize: "32px", pointerEvents: "none" }}>{ic.icon}</div>
+              <div className="win95-icon-label" style={{ color: "white", textShadow: "1px 1px 2px black", pointerEvents: "none" }}>
                 {ic.label}
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
 
         {/* Windows */}
         {[...windows.values()].filter(w => !w.minimized).map(win => (
@@ -190,11 +332,50 @@ export function Desktop({
             {win.id === "collectifs" && <CollectifsWindow collectifs={collectifs} loading={loading} saveCollectifs={(data, action) => saveData('collectifs', data, action)} onRefresh={onRefresh} />}
             {win.id === "lieux" && <LieuxWindow lieux={lieux} loading={loading} saveLieux={(data, action) => saveData('lieux', data, action)} onRefresh={onRefresh} />}
             {win.id === "festivals" && <FestivalsWindow festivals={festivals} loading={loading} saveFestivals={(data, action) => saveData('festivals', data, action)} onRefresh={onRefresh} />}
+            {win.id === "deskSettings" && (
+              <DesktopSettings 
+                icons={DESKTOP_ICONS} 
+                visibleIcons={visibleIcons} 
+                onToggle={toggleIconVisibility} 
+                currentBackground={background}
+                onBackgroundChange={changeBackground}
+                onClose={() => closeWindow('deskSettings')} 
+              />
+            )}
             {win.id === "stats" && renderStatsContent({ onClose: () => closeWindow("stats") })}
             {win.id === "about" && renderAboutContent({ onClose: () => closeWindow("about") })}
             {win.id.startsWith("cat:") && renderCategoryContent(win.id.slice(4))}
           </DraggableResizableWindow>
         ))}
+
+        {/* Context Menu */}
+        {contextMenu && (
+          <div
+            className="win95-window"
+            style={{
+              position: "fixed",
+              left: contextMenu.x,
+              top: contextMenu.y,
+              zIndex: 10000,
+              width: "160px",
+              padding: "2px",
+              boxShadow: "2px 2px 5px rgba(0,0,0,0.4)"
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="win95-menu-item" style={{ fontSize: "11px", padding: "4px 10px", opacity: 0.5 }}>Actualiser</div>
+            <div className="win95-separator" style={{ margin: "2px 0" }} />
+            <div className="win95-menu-item" style={{ fontSize: "11px", padding: "4px 10px", opacity: 0.5 }}>Nouveau</div>
+            <div className="win95-separator" style={{ margin: "2px 0" }} />
+            <div
+              className="win95-menu-item"
+              style={{ fontSize: "11px", padding: "4px 10px", fontWeight: "bold" }}
+              onClick={() => { openWindow("deskSettings"); setContextMenu(null); }}
+            >
+              Propriétés
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Start menu */}

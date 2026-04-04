@@ -22,19 +22,19 @@ export function StartMenu({ onOpen, onClose, mascotEnabled, onToggleMascot, arti
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
   }, [artists]);
 
-  const [catOpen, setCatOpen] = useState(false);
+  const [activeSub, setActiveSub] = useState(null); // 'cat' or 'databases'
 
   return (
     <div
       className="win95-window"
       style={{
         position: "fixed", bottom: "30px", left: "2px", zIndex: 100,
-        width: catOpen ? "480px" : "220px",
+        width: "220px",
         userSelect: "none",
         display: "flex",
         flexDirection: "row",
       }}
-      onMouseLeave={() => setCatOpen(false)}
+      onMouseLeave={() => setActiveSub(null)}
     >
       {/* Sidebar with logo */}
       <div style={{
@@ -49,86 +49,116 @@ export function StartMenu({ onOpen, onClose, mascotEnabled, onToggleMascot, arti
 
       {/* Main items */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        {/* Top separator */}
-        <div className="win95-separator" style={{ margin: "0" }} />
-
         {/* Programmes > Catégories */}
         <div
-          className="win95-menu-item flex items-center justify-between"
-          style={{ fontSize: "11px", padding: "3px 8px", fontWeight: "bold" }}
-          onMouseEnter={() => setCatOpen(true)}
+          className={`win95-menu-item flex items-center justify-between ${activeSub === 'databases' ? 'active' : ''}`}
+          style={{ fontSize: "11px", padding: "4px 8px", fontWeight: "bold" }}
+          onMouseEnter={() => setActiveSub('databases')}
         >
-          <span>📁 Catégories artistiques</span>
+          <span className="flex items-center gap-2">🗄 Bases de données</span>
           <span style={{ fontSize: "8px" }}>▶</span>
         </div>
 
-        <div className="win95-separator" style={{ margin: "0" }} />
+        <div
+          className={`win95-menu-item flex items-center justify-between ${activeSub === 'cat' ? 'active' : ''}`}
+          style={{ fontSize: "11px", padding: "4px 8px" }}
+          onMouseEnter={() => setActiveSub('cat')}
+        >
+          <span className="flex items-center gap-2">📁 Catégories musicales</span>
+          <span style={{ fontSize: "8px" }}>▶</span>
+        </div>
+
+        <div className="win95-separator" style={{ margin: "2px 0" }} />
 
         <div
           className="win95-menu-item"
-          style={{ fontSize: "11px", padding: "3px 8px" }}
-          onClick={() => { onOpen("search"); onClose(); }}
-        >
-          🗃 Base de données artistes
-        </div>
-        <div
-          className="win95-menu-item"
-          style={{ fontSize: "11px", padding: "3px 8px" }}
+          style={{ fontSize: "11px", padding: "4px 8px" }}
           onClick={() => { onOpen("stats"); onClose(); }}
         >
           📊 Statistiques scène
         </div>
         <div
           className="win95-menu-item"
-          style={{ fontSize: "11px", padding: "3px 8px" }}
+          style={{ fontSize: "11px", padding: "4px 8px" }}
           onClick={() => { onOpen("about"); onClose(); }}
         >
           ℹ À propos
         </div>
 
-        <div className="win95-separator" style={{ margin: "0" }} />
+        <div className="win95-separator" style={{ margin: "2px 0" }} />
 
         <div
-          className="win95-menu-item flex items-center gap-2"
-          style={{ fontSize: "11px", padding: "3px 8px" }}
+          className="win95-menu-item"
+          style={{ fontSize: "11px", padding: "4px 8px" }}
           onClick={() => { onToggleMascot(); }}
         >
           <span style={{ fontSize: "10px", width: "12px", display: "inline-block" }}>{mascotEnabled ? "✔" : ""}</span>
           🐗 Mascotte Sanglier
         </div>
 
-        <div className="win95-separator" style={{ margin: "0" }} />
+        <div
+          className="win95-menu-item"
+          style={{ fontSize: "11px", padding: "4px 8px" }}
+          onClick={() => { onOpen("deskSettings"); onClose(); }}
+        >
+          🎨 Personnaliser le bureau
+        </div>
+
+        <div className="win95-separator" style={{ margin: "2px 0" }} />
 
         <div
           className="win95-menu-item"
-          style={{ fontSize: "11px", padding: "3px 8px", color: "#800000" }}
+          style={{ fontSize: "11px", padding: "4px 8px", color: "#800000" }}
           onClick={onClose}
         >
           ✕ Fermer le menu
         </div>
       </div>
 
-      {/* Submenu: categories */}
-      {catOpen && (
+      {/* Submenu: Databases */}
+      {activeSub === 'databases' && (
         <div
           className="win95-window"
           style={{
-            position: "absolute", left: "100%", bottom: "0",
+            position: "absolute", left: "100%", top: "0",
+            width: "200px", zIndex: 110,
+          }}
+        >
+          <div className="win95-titlebar" style={{ fontSize: "10px" }}>🗄 Sélectionner une base</div>
+          {[
+            { id: 'artistes', name: 'Base Artistes', icon: '🗃' },
+            { id: 'collectifs', name: 'Base Collectifs', icon: '👥' },
+            { id: 'lieux', name: 'Base Lieux', icon: '🏢' },
+            { id: 'festivals', name: 'Base Festivals', icon: '🎪' },
+          ].map(db => (
+            <div
+              key={db.id}
+              className="win95-menu-item"
+              style={{ fontSize: "11px", padding: "4px 8px" }}
+              onClick={() => { onOpen(db.id); onClose(); }}
+            >
+              {db.icon} {db.name}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Submenu: categories */}
+      {activeSub === 'cat' && (
+        <div
+          className="win95-window"
+          style={{
+            position: "absolute", left: "100%", top: "0",
             width: "240px", maxHeight: "400px", overflowY: "auto", zIndex: 110,
           }}
         >
-          <div className="win95-titlebar" style={{ fontSize: "10px" }}>
-            📁 Catégories
-          </div>
+          <div className="win95-titlebar" style={{ fontSize: "10px" }}>📁 Catégories</div>
           {categories.map(([cat, count]) => (
             <div
               key={cat}
               className="win95-menu-item flex items-center justify-between"
-              style={{ fontSize: "10px", padding: "2px 8px" }}
-              onClick={() => {
-                onOpen(`cat:${cat}`);
-                onClose();
-              }}
+              style={{ fontSize: "10px", padding: "3px 8px" }}
+              onClick={() => { onOpen(`cat:${cat}`); onClose(); }}
             >
               <span>{styleIcon(cat)} {cat}</span>
               <span className="win95-badge win95-badge-blue" style={{ fontSize: "8px" }}>{count}</span>
