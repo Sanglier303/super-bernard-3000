@@ -9,6 +9,10 @@ export function DesktopSettings({
   onBackgroundChange, 
   rotation,
   onRotationChange,
+  mascotEnabled,
+  onMascotToggle,
+  mascotFrequency,
+  onMascotFrequencyChange,
   onClose 
 }) {
   const [activeTab, setActiveTab] = useState("bg"); // 'bg' or 'icons'
