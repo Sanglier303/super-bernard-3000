@@ -70,7 +70,7 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
   const [openMenu, setOpenMenu] = useState(null)
   const [showFilters, setShowFilters] = useState(true)
   const [compactMode, setCompactMode] = useState(false)
-  const [showAvatars, setShowAvatars] = useState(false)
+  const [showAvatars, setShowAvatars] = useState(true)
   
   const searchInputRef = useRef(null)
   
