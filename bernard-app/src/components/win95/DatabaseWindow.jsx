@@ -141,7 +141,6 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
     setDetailOpen(true)
   }
 
-  const getFavStr = a => a.note_perso || a.notePerso || ''
 
   const exportCSV = () => {
     setOpenMenu(null);
@@ -311,7 +310,6 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
                     <div style={{ ...winFont, padding: '20px', color: '#808080', textAlign: 'center' }}>Aucun résultat trouvé.</div>
                   ) : filteredArtists.map((artist, idx) => {
                     const isSelected = selectedArtist?._id === artist._id;
-                    const favStr = getFavStr(artist)
                     return (
                       <div
                         key={artist._id}
@@ -326,13 +324,12 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
                           borderBottom: '1px solid #e0e0e0',
                         }}
                       >
-                        <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', fontWeight: favStr ? 'bold' : 'normal', display: 'flex', alignItems: 'center', gap: compactMode ? '4px' : '10px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                        <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', display: 'flex', alignItems: 'center', gap: compactMode ? '4px' : '10px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                           {showAvatars && (
                             <img src={artist.photo || artist.image_url || "/sanglier.png"} style={{ width: compactMode ? 14 : 48, height: compactMode ? 14 : 48, objectFit: 'cover', flexShrink: 0, background: '#ccc', border: compactMode ? 'none' : '1px solid #808080' }} alt="" />
                           )}
                           {!showAvatars && <span style={{ fontSize: compactMode ? '10px' : '12px' }}>▶</span>}
                           <span style={{ fontSize: compactMode ? '11px' : '13px' }}>{artist.nom_artiste || artist.nom || ''}</span>
-                          {favStr && <span style={{ color: isSelected ? '#ffff00' : '#cc0000', fontSize: '10px', marginLeft: 2 }}>{favStr}</span>}
                         </div>
                         <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', fontSize: compactMode ? '10px' : '12px', color: isSelected ? '#ddd' : '#555', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center' }}>
                           {artist.zone || ''}

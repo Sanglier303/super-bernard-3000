@@ -194,5 +194,5 @@ if (existsSync(distPath)) {
 
 app.listen(PORT, () => {
   console.log(`\n  🐗 Bernard API server running at http://localhost:${PORT}`);
-  console.log(`  📄 CSV file: ${CSV_PATH}\n`);
+  console.log(`  📁 Dossier données : ${DATA_DIR}\n`);
 });
