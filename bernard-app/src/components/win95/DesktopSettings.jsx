@@ -2,11 +2,11 @@ import React, { useState } from "react";
 
 const WALLPAPERS = [
   { name: "(Aucun - Vert)", value: "#008080", type: "color" },
-  { name: "Clouds", value: "https://win98icons.alexmeub.com/images/wallpaper/clouds.png", type: "image", stretch: true },
-  { name: "Blue Lace", value: "https://win98icons.alexmeub.com/images/wallpaper/blue-lace.png", type: "image", stretch: false },
-  { name: "Red Blocks", value: "https://win98icons.alexmeub.com/images/wallpaper/red-blocks.png", type: "image", stretch: false },
-  { name: "Windows Logo", value: "https://win98icons.alexmeub.com/images/wallpaper/windows-logo.png", type: "image", stretch: false },
-  { name: "Black", value: "#000000", type: "color" },
+  { name: "Bernard Bliss 🐗", value: "/wallpapers/boar_bliss.webp", type: "image", stretch: true },
+  { name: "Bernard Pixel 👾", value: "/wallpapers/boar_pixel.webp", type: "image", stretch: true },
+  { name: "Classic Bliss", value: "/wallpapers/bliss.webp", type: "image", stretch: true },
+  { name: "Windows Logo", value: "/wallpapers/win95.webp", type: "image", stretch: true },
+  { name: "Deep Black", value: "#000000", type: "color" },
 ];
 
 export function DesktopSettings({ 
