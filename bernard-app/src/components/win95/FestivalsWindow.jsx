@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 
 function Win95Button({ children, onClick, active, disabled, style, type = "button" }) {
   const winFont = { fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', fontSize: '11px' };
@@ -35,7 +35,7 @@ function TitleBar({ title, onClose }) {
 }
 
 export function FestivalsWindow({ festivals, loading, saveFestivals, onRefresh }) {
-  const [filtered, setFiltered] = useState([]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeStyle, setActiveStyle] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -51,16 +51,16 @@ export function FestivalsWindow({ festivals, loading, saveFestivals, onRefresh }
   const raised = { boxShadow: 'inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf' };
   const sunken = { boxShadow: 'inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf' };
 
-  useEffect(() => {
+  const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    setFiltered(festivals.filter(f => {
+    return festivals.filter(f => {
       const n = (f.nom || '').toLowerCase();
       const s = (f.style || '').toLowerCase();
       const l = (f.lieu || '').toLowerCase();
       const matchSearch = !q || n.includes(q) || s.includes(q) || l.includes(q);
       const matchStyle = !activeStyle || s.includes(activeStyle.toLowerCase());
       return matchSearch && matchStyle;
-    }));
+    });
   }, [festivals, searchQuery, activeStyle]);
 
   const allStyles = Array.from(new Set(festivals.flatMap(f => (f.style || '').split(/[/,]/).map(x => x.trim()).filter(Boolean)))).sort();

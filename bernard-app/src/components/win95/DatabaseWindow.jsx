@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 
 // Helper components that were originally in App.jsx
 function Win95Button({ children, onClick, active, disabled, style, type = "button" }) {
@@ -59,7 +59,6 @@ function TitleBar({ title, onClose }) {
 }
 
 export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
-  const [filteredArtists, setFilteredArtists] = useState([])
   
   // Layout states
   const [searchQuery, setSearchQuery] = useState('')
@@ -104,9 +103,9 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
   }
 
   // ─── Filters & Parsings ───
-  useEffect(() => {
+  const filteredArtists = useMemo(() => {
     const q = searchQuery.toLowerCase()
-    const result = artists.filter(artist => {
+    return artists.filter(artist => {
       const n = (artist.nom_artiste || artist.nom || '').toLowerCase()
       const s = (artist.style || '').toLowerCase()
       const g = (artist.sous_genre || '').toLowerCase()
@@ -114,7 +113,6 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
       const matchStyle = !activeStyle || s.includes(activeStyle.toLowerCase()) || g.includes(activeStyle.toLowerCase())
       return matchSearch && matchStyle
     })
-    setFilteredArtists(result)
   }, [artists, searchQuery, activeStyle])
 
   // Extract all styles for Sidebar

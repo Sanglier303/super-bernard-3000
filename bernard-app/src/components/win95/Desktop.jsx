@@ -43,13 +43,13 @@ export function Desktop({
   const [startMenuOpen, setStartMenuOpen] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(null);
   const [mascotEnabled, setMascotEnabled] = useState(() => {
-    try { return localStorage.getItem("super_bernard_mascot") !== "off"; } catch { return true; }
+    try { return localStorage.getItem("super_bernard_mascot") !== "off"; } catch { /* ignore storage error */ return true; }
   });
 
   const toggleMascot = useCallback(() => {
     setMascotEnabled(v => {
       const next = !v;
-      try { localStorage.setItem("super_bernard_mascot", next ? "on" : "off"); } catch {}
+      try { localStorage.setItem("super_bernard_mascot", next ? "on" : "off"); } catch { /* ignore storage error */ }
       return next;
     });
   }, []);

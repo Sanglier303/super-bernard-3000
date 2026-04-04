@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { readFileSync, writeFileSync, copyFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, copyFileSync, existsSync, unlinkSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -102,7 +102,7 @@ function writeData(type, headers, data) {
   const tmpPath = p + '.tmp';
   writeFileSync(tmpPath, csv, 'utf-8');
   copyFileSync(tmpPath, p);
-  try { writeFileSync(tmpPath, '', 'utf-8'); } catch (_) { }
+  try { if (existsSync(tmpPath)) unlinkSync(tmpPath); } catch { /* ignore cleanup errors */ }
 }
 
 // ─── Global history log (in-memory, max 20 entries) ───────────
@@ -119,25 +119,7 @@ function logAction(type, label) {
 
 // ─── API routes ────────────────────────────────────────────────
 
-app.get('/api/artists', (req, res) => {
-  try {
-    const { headers, data } = readData('artistes');
-    res.json({ headers, artists: data });
-  } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
-  }
-});
 
-app.post('/api/artists', (req, res) => {
-  try {
-    const { headers, artists, actionLabel } = req.body;
-    writeData('artistes', headers, artists);
-    logAction('update_artistes', actionLabel || 'Mise à jour des artistes');
-    res.json({ status: 'ok' });
-  } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
-  }
-});
 
 app.get('/api/data/:type', (req, res) => {
   try {
@@ -167,20 +149,6 @@ app.get('/api/history', (req, res) => {
   res.json({ history: actionHistory });
 });
 
-app.post('/api/restore-backup', (_req, res) => {
-  try {
-    const backupPath = CSV_PATH.replace('.csv', '.backup.csv');
-    if (!existsSync(backupPath)) {
-      return res.status(404).json({ error: 'Aucun backup disponible' });
-    }
-    copyFileSync(backupPath, CSV_PATH);
-    logAction('restore', 'Restauration depuis backup');
-    const { headers, artists } = readArtists();
-    res.json({ status: 'ok', headers, artists, count: artists.length });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 // ─── Serve the React build (production) or just run alongside Vite dev ─
 

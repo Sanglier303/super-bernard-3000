@@ -44,22 +44,16 @@ export function Mascot({ enabled, onDisable }) {
 
   useEffect(() => {
     if (!enabled) {
-      setVisible(false);
-      setBubbleVisible(false);
       isFirstRef.current = true;
       return;
     }
     const first = setTimeout(() => handleShow(), 5000);
     const interval = setInterval(() => handleShow(), 40000);
-    return () => { clearTimeout(first); clearInterval(interval); };
+    return () => {
+      clearTimeout(first);
+      clearInterval(interval);
+    };
   }, [enabled, handleShow]);
-
-  useEffect(() => {
-    if (!enabled) {
-      setVisible(false);
-      setBubbleVisible(false);
-    }
-  }, [enabled]);
 
   const handleDismiss = () => {
     setDismissed(true);

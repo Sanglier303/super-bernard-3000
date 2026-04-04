@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Desktop } from './components/win95/Desktop'
 
 // --- OS Additional Window Contents ---
@@ -74,7 +74,6 @@ function CategoryContent({ category, artists }) {
 }
 
 export default function App() {
-  const [headers, setHeaders] = useState([])
   const [artists, setArtists] = useState([])
   const [collectifs, setCollectifs] = useState([])
   const [lieux, setLieux] = useState([])
@@ -82,21 +81,26 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState(null)
 
+  const showToast = useCallback((message) => {
+    setToast(message)
+    setTimeout(() => setToast(null), 3000)
+  }, [])
+
   // ─── Data API ───
-  const fetchGeneric = async (type, setter) => {
+  const fetchGeneric = useCallback(async (type, setter) => {
     try {
       const res = await fetch('/api/data/' + type)
       const data = await res.json()
       setter(data.data || [])
       return data.data
-    } catch (err) {
-      showToast('Erreur : ' + err.message)
+    } catch {
+      showToast('Erreur de chargement')
       return []
     }
-  }
+  }, [showToast])
 
   const loadAll = useCallback(async () => {
-    setLoading(true)
+    // Note: loading is true by default
     await Promise.all([
       fetchGeneric('artistes', setArtists),
       fetchGeneric('collectifs', setCollectifs),
@@ -104,18 +108,18 @@ export default function App() {
       fetchGeneric('festivals', setFestivals)
     ]);
     setLoading(false)
-  }, [])
+  }, [fetchGeneric])
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadAll() }, [loadAll])
-
-  const showToast = (message) => {
-    setToast(message)
-    setTimeout(() => setToast(null), 3000)
-  }
 
   const saveData = async (type, updatedData, actionLabel) => {
     try {
-      const clean = updatedData.map(({ _id, ...rest }) => rest)
+      const clean = updatedData.map(item => {
+        const { _id, ...rest } = item;
+        void _id; // Mark as used
+        return rest;
+      })
       const res = await fetch('/api/data/' + type, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -128,7 +132,7 @@ export default function App() {
       } else {
         showToast('Erreur serveur.')
       }
-    } catch (err) {
+    } catch {
       showToast('Erreur réseau.')
     }
   }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 
 function Win95Button({ children, onClick, active, disabled, style, type = "button" }) {
   const winFont = { fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', fontSize: '11px' };
@@ -37,7 +37,7 @@ function TitleBar({ title, onClose }) {
 const TYPE_LABELS = ['Club', 'Bar', 'Salle de concert', 'Espace culturel', 'Squat', 'Plein air', 'Autre'];
 
 export function LieuxWindow({ lieux, loading, saveLieux, onRefresh }) {
-  const [filtered, setFiltered] = useState([]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeType, setActiveType] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -53,16 +53,16 @@ export function LieuxWindow({ lieux, loading, saveLieux, onRefresh }) {
   const raised = { boxShadow: 'inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf' };
   const sunken = { boxShadow: 'inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf' };
 
-  useEffect(() => {
+  const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    setFiltered(lieux.filter(l => {
+    return lieux.filter(l => {
       const n = (l.nom || '').toLowerCase();
       const t = (l.type || '').toLowerCase();
       const a = (l.adresse || '').toLowerCase();
       const matchSearch = !q || n.includes(q) || t.includes(q) || a.includes(q);
       const matchType = !activeType || t.includes(activeType.toLowerCase());
       return matchSearch && matchType;
-    }));
+    });
   }, [lieux, searchQuery, activeType]);
 
   const allTypes = Array.from(new Set(lieux.map(l => l.type).filter(Boolean))).sort();

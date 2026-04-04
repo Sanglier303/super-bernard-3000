@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 
 function Win95Button({ children, onClick, active, disabled, style, type = "button" }) {
   const winFont = { fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', fontSize: '11px' };
@@ -35,7 +35,7 @@ function TitleBar({ title, onClose }) {
 }
 
 export function CollectifsWindow({ collectifs, loading, saveCollectifs, onRefresh }) {
-  const [filtered, setFiltered] = useState([]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeStyle, setActiveStyle] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -44,7 +44,7 @@ export function CollectifsWindow({ collectifs, loading, saveCollectifs, onRefres
   const [compactMode, setCompactMode] = useState(false);
   const [showAvatars, setShowAvatars] = useState(true);
   const searchInputRef = useRef(null);
-  const [detailOpen, setDetailOpen] = useState(false);
+
   const [editingId, setEditingId] = useState(null);
   const [addEditOpen, setAddEditOpen] = useState(false);
 
@@ -52,15 +52,15 @@ export function CollectifsWindow({ collectifs, loading, saveCollectifs, onRefres
   const raised = { boxShadow: 'inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf' };
   const sunken = { boxShadow: 'inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf' };
 
-  useEffect(() => {
+  const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    setFiltered(collectifs.filter(c => {
+    return collectifs.filter(c => {
       const n = (c.nom || '').toLowerCase();
       const s = (c.style || '').toLowerCase();
       const matchSearch = !q || n.includes(q) || s.includes(q);
       const matchStyle = !activeStyle || s.includes(activeStyle.toLowerCase());
       return matchSearch && matchStyle;
-    }));
+    });
   }, [collectifs, searchQuery, activeStyle]);
 
   const allStyles = Array.from(new Set(collectifs.flatMap(c => (c.style || '').split(/[/,]/).map(x => x.trim()).filter(Boolean)))).sort();
@@ -71,7 +71,7 @@ export function CollectifsWindow({ collectifs, loading, saveCollectifs, onRefres
     if (!selected) return;
     if (!window.confirm(`Supprimer "${selected.nom}" ?`)) return;
     const updated = collectifs.filter(c => c._id !== selected._id);
-    setSelected(null); setDetailOpen(false);
+    setSelected(null);
     await saveCollectifs(updated, 'Suppression collectif');
   };
 
@@ -189,7 +189,7 @@ export function CollectifsWindow({ collectifs, loading, saveCollectifs, onRefres
               ) : filtered.map((c, idx) => {
                 const isSel = selected?._id === c._id;
                 return (
-                  <div key={c._id} onDoubleClick={() => { setSelected(c); setDetailOpen(true); }} onClick={() => setSelected(c)}
+                  <div key={c._id} onDoubleClick={() => { setSelected(c); handleEdit(); }} onClick={() => setSelected(c)}
                     style={{ display: 'grid', gridTemplateColumns: GRID, background: isSel ? '#000080' : idx % 2 === 0 ? '#fff' : '#f4f4f4', color: isSel ? '#fff' : '#000', cursor: 'default', borderBottom: '1px solid #e0e0e0' }}>
                     <div style={{ ...winFont, padding: COL, borderRight: '1px dotted #ccc', display: 'flex', alignItems: 'center', gap: compactMode ? '4px' : '10px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                       {showAvatars && <img src={c.photo || '/sanglier.png'} style={{ width: AVATAR_SIZE, height: AVATAR_SIZE, objectFit: 'cover', flexShrink: 0, background: '#ccc', border: compactMode ? 'none' : '1px solid #808080' }} alt="" />}
@@ -231,7 +231,7 @@ export function CollectifsWindow({ collectifs, loading, saveCollectifs, onRefres
               } else {
                 updated = [...collectifs, { _id: Date.now() + Math.random().toString(), ...data }];
               }
-              setAddEditOpen(false); setDetailOpen(false);
+              setAddEditOpen(false);
               saveCollectifs(updated, editingId ? `Édition : ${data.nom}` : `Ajout : ${data.nom}`);
             }} style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '6px', alignItems: 'center' }}>
