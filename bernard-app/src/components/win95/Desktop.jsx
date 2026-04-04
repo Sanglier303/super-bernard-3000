@@ -6,6 +6,9 @@ import { DatabaseWindow } from "./DatabaseWindow";
 import { CollectifsWindow } from "./CollectifsWindow";
 import { LieuxWindow } from "./LieuxWindow";
 import { FestivalsWindow } from "./FestivalsWindow";
+import { ProjectManager } from "./ProjectManager";
+import { CalendarWindow } from "./CalendarWindow";
+import { NotePadWindow } from "./NotePadWindow";
 import { DesktopSettings } from "./DesktopSettings";
 import { WALLPAPERS } from "../../constants/wallpapers";
 
@@ -17,6 +20,9 @@ const DESKTOP_ICONS = [
   { id: "collectifs", label: "Base Collectifs", icon: "👥" },
   { id: "lieux", label: "Base Lieux", icon: "🏢" },
   { id: "festivals", label: "Base Festivals", icon: "🎪" },
+  { id: "projets", label: "Mes Projets", icon: "📋" },
+  { id: "calendar", label: "Calendrier", icon: "📅" },
+  { id: "notepad", label: "Bloc-notes", icon: "📝" },
   { id: "stats", label: "Statistiques", icon: "📊" },
   { id: "about", label: "À propos", icon: "ℹ" },
 ];
@@ -31,7 +37,7 @@ function Clock() {
 }
 
 export function Desktop({ 
-  artists, collectifs, lieux, festivals, onRefresh, saveData, loading,
+  artists, collectifs, lieux, festivals, projects, notes, onRefresh, saveData, loading,
   renderStatsContent, 
   renderAboutContent,
   renderCategoryContent
@@ -178,7 +184,9 @@ export function Desktop({
       const offset = m.size * 24;
       let w = 500, h = 360;
       
-      if (["artistes", "collectifs", "lieux", "festivals"].includes(id)) { w = 700; h = 460; }
+      if (["artistes", "collectifs", "lieux", "festivals", "projets"].includes(id)) { w = 700; h = 460; }
+      if (id === "calendar") { w = 540; h = 420; }
+      if (id === "notepad") { w = 480; h = 400; }
       if (id === "stats") { w = 340; h = 480; }
       if (id === "about") { w = 360; h = 280; }
       if (id === "deskSettings") { w = 360; h = 480; }
@@ -280,6 +288,9 @@ export function Desktop({
     if (id === "collectifs") return "Base de données collectifs";
     if (id === "lieux") return "Base de données lieux";
     if (id === "festivals") return "Base de données festivals";
+    if (id === "projets") return "Gestionnaire de Projets";
+    if (id === "calendar") return "Calendrier Bernard";
+    if (id === "notepad") return "Bloc-notes (Espace de Travail)";
     if (id === "stats") return "Statistiques — Super Bernard 3000";
     if (id === "about") return "À propos de Super Bernard 3000";
     if (id === "deskSettings") return "Propriétés du Bureau";
@@ -292,6 +303,9 @@ export function Desktop({
     if (id === "collectifs") return "👥";
     if (id === "lieux") return "🏢";
     if (id === "festivals") return "🎪";
+    if (id === "projets") return "📋";
+    if (id === "calendar") return "📅";
+    if (id === "notepad") return "📝";
     if (id === "stats") return "📊";
     if (id === "about") return "ℹ";
     if (id === "deskSettings") return "🎨";
@@ -371,6 +385,9 @@ export function Desktop({
             {win.id === "collectifs" && <CollectifsWindow collectifs={collectifs} loading={loading} saveCollectifs={(data, action) => saveData('collectifs', data, action)} onRefresh={onRefresh} />}
             {win.id === "lieux" && <LieuxWindow lieux={lieux} loading={loading} saveLieux={(data, action) => saveData('lieux', data, action)} onRefresh={onRefresh} />}
             {win.id === "festivals" && <FestivalsWindow festivals={festivals} loading={loading} saveFestivals={(data, action) => saveData('festivals', data, action)} onRefresh={onRefresh} />}
+            {win.id === "projets" && <ProjectManager projects={projects} loading={loading} saveProjects={(data, action) => saveData('projets', data, action)} onRefresh={onRefresh} />}
+            {win.id === "calendar" && <CalendarWindow projects={projects} />}
+            {win.id === "notepad" && <NotePadWindow notes={notes} onSave={(data, action) => saveData('notes', data, action)} />}
             {win.id === "deskSettings" && (
               <DesktopSettings 
                 icons={DESKTOP_ICONS} 

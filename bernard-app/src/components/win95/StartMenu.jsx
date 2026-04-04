@@ -22,7 +22,7 @@ export function StartMenu({ onOpen, onClose, mascotEnabled, onToggleMascot, arti
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
   }, [artists]);
 
-  const [activeSub, setActiveSub] = useState(null); // 'cat' or 'databases'
+  const [activeSub, setActiveSub] = useState(null); // 'cat', 'databases' or 'workspace'
 
   return (
     <div
@@ -49,6 +49,18 @@ export function StartMenu({ onOpen, onClose, mascotEnabled, onToggleMascot, arti
 
       {/* Main items */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        {/* Espace de Travail */}
+        <div
+          className={`win95-menu-item flex items-center justify-between ${activeSub === 'workspace' ? 'active' : ''}`}
+          style={{ fontSize: "11px", padding: "4px 8px", fontWeight: "bold", background: activeSub === 'workspace' ? "#000080" : "transparent", color: activeSub === 'workspace' ? "white" : "black" }}
+          onMouseEnter={() => setActiveSub('workspace')}
+        >
+          <span className="flex items-center gap-2">🚀 Espace de Travail</span>
+          <span style={{ fontSize: "8px" }}>▶</span>
+        </div>
+
+        <div className="win95-separator" style={{ margin: "2px 0" }} />
+
         {/* Programmes > Catégories */}
         <div
           className={`win95-menu-item flex items-center justify-between ${activeSub === 'databases' ? 'active' : ''}`}
@@ -114,6 +126,33 @@ export function StartMenu({ onOpen, onClose, mascotEnabled, onToggleMascot, arti
           ✕ Fermer le menu
         </div>
       </div>
+
+      {/* Submenu: Workspace */}
+      {activeSub === 'workspace' && (
+        <div
+          className="win95-window"
+          style={{
+            position: "absolute", left: "100%", top: "0",
+            width: "180px", zIndex: 110,
+          }}
+        >
+          <div className="win95-titlebar" style={{ fontSize: "10px" }}>🚀 Productivité</div>
+          {[
+            { id: 'projets', name: 'Mes Projets', icon: '📋' },
+            { id: 'calendar', name: 'Calendrier', icon: '📅' },
+            { id: 'notepad', name: 'Bloc-notes', icon: '📝' },
+          ].map(app => (
+            <div
+              key={app.id}
+              className="win95-menu-item"
+              style={{ fontSize: "11px", padding: "4px 8px" }}
+              onClick={() => { onOpen(app.id); onClose(); }}
+            >
+              {app.icon} {app.name}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Submenu: Databases */}
       {activeSub === 'databases' && (

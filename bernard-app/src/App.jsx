@@ -78,6 +78,8 @@ export default function App() {
   const [collectifs, setCollectifs] = useState([])
   const [lieux, setLieux] = useState([])
   const [festivals, setFestivals] = useState([])
+  const [projects, setProjects] = useState([])
+  const [notes, setNotes] = useState([])
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState(null)
 
@@ -105,7 +107,9 @@ export default function App() {
       fetchGeneric('artistes', setArtists),
       fetchGeneric('collectifs', setCollectifs),
       fetchGeneric('lieux', setLieux),
-      fetchGeneric('festivals', setFestivals)
+      fetchGeneric('festivals', setFestivals),
+      fetchGeneric('projets', setProjects),
+      fetchGeneric('notes', setNotes)
     ]);
     setLoading(false)
   }, [fetchGeneric])
@@ -144,6 +148,8 @@ export default function App() {
         collectifs={collectifs}
         lieux={lieux}
         festivals={festivals}
+        projects={projects}
+        notes={notes}
         onRefresh={loadAll}
         saveData={saveData}
         loading={loading}
