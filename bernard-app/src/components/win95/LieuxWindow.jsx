@@ -56,6 +56,7 @@ export function LieuxWindow({ lieux, loading, saveLieux, onRefresh }) {
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return lieux.filter(l => {
+      if (l.archive === "true") return false;
       const n = (l.nom || '').toLowerCase();
       const t = (l.type || '').toLowerCase();
       const a = (l.adresse || '').toLowerCase();
@@ -71,10 +72,10 @@ export function LieuxWindow({ lieux, loading, saveLieux, onRefresh }) {
   const handleEdit = () => { if (!selected) return; setEditingId(selected._id); setAddEditOpen(true); };
   const handleDelete = async () => {
     if (!selected) return;
-    if (!window.confirm(`Supprimer "${selected.nom}" ?`)) return;
-    const updated = lieux.filter(l => l._id !== selected._id);
+    if (!window.confirm(`Mettre "${selected.nom}" à la corbeille ?`)) return;
+    const updated = lieux.map(l => l._id === selected._id ? { ...l, archive: "true" } : l);
     setSelected(null);
-    await saveLieux(updated, 'Suppression lieu');
+    await saveLieux(updated, `Archivage lieu : ${selected.nom}`);
   };
 
   const exportCSV = () => {

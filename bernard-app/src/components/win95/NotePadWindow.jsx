@@ -6,13 +6,31 @@ export function NotePadWindow({ notes = [], onSave }) {
   const [titre, setTitre] = useState(notes[0]?.titre || "Notes Sans Titre");
 
   const handleSave = () => {
-    const updatedNotes = [{ 
-      _id: notes[0]?._id || Date.now().toString(),
-      titre, 
+    const updatedNotes = notes.map(n => n._id === notes[0]?._id ? {
+      ...n,
+      titre,
       contenu: content,
       date_derniere_modif: new Date().toLocaleString()
-    }];
+    } : n);
+    
+    // If it's a new note
+    if (!notes.find(n => n._id === (notes[0]?._id || 'none'))) {
+      updatedNotes.push({
+        _id: Date.now().toString(),
+        titre,
+        contenu: content,
+        date_derniere_modif: new Date().toLocaleString()
+      });
+    }
+
     onSave(updatedNotes, "Mise à jour Bloc-notes");
+  };
+
+  const handleArchive = () => {
+    if (!notes[0]) return;
+    if (!window.confirm("Mettre cette note à la corbeille ?")) return;
+    const updated = notes.map(n => n._id === notes[0]._id ? { ...n, archive: "true" } : n);
+    onSave(updated, `Archivage note : ${titre}`);
   };
 
   return (
@@ -20,6 +38,7 @@ export function NotePadWindow({ notes = [], onSave }) {
       {/* Menu bar */}
       <div className="win95-menubar">
         <div className="win95-menu-item" style={{ fontSize: '10px' }} onClick={handleSave}>💾 Enregistrer</div>
+        <div className="win95-menu-item" style={{ fontSize: '10px' }} onClick={handleArchive}>🗑️ Corbeille</div>
         <div className="win95-menu-item" style={{ fontSize: '10px' }}>📁 Ouvrir</div>
       </div>
 

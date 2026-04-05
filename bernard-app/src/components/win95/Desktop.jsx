@@ -10,6 +10,11 @@ import { ProjectManager } from "./ProjectManager";
 import { CalendarWindow } from "./CalendarWindow";
 import { NotePadWindow } from "./NotePadWindow";
 import { DesktopSettings } from "./DesktopSettings";
+import { StickyNotesManager } from "./StickyNotes";
+import { UniversalSearch } from "./UniversalSearch";
+import { StickyManager } from "./StickyManager";
+import { TodoWindow } from "./TodoWindow";
+import { TrashWindow } from "./TrashWindow";
 import { WALLPAPERS } from "../../constants/wallpapers";
 
 const GRID_X = 80;
@@ -23,7 +28,11 @@ const DESKTOP_ICONS = [
   { id: "projets", label: "Mes Projets", icon: "📋" },
   { id: "calendar", label: "Calendrier", icon: "📅" },
   { id: "notepad", label: "Bloc-notes", icon: "📝" },
+  { id: "new_sticky", label: "Nouveau Post-it", icon: "📌" },
+  { id: "sticky_manager", label: "Gestionnaire Post-it", icon: "📋📌" },
+  { id: "todo", label: "Ma Todo", icon: "✅" },
   { id: "stats", label: "Statistiques", icon: "📊" },
+  { id: "trash", label: "Corbeille", icon: "🗑️" },
   { id: "about", label: "À propos", icon: "ℹ" },
 ];
 
@@ -37,21 +46,57 @@ function Clock() {
 }
 
 export function Desktop({ 
-  artists, collectifs, lieux, festivals, projects, notes, onRefresh, saveData, loading,
+  artists, collectifs, lieux, festivals, projects, notes, todos, onRefresh, saveData, loading,
   renderStatsContent, 
   renderAboutContent,
   renderCategoryContent
 }) {
   const desktopRef = useRef(null);
+  const stickiesRef = useRef(null);
   
   const [windows, setWindows] = useState(() => {
+    try {
+      const savedStr = localStorage.getItem("super_bernard_windows");
+      if (savedStr) {
+        const arr = JSON.parse(savedStr);
+        if (Array.isArray(arr) && arr.length > 0) {
+          const m = new Map();
+          arr.forEach(w => m.set(w.id, w));
+          return m;
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to load window state:", err);
+    }
     const m = new Map();
     m.set("artistes", { id: "artistes", x: 100, y: 30, w: 700, h: 460, maximized: false, minimized: false });
     return m;
   });
   
-  const [zOrders, setZOrders] = useState(["artistes"]);
+  const [zOrders, setZOrders] = useState(() => {
+    try {
+      const saved = localStorage.getItem("super_bernard_zorders");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return ["artistes"];
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("super_bernard_windows", JSON.stringify(Array.from(windows.values())));
+    } catch {}
+  }, [windows]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("super_bernard_zorders", JSON.stringify(zOrders));
+    } catch {}
+  }, [zOrders]);
   const [startMenuOpen, setStartMenuOpen] = useState(false);
+  const [searchMenuOpen, setSearchMenuOpen] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(null);
   const [mascotEnabled, setMascotEnabled] = useState(() => {
     try { return localStorage.getItem("super_bernard_mascot") !== "off"; } catch { /* ignore storage error */ return true; }
@@ -64,9 +109,18 @@ export function Desktop({
   const [visibleIcons, setVisibleIcons] = useState(() => {
     try {
       const saved = localStorage.getItem("super_bernard_visible_icons");
-      if (saved) return JSON.parse(saved);
-    } catch { /* ignore */ }
-    return DESKTOP_ICONS.map(ic => ic.id); // all visible by default
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Ensure ALL default icons are included if they are not in the saved list (migration)
+        // unless they were explicitly removed? Actually, usually we want new icons to appear.
+        const defaultIds = DESKTOP_ICONS.map(ic => ic.id);
+        const next = [...new Set([...parsed, ...defaultIds])];
+        return next;
+      }
+    } catch (err) {
+      console.warn("Failed to load visible icons:", err);
+    }
+    return DESKTOP_ICONS.map(ic => ic.id); // Default if failed
   });
 
   // Background State
@@ -90,19 +144,84 @@ export function Desktop({
   // Context Menu State
   const [contextMenu, setContextMenu] = useState(null); // { x, y }
 
-  // Icon Dragging State
-  const [iconPositions, setIconPositions] = useState(() => {
+  // --- Sticky Notes State ---
+  const [stickies, setStickies] = useState(() => {
     try {
-      const saved = localStorage.getItem("super_bernard_desktop_icons");
+      const saved = localStorage.getItem("super_bernard_stickies");
       if (saved) return JSON.parse(saved);
     } catch { /* ignore */ }
+    return [];
+  });
+  
+  const maxZ = useRef(20);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("super_bernard_stickies", JSON.stringify(stickies));
+    } catch { /* ignore */ }
+  }, [stickies]);
+
+  const addSticky = useCallback(() => {
+    maxZ.current += 1;
+    const newZ = maxZ.current;
+    setStickies(prev => [...prev, { 
+      id: Date.now().toString(), 
+      x: window.innerWidth / 2 - 80 + (Math.random() * 40 - 20), 
+      y: window.innerHeight / 2 - 80 + (Math.random() * 40 - 20), 
+      text: "",
+      zIndex: newZ,
+      isVisible: true
+    }]);
+  }, []);
+
+  const toggleStickyVisibility = useCallback((id, forceShow = null) => {
+    setStickies(prev => prev.map(n => 
+      n.id === id ? { ...n, isVisible: forceShow !== null ? forceShow : !n.isVisible } : n
+    ));
+  }, []);
+
+  const deleteStickyPermanently = useCallback((id) => {
+    if (window.confirm("Supprimer définitivement ce post-it ?")) {
+      setStickies(prev => prev.filter(n => n.id !== id));
+    }
+  }, []);
+
+  const updateSticky = useCallback((updated) => {
+    setStickies(prev => prev.map(n => n.id === updated.id ? updated : n));
+  }, []);
+
+  const bringStickyToFront = useCallback((id) => {
+    maxZ.current += 1;
+    const newZ = maxZ.current;
+    setStickies(prev => prev.map(n => n.id === id ? { ...n, zIndex: newZ } : n));
+  }, []);
+
+  // Icon Dragging State
+  const [iconPositions, setIconPositions] = useState(() => {
+    // Default initial positions (stacked in vertical columns) aligned to GRID
+    const getDefaultPositions = (icons) => {
+      const pos = {};
+      const iconsPerRow = Math.floor((window.innerHeight - 80) / GRID_Y) || 8;
+      icons.forEach((ic, i) => {
+        const col = Math.floor(i / iconsPerRow);
+        const row = i % iconsPerRow;
+        pos[ic.id] = { x: col * GRID_X, y: row * GRID_Y };
+      });
+      return pos;
+    };
+
+    const defaultPositions = getDefaultPositions(DESKTOP_ICONS);
+
+    try {
+      const saved = localStorage.getItem("super_bernard_desktop_icons");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // MERGE: Keep saved positions, and for new icons, find a free spot or use default
+        return { ...defaultPositions, ...parsed };
+      }
+    } catch { /* ignore */ }
     
-    // Default initial positions (stacked vertically on the left) aligned to GRID
-    const pos = {};
-    DESKTOP_ICONS.forEach((ic, i) => {
-      pos[ic.id] = { x: 0, y: i * GRID_Y };
-    });
-    return pos;
+    return defaultPositions;
   });
 
   const [dragging, setDragging] = useState(null); // { id, startX, startY, iconX, iconY }
@@ -133,6 +252,21 @@ export function Desktop({
     try { localStorage.setItem("super_bernard_desktop_bg", JSON.stringify(bg)); } catch { /* ignore */ }
   }, []);
 
+  const rearrangeIcons = useCallback(() => {
+    const defaultPositions = {};
+    const iconsPerRow = Math.floor((window.innerHeight - 80) / GRID_Y) || 8;
+    DESKTOP_ICONS.forEach((ic, i) => {
+      const col = Math.floor(i / iconsPerRow);
+      const row = i % iconsPerRow;
+      defaultPositions[ic.id] = { x: col * GRID_X, y: row * GRID_Y };
+    });
+    setIconPositions(defaultPositions);
+    try {
+      localStorage.setItem("super_bernard_desktop_icons", JSON.stringify(defaultPositions));
+    } catch { /* ignore */ }
+    setContextMenu(null);
+  }, []);
+
   const updateRotation = useCallback((patch) => {
     setRotation(prev => {
       const next = { ...prev, ...patch };
@@ -154,10 +288,13 @@ export function Desktop({
     return () => clearInterval(interval);
   }, [rotation, background.value, changeBackground]);
 
-  const activeWin = zOrders[zOrders.length - 1] ?? null;
+  const activeWin = Array.isArray(zOrders) ? zOrders[zOrders.length - 1] : null;
 
   const focusWin = useCallback((id) => {
-    setZOrders(z => [...z.filter(x => x !== id), id]);
+    setZOrders(z => {
+      const arr = Array.isArray(z) ? z : [];
+      return [...arr.filter(x => x !== id), id];
+    });
     setWindows(m => {
       const w = m.get(id);
       if (w?.minimized) {
@@ -169,7 +306,17 @@ export function Desktop({
     });
   }, []);
 
+  const getWindowZIndex = (id) => {
+    if (!Array.isArray(zOrders)) return 100;
+    const idx = zOrders.indexOf(id);
+    return idx === -1 ? 100 : 100 + idx;
+  };
+
   const openWindow = useCallback((id) => {
+    if (id === "new_sticky") {
+      addSticky();
+      return;
+    }
     setWindows(m => {
       if (m.has(id)) {
         const nm = new Map(m);
@@ -200,11 +347,11 @@ export function Desktop({
     });
     focusWin(id);
     setZOrders(z => z.includes(id) ? [...z.filter(x => x !== id), id] : [...z, id]);
-  }, [focusWin]);
+  }, [focusWin, addSticky]);
 
   const closeWindow = useCallback((id) => {
     setWindows(m => { const nm = new Map(m); nm.delete(id); return nm; });
-    setZOrders(z => z.filter(x => x !== id));
+    setZOrders(z => Array.isArray(z) ? z.filter(x => x !== id) : []);
   }, []);
 
   const minimizeWindow = useCallback((id) => {
@@ -215,7 +362,7 @@ export function Desktop({
       nm.set(id, { ...w, minimized: true });
       return nm;
     });
-    setZOrders(z => z.filter(x => x !== id));
+    setZOrders(z => Array.isArray(z) ? z.filter(x => x !== id) : []);
   }, []);
 
   const updateWindow = useCallback((id, patch) => {
@@ -289,13 +436,16 @@ export function Desktop({
     if (id === "lieux") return "Base de données lieux";
     if (id === "festivals") return "Base de données festivals";
     if (id === "projets") return "Gestionnaire de Projets";
-    if (id === "calendar") return "Calendrier Bernard";
-    if (id === "notepad") return "Bloc-notes (Espace de Travail)";
-    if (id === "stats") return "Statistiques — Super Bernard 3000";
-    if (id === "about") return "À propos de Super Bernard 3000";
-    if (id === "deskSettings") return "Propriétés du Bureau";
-    if (id.startsWith("cat:")) return `📁 Catégorie : ${id.slice(4)}`;
-    return id;
+    if (id === "calendar") return "Calendrier";
+    if (id === "notepad") return "Bloc-notes";
+    if (id === "todo") return "Liste de Tâches";
+    if (id === "sticky_manager") return "Gestionnaire de Post-its";
+    if (id === "trash") return "Corbeille d'Archives";
+    if (id === "stats") return "Statistiques Géo-Musique";
+    if (id === "about") return "À propos";
+    if (id === "deskSettings") return "Propriétés de l'Affichage";
+    if (id.startsWith("cat:")) return `Catégorie : ${id.slice(4)}`;
+    return "Application";
   }
 
   function winIcon(id) {
@@ -306,6 +456,9 @@ export function Desktop({
     if (id === "projets") return "📋";
     if (id === "calendar") return "📅";
     if (id === "notepad") return "📝";
+    if (id === "todo") return "✅";
+    if (id === "sticky_manager") return "📋📌";
+    if (id === "trash") return "🗑️";
     if (id === "stats") return "📊";
     if (id === "about") return "ℹ";
     if (id === "deskSettings") return "🎨";
@@ -333,7 +486,7 @@ export function Desktop({
         position: "relative",
         ...getDesktopBackgroundStyle()
       }}
-      onClick={() => { setStartMenuOpen(false); setSelectedIcon(null); setContextMenu(null); }}
+      onClick={() => { setStartMenuOpen(false); setSearchMenuOpen(false); setSelectedIcon(null); setContextMenu(null); }}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
@@ -341,6 +494,12 @@ export function Desktop({
     >
       {/* Desktop area */}
       <div ref={desktopRef} className="flex-1 relative overflow-hidden">
+        <StickyNotesManager 
+           notes={stickies} 
+           onUpdate={updateSticky} 
+           onDelete={(id) => toggleStickyVisibility(id, false)} 
+           onFocus={bringStickyToFront} 
+        />
         {/* Desktop icons */}
         {DESKTOP_ICONS.filter(ic => visibleIcons.includes(ic.id)).map(ic => {
           const pos = dragging?.id === ic.id ? { x: dragging.iconX, y: dragging.iconY } : iconPositions[ic.id];
@@ -380,14 +539,53 @@ export function Desktop({
             onMinimize={() => minimizeWindow(win.id)}
             title={winTitle(win.id)}
             icon={winIcon(win.id)}
+            zIndex={getWindowZIndex(win.id)}
           >
             {win.id === "artistes" && <DatabaseWindow artists={artists} loading={loading} saveArtists={(data, action) => saveData('artistes', data, action)} onRefresh={onRefresh} />}
             {win.id === "collectifs" && <CollectifsWindow collectifs={collectifs} loading={loading} saveCollectifs={(data, action) => saveData('collectifs', data, action)} onRefresh={onRefresh} />}
             {win.id === "lieux" && <LieuxWindow lieux={lieux} loading={loading} saveLieux={(data, action) => saveData('lieux', data, action)} onRefresh={onRefresh} />}
             {win.id === "festivals" && <FestivalsWindow festivals={festivals} loading={loading} saveFestivals={(data, action) => saveData('festivals', data, action)} onRefresh={onRefresh} />}
-            {win.id === "projets" && <ProjectManager projects={projects} loading={loading} saveProjects={(data, action) => saveData('projets', data, action)} onRefresh={onRefresh} />}
+            {win.id === "projets" && (
+              <ProjectManager 
+                projects={projects} 
+                artists={artists}
+                collectifs={collectifs}
+                lieux={lieux}
+                festivals={festivals}
+                loading={loading} 
+                saveProjects={(data, action) => saveData('projets', data, action)} 
+                onRefresh={onRefresh} 
+              />
+            )}
             {win.id === "calendar" && <CalendarWindow projects={projects} />}
             {win.id === "notepad" && <NotePadWindow notes={notes} onSave={(data, action) => saveData('notes', data, action)} />}
+            {win.id === "todo" && <TodoWindow todos={todos} saveTodos={(data, action) => saveData('todos', data, action)} loading={loading} />}
+            {win.id === "sticky_manager" && (
+              <StickyManager 
+                notes={stickies} 
+                onToggle={toggleStickyVisibility}
+                onDelete={deleteStickyPermanently}
+                onFocus={toggleStickyVisibility}
+              />
+            )}
+            {win.id === "trash" && (
+              <TrashWindow 
+                projects={projects} 
+                notes={notes} 
+                todos={todos}
+                artists={artists}
+                collectifs={collectifs}
+                lieux={lieux}
+                festivals={festivals}
+                saveProjects={(data, action) => saveData('projets', data, action)}
+                saveNotes={(data, action) => saveData('notes', data, action)}
+                saveTodos={(data, action) => saveData('todos', data, action)}
+                saveArtists={(data, action) => saveData('artistes', data, action)}
+                saveCollectifs={(data, action) => saveData('collectifs', data, action)}
+                saveLieux={(data, action) => saveData('lieux', data, action)}
+                saveFestivals={(data, action) => saveData('festivals', data, action)}
+              />
+            )}
             {win.id === "deskSettings" && (
               <DesktopSettings 
                 icons={DESKTOP_ICONS} 
@@ -419,13 +617,26 @@ export function Desktop({
               left: contextMenu.x,
               top: contextMenu.y,
               zIndex: 10000,
-              width: "160px",
+              width: "180px",
               padding: "2px",
               boxShadow: "2px 2px 5px rgba(0,0,0,0.4)"
             }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="win95-menu-item" style={{ fontSize: "11px", padding: "4px 10px", opacity: 0.5 }}>Actualiser</div>
+            <div 
+              className="win95-menu-item" 
+              style={{ fontSize: "11px", padding: "4px 10px" }}
+              onClick={() => { onRefresh(); setContextMenu(null); }}
+            >
+              Actualiser
+            </div>
+            <div 
+              className="win95-menu-item" 
+              style={{ fontSize: "11px", padding: "4px 10px" }} 
+              onClick={rearrangeIcons}
+            >
+              Ranger les icônes
+            </div>
             <div className="win95-separator" style={{ margin: "2px 0" }} />
             <div className="win95-menu-item" style={{ fontSize: "11px", padding: "4px 10px", opacity: 0.5 }}>Nouveau</div>
             <div className="win95-separator" style={{ margin: "2px 0" }} />
@@ -451,14 +662,36 @@ export function Desktop({
         />
       )}
 
+      {/* Universal Search */}
+      {searchMenuOpen && (
+        <UniversalSearch
+          artists={artists}
+          collectifs={collectifs}
+          lieux={lieux}
+          festivals={festivals}
+          projects={projects}
+          notes={notes}
+          onClose={() => setSearchMenuOpen(false)}
+          onOpenWindow={openWindow}
+        />
+      )}
+
       {/* Taskbar */}
       <div className="win95-taskbar" onClick={e => e.stopPropagation()}>
         <button
           className={`win95-start-btn ${startMenuOpen ? "active" : ""}`}
           style={startMenuOpen ? { borderColor: "#808080 #ffffff #ffffff #808080" } : {}}
-          onClick={() => setStartMenuOpen(v => !v)}
+          onClick={() => { setStartMenuOpen(v => !v); setSearchMenuOpen(false); }}
         >
           <span>⊞</span> Démarrer
+        </button>
+        <button
+          className={`win95-start-btn ${searchMenuOpen ? "active" : ""}`}
+          style={{ marginLeft: '2px', padding: '2px 6px', ...(searchMenuOpen ? { borderColor: "#808080 #ffffff #ffffff #808080" } : {}) }}
+          onClick={() => { setSearchMenuOpen(v => !v); setStartMenuOpen(false); }}
+          title="Recherche Universelle"
+        >
+          <span>🔍</span> Rechercher
         </button>
         <div style={{ width: "1px", height: "18px", borderLeft: "1px solid #808080", borderRight: "1px solid white", margin: "0 2px" }} />
 

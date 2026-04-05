@@ -54,6 +54,9 @@ export function FestivalsWindow({ festivals, loading, saveFestivals, onRefresh }
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return festivals.filter(f => {
+      // Archive filter
+      if (f.archive === "true") return false;
+      
       const n = (f.nom || '').toLowerCase();
       const s = (f.style || '').toLowerCase();
       const l = (f.lieu || '').toLowerCase();
@@ -69,10 +72,10 @@ export function FestivalsWindow({ festivals, loading, saveFestivals, onRefresh }
   const handleEdit = () => { if (!selected) return; setEditingId(selected._id); setAddEditOpen(true); };
   const handleDelete = async () => {
     if (!selected) return;
-    if (!window.confirm(`Supprimer "${selected.nom}" ?`)) return;
-    const updated = festivals.filter(f => f._id !== selected._id);
+    if (!window.confirm(`Mettre "${selected.nom}" à la corbeille ?`)) return;
+    const updated = festivals.map(f => f._id === selected._id ? { ...f, archive: "true" } : f);
     setSelected(null);
-    await saveFestivals(updated, 'Suppression festival');
+    await saveFestivals(updated, `Archivage festival : ${selected.nom}`);
   };
 
   const exportCSV = () => {

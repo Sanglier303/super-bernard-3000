@@ -10,6 +10,7 @@ export function DraggableResizableWindow({
   onMinimize,
   title,
   icon,
+  zIndex,
   children
 }) {
   const dragRef = useRef(null);
@@ -111,7 +112,7 @@ export function DraggableResizableWindow({
 
   return (
     <div
-      style={{ ...style, zIndex: isActive ? 20 : 10, display: "flex", flexDirection: "column" }}
+      style={{ ...style, zIndex: zIndex || (isActive ? 20 : 10), display: "flex", flexDirection: "column" }}
       className="win95-window"
       onMouseDown={onFocus}
     >

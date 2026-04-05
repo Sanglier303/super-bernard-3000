@@ -80,6 +80,7 @@ export default function App() {
   const [festivals, setFestivals] = useState([])
   const [projects, setProjects] = useState([])
   const [notes, setNotes] = useState([])
+  const [todos, setTodos] = useState([])
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState(null)
 
@@ -109,7 +110,8 @@ export default function App() {
       fetchGeneric('lieux', setLieux),
       fetchGeneric('festivals', setFestivals),
       fetchGeneric('projets', setProjects),
-      fetchGeneric('notes', setNotes)
+      fetchGeneric('notes', setNotes),
+      fetchGeneric('todos', setTodos)
     ]);
     setLoading(false)
   }, [fetchGeneric])
@@ -150,6 +152,7 @@ export default function App() {
         festivals={festivals}
         projects={projects}
         notes={notes}
+        todos={todos}
         onRefresh={loadAll}
         saveData={saveData}
         loading={loading}

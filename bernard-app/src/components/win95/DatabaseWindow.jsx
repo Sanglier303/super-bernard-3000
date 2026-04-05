@@ -95,17 +95,20 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
 
   const handleDelete = async () => {
     if (!selectedArtist) return
-    if (!window.confirm(`Supprimer "${selectedArtist.nom_artiste || selectedArtist.nom}" ?`)) return
-    const updated = artists.filter(a => a._id !== selectedArtist._id)
+    if (!window.confirm(`Mettre "${selectedArtist.nom_artiste || selectedArtist.nom}" à la corbeille ?`)) return
+    const updated = artists.map(a => a._id === selectedArtist._id ? { ...a, archive: "true" } : a)
     setSelectedArtist(null)
     setDetailOpen(false)
-    await saveArtists(updated, `Suppression`)
+    await saveArtists(updated, `Archivage artiste : ${selectedArtist.nom_artiste || selectedArtist.nom}`)
   }
 
   // ─── Filters & Parsings ───
   const filteredArtists = useMemo(() => {
     const q = searchQuery.toLowerCase()
     return artists.filter(artist => {
+      // Archive filter
+      if (artist.archive === "true") return false;
+      
       const n = (artist.nom_artiste || artist.nom || '').toLowerCase()
       const s = (artist.style || '').toLowerCase()
       const g = (artist.sous_genre || '').toLowerCase()

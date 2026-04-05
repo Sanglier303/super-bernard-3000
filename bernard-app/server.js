@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { readFileSync, writeFileSync, copyFileSync, existsSync, unlinkSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -10,20 +10,26 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = 3001;
 
-// The CSV lives one level up (in the parent directory alongside the old viewer)
 const DATA_DIR = resolve(__dirname, '..');
 
-app.use(cors());
-app.use(express.json({ limit: '5mb' }));
+const CONFIG = {
+  artistes: { file: 'artistes_montpellier.csv', cols: ['nom_artiste', 'zone', 'style', 'sous_genre', 'type_performance', 'soundcloud', 'instagram', 'note_perso', 'photo', 'archive'] },
+  collectifs: { file: 'collectifs_montpellier.csv', cols: ['nom', 'style', 'date_creation', 'instagram', 'notes', 'note_perso', 'photo', 'archive'] },
+  lieux: { file: 'lieux_montpellier.csv', cols: ['nom', 'capacite', 'adresse', 'type', 'instagram', 'notes', 'note_perso', 'photo', 'archive'] },
+  festivals: { file: 'festivals_montpellier.csv', cols: ['nom', 'periode', 'duree', 'lieu', 'style', 'instagram', 'notes', 'note_perso', 'photo', 'archive'] },
+  projets: { file: 'projets_montpellier.csv', cols: ['nom', 'statut', 'priorite', 'echeance', 'notes', 'linked_type', 'linked_id', 'archive'] },
+  notes: { file: 'notes_montpellier.csv', cols: ['titre', 'contenu', 'date_derniere_modif', 'archive'] },
+  todos: { file: 'todos_montpellier.csv', cols: ['texte', 'complete', 'date_creation', 'archive'] }
+};
 
-// ─── CSV helpers ───────────────────────────────────────────────
+app.use(cors());
+app.use(express.json({ limit: '50mb' }));
 
 function parseCSV(text) {
   const rows = [];
   let row = [];
   let cell = '';
   let inQuotes = false;
-
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
     const next = text[i + 1];
@@ -35,9 +41,7 @@ function parseCSV(text) {
     } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
       if (ch === '\r' && next === '\n') i++;
       if (cell.length > 0 || row.length > 0) { row.push(cell); rows.push(row); row = []; cell = ''; }
-    } else {
-      cell += ch;
-    }
+    } else { cell += ch; }
   }
   if (cell.length > 0 || row.length > 0) { row.push(cell); rows.push(row); }
   return rows;
@@ -45,124 +49,85 @@ function parseCSV(text) {
 
 function escapeCSVField(field) {
   if (!field) return '""';
-  if (field.includes(',') || field.includes('"') || field.includes('\n') || field.includes('\r')) {
-    return '"' + field.replace(/"/g, '""') + '"';
+  const f = String(field);
+  if (f.includes(',') || f.includes('"') || f.includes('\n') || f.includes('\r')) {
+    return '"' + f.replace(/"/g, '""') + '"';
   }
-  return '"' + field + '"';
-}
-
-const CONFIG = {
-  artistes: { file: 'artistes_montpellier.csv', cols: ['nom_artiste', 'zone', 'style', 'sous_genre', 'type_performance', 'soundcloud', 'instagram', 'note_perso', 'photo'] },
-  collectifs: { file: 'collectifs_montpellier.csv', cols: ['nom', 'style', 'date_creation', 'instagram', 'notes', 'note_perso', 'photo'] },
-  lieux: { file: 'lieux_montpellier.csv', cols: ['nom', 'capacite', 'adresse', 'type', 'instagram', 'notes', 'note_perso', 'photo'] },
-  festivals: { file: 'festivals_montpellier.csv', cols: ['nom', 'periode', 'duree', 'lieu', 'style', 'instagram', 'notes', 'note_perso', 'photo'] },
-  projets: { file: 'projets_montpellier.csv', cols: ['nom', 'statut', 'priorite', 'echeance', 'notes'] },
-  notes: { file: 'notes_montpellier.csv', cols: ['titre', 'contenu', 'date_derniere_modif'] }
-};
-
-function getCsvPath(type) {
-  if (!CONFIG[type]) throw new Error('Invalid type: ' + type);
-  return resolve(DATA_DIR, CONFIG[type].file);
+  return '"' + f + '"';
 }
 
 function readData(type) {
-  if (!CONFIG[type]) throw new Error('Invalid type: ' + type);
-  const p = getCsvPath(type);
+  const config = CONFIG[type];
+  if (!config) return { headers: [], data: [] };
+  const filePath = resolve(DATA_DIR, config.file);
   
-  if (!existsSync(p)) {
-    // initialize empty
-    return { headers: CONFIG[type].cols, data: [] };
+  if (!existsSync(filePath)) {
+    return { headers: config.cols, data: [] };
   }
-  
-  const text = readFileSync(p, 'utf-8');
-  const rows = parseCSV(text);
-  if (rows.length === 0) return { headers: CONFIG[type].cols, data: [] };
-  const headers = rows.shift();
 
-  // Auto-migrate standard columns
-  CONFIG[type].cols.forEach(c => {
-    if (!headers.includes(c)) headers.push(c);
-  });
-
-  const data = rows.map((cols, idx) => {
-    const obj = { _id: idx };
-    headers.forEach((h, i) => { obj[h] = cols[i] || ''; });
-    return obj;
-  });
-  return { headers, data };
+  try {
+    const content = readFileSync(filePath, 'utf-8');
+    const rows = parseCSV(content);
+    if (rows.length === 0) return { headers: config.cols, data: [] };
+    
+    const fileHeaders = rows[0].map(h => h.trim());
+    const jsonData = [];
+    
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (row.length === 0) continue;
+      const obj = { _id: i - 1 };
+      config.cols.forEach(col => {
+        const fileIdx = fileHeaders.indexOf(col);
+        obj[col] = fileIdx !== -1 ? row[fileIdx] || '' : '';
+      });
+      jsonData.push(obj);
+    }
+    return { headers: config.cols, data: jsonData };
+  } catch (err) {
+    console.error(`[server] readError ${type}:`, err);
+    return { headers: config.cols, data: [] };
+  }
 }
 
 function writeData(type, headers, data) {
-  if (!CONFIG[type]) throw new Error('Invalid type: ' + type);
+  const config = CONFIG[type];
+  if (!config) return;
+  const filePath = resolve(DATA_DIR, config.file);
   const headerLine = headers.map(escapeCSVField).join(',');
-  const dataLines = data.map(a =>
-    headers.map(h => escapeCSVField(a[h] || '')).join(',')
-  );
-  const csv = [headerLine, ...dataLines, ''].join('\n');
-
-  const p = getCsvPath(type);
-  const tmpPath = p + '.tmp';
-  writeFileSync(tmpPath, csv, 'utf-8');
-  copyFileSync(tmpPath, p);
-  try { if (existsSync(tmpPath)) unlinkSync(tmpPath); } catch { /* ignore cleanup errors */ }
+  const lines = [headerLine];
+  data.forEach(row => {
+    const line = headers.map(h => escapeCSVField(row[h] || '')).join(',');
+    lines.push(line);
+  });
+  writeFileSync(filePath, lines.join('\n'), 'utf-8');
 }
-
-// ─── Global history log (in-memory, max 20 entries) ───────────
-const actionHistory = [];
 
 function logAction(type, label) {
-  actionHistory.unshift({
-    type,
-    label,
-    timestamp: new Date().toISOString(),
-  });
-  if (actionHistory.length > 20) actionHistory.pop();
+  const logFile = resolve(DATA_DIR, 'actions_log.csv');
+  const timestamp = new Date().toISOString();
+  const line = `${escapeCSVField(timestamp)},${escapeCSVField(type)},${escapeCSVField(label)}\n`;
+  if (!existsSync(logFile)) writeFileSync(logFile, '"timestamp","type","label"\n', 'utf-8');
+  writeFileSync(logFile, line, { flag: 'a' });
 }
 
-// ─── API routes ────────────────────────────────────────────────
-
-
-
 app.get('/api/data/:type', (req, res) => {
-  try {
-    const { headers, data } = readData(req.params.type);
-    res.json({ headers, data });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ status: 'error', message: err.message });
-  }
+  let type = req.params.type;
+  if (type === 'todo-list') type = 'todos';
+  if (!CONFIG[type]) return res.json({ headers: [], data: [] });
+  res.json(readData(type));
 });
 
 app.post('/api/data/:type', (req, res) => {
-  try {
-    const { data, actionLabel } = req.body;
-    // Always use the canonical column list from CONFIG to avoid header drift
-    const headers = CONFIG[req.params.type]?.cols || [];
-    writeData(req.params.type, headers, data);
-    logAction('update_' + req.params.type, actionLabel || `Mise à jour de ${req.params.type}`);
-    res.json({ status: 'ok' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ status: 'error', message: err.message });
-  }
+  let type = req.params.type;
+  if (type === 'todo-list') type = 'todos';
+  if (!CONFIG[type]) return res.status(400).json({ status: 'error', message: 'Invalid type' });
+  const { data, actionLabel } = req.body;
+  writeData(type, CONFIG[type].cols, data);
+  logAction('update_' + type, actionLabel || `Mise à jour ${type}`);
+  res.json({ status: 'ok' });
 });
-
-app.get('/api/history', (req, res) => {
-  res.json({ history: actionHistory });
-});
-
-
-// ─── Serve the React build (production) or just run alongside Vite dev ─
-
-const distPath = resolve(__dirname, 'dist');
-if (existsSync(distPath)) {
-  app.use(express.static(distPath));
-  app.get('*', (_req, res) => {
-    res.sendFile(resolve(distPath, 'index.html'));
-  });
-}
 
 app.listen(PORT, () => {
-  console.log(`\n  🐗 Bernard API server running at http://localhost:${PORT}`);
-  console.log(`  📁 Dossier données : ${DATA_DIR}\n`);
+  console.log(`Server v3.1 running on http://localhost:${PORT}`);
 });

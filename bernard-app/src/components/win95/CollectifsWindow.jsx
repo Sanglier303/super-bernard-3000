@@ -55,6 +55,7 @@ export function CollectifsWindow({ collectifs, loading, saveCollectifs, onRefres
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return collectifs.filter(c => {
+      if (c.archive === "true") return false;
       const n = (c.nom || '').toLowerCase();
       const s = (c.style || '').toLowerCase();
       const matchSearch = !q || n.includes(q) || s.includes(q);
@@ -69,10 +70,10 @@ export function CollectifsWindow({ collectifs, loading, saveCollectifs, onRefres
   const handleEdit = () => { if (!selected) return; setEditingId(selected._id); setAddEditOpen(true); };
   const handleDelete = async () => {
     if (!selected) return;
-    if (!window.confirm(`Supprimer "${selected.nom}" ?`)) return;
-    const updated = collectifs.filter(c => c._id !== selected._id);
+    if (!window.confirm(`Mettre "${selected.nom}" à la corbeille ?`)) return;
+    const updated = collectifs.map(c => c._id === selected._id ? { ...c, archive: "true" } : c);
     setSelected(null);
-    await saveCollectifs(updated, 'Suppression collectif');
+    await saveCollectifs(updated, `Archivage collectif : ${selected.nom}`);
   };
 
   const exportCSV = () => {

@@ -1,2 +1,2 @@
-"nom","statut","priorite","echeance","notes"
-"V2.3 Final Check","En cours","!!! Haute","2026-04-10",""
+"nom","statut","priorite","echeance","notes","linked_type","linked_id","archive"
+"V2.3 Final Check","En attente","!!! Haute","2026-04-10","","","",""
