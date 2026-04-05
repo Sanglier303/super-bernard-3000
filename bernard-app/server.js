@@ -13,7 +13,15 @@ const PORT = 3001;
 const DATA_DIR = resolve(__dirname, '..');
 
 const CONFIG = {
-  artistes: { file: 'artistes_montpellier.csv', cols: ['nom_artiste', 'zone', 'style', 'sous_genre', 'type_performance', 'soundcloud', 'instagram', 'note_perso', 'photo', 'archive'] },
+  artistes: { 
+    file: 'artistes_montpellier.csv', 
+    cols: [
+      'nom_artiste', 'zone', 'commune_precise', 'style', 'sous_genre', 'type_performance', 
+      'statut_localite', 'source_type', 'preuves', 'date_preuve', 'instagram', 'facebook', 
+      'soundcloud', 'bandcamp', 'spotify', 'youtube', 'site_officiel', 'source_localite', 
+      'notes', 'note_perso', 'photo', 'archive', 'derniere_verification'
+    ] 
+  },
   collectifs: { file: 'collectifs_montpellier.csv', cols: ['nom', 'style', 'date_creation', 'instagram', 'notes', 'note_perso', 'photo', 'archive'] },
   lieux: { file: 'lieux_montpellier.csv', cols: ['nom', 'capacite', 'adresse', 'type', 'instagram', 'notes', 'note_perso', 'photo', 'archive'] },
   festivals: { file: 'festivals_montpellier.csv', cols: ['nom', 'periode', 'duree', 'lieu', 'style', 'instagram', 'notes', 'note_perso', 'photo', 'archive'] },
@@ -49,7 +57,7 @@ function parseCSV(text) {
 }
 
 function escapeCSVField(field) {
-  if (!field) return '""';
+  if (!field && field !== 0) return '""';
   const f = String(field);
   if (f.includes(',') || f.includes('"') || f.includes('\n') || f.includes('\r')) {
     return '"' + f.replace(/"/g, '""') + '"';
@@ -74,17 +82,21 @@ function readData(type) {
     const fileHeaders = rows[0].map(h => h.trim());
     const jsonData = [];
     
+    // Always include CONFIG cols even if missing from file
+    // Preserve any existing columns from file not in CONFIG
+    const finalHeaders = [...new Set([...config.cols, ...fileHeaders])];
+
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       if (row.length === 0) continue;
       const obj = { _id: i - 1 };
-      config.cols.forEach(col => {
+      finalHeaders.forEach(col => {
         const fileIdx = fileHeaders.indexOf(col);
         obj[col] = fileIdx !== -1 ? row[fileIdx] || '' : '';
       });
       jsonData.push(obj);
     }
-    return { headers: config.cols, data: jsonData };
+    return { headers: finalHeaders, data: jsonData };
   } catch (err) {
     console.error(`[server] readError ${type}:`, err);
     return { headers: config.cols, data: [] };
@@ -95,10 +107,14 @@ function writeData(type, headers, data) {
   const config = CONFIG[type];
   if (!config) return;
   const filePath = resolve(DATA_DIR, config.file);
-  const headerLine = headers.map(escapeCSVField).join(',');
+  
+  // Use config.cols as the preferred order, adding any extra headers found
+  const finalHeaders = [...new Set([...config.cols, ...headers])];
+  
+  const headerLine = finalHeaders.map(escapeCSVField).join(',');
   const lines = [headerLine];
   data.forEach(row => {
-    const line = headers.map(h => escapeCSVField(row[h] || '')).join(',');
+    const line = finalHeaders.map(h => escapeCSVField(row[h] || '')).join(',');
     lines.push(line);
   });
   writeFileSync(filePath, lines.join('\n'), 'utf-8');

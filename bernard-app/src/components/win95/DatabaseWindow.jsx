@@ -77,10 +77,23 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
   const [detailOpen, setDetailOpen] = useState(false)
   const [editingArtistId, setEditingArtistId] = useState(null)
   const [addEditOpen, setAddEditOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState('general')
+
+  const TABS = [
+    { id: 'general', label: 'Général' },
+    { id: 'links', label: 'Réseaux' },
+    { id: 'quality', label: 'Qualification' },
+    { id: 'admin', label: 'Admin' },
+  ];
 
   const winFont = { fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', fontSize: '11px' };
   const raised = { boxShadow: 'inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf' };
   const sunken = { boxShadow: 'inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf' };
+
+  const editingArtist = useMemo(() => {
+    if (editingArtistId === null) return null;
+    return artists.find(a => String(a._id) === String(editingArtistId));
+  }, [editingArtistId, artists]);
 
   const handleAdd = () => {
     setEditingArtistId(null)
@@ -96,7 +109,7 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
   const handleDelete = async () => {
     if (!selectedArtist) return
     if (!window.confirm(`Mettre "${selectedArtist.nom_artiste || selectedArtist.nom}" à la corbeille ?`)) return
-    const updated = artists.map(a => a._id === selectedArtist._id ? { ...a, archive: "true" } : a)
+    const updated = artists.map(a => String(a._id) === String(selectedArtist._id) ? { ...a, archive: "true" } : a)
     setSelectedArtist(null)
     setDetailOpen(false)
     await saveArtists(updated, `Archivage artiste : ${selectedArtist.nom_artiste || selectedArtist.nom}`)
@@ -297,8 +310,8 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
         {/* Right panel — list view */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, padding: 2 }}>
           <div style={{ overflowX: 'auto', flex: 1, display: 'flex', flexDirection: 'column', ...sunken, background: '#fff' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 2fr) minmax(100px, 1.2fr) minmax(130px, 1.5fr) minmax(150px, 1.5fr) minmax(100px, 1fr) 130px', ...raised, background: '#c0c0c0', flexShrink: 0 }}>
-                  {['Nom de l\'Artiste', 'Zone', 'Style', 'Sous-Genre', 'Perf.', 'Liens'].map((h, i) => (
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 2fr) minmax(100px, 1fr) minmax(120px, 1.2fr) minmax(120px, 1.2fr) minmax(110px, 1fr) 100px', ...raised, background: '#c0c0c0', flexShrink: 0 }}>
+                  {['Artiste', 'Zone', 'Style', 'Performance', 'Statut', 'Liens'].map((h, i) => (
                     <div key={i} style={{ ...winFont, fontWeight: 'bold', padding: '3px 6px', borderRight: '1px solid #808080', borderBottom: '1px solid #808080', fontSize: '11px', cursor: 'default', userSelect: 'none' }}>
                       {h}
                     </div>
@@ -312,43 +325,43 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
                   ) : filteredArtists.map((artist, idx) => {
                     const isSelected = selectedArtist?._id === artist._id;
                     return (
-                      <div
-                        key={artist._id}
-                        onDoubleClick={() => openDetail(artist)}
-                        onClick={() => setSelectedArtist(artist)}
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'minmax(180px, 2fr) minmax(100px, 1.2fr) minmax(130px, 1.5fr) minmax(150px, 1.5fr) minmax(100px, 1fr) 130px',
-                          background: isSelected ? '#000080' : idx % 2 === 0 ? '#ffffff' : '#f4f4f4',
-                          color: isSelected ? '#ffffff' : '#000000',
-                          cursor: 'default',
-                          borderBottom: '1px solid #e0e0e0',
-                        }}
-                      >
-                        <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', display: 'flex', alignItems: 'center', gap: compactMode ? '4px' : '10px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-                          {showAvatars && (
-                            <img src={artist.photo || artist.image_url || "/sanglier.png"} style={{ width: compactMode ? 14 : 48, height: compactMode ? 14 : 48, objectFit: 'cover', flexShrink: 0, background: '#ccc', border: compactMode ? 'none' : '1px solid #808080' }} alt="" />
-                          )}
-                          {!showAvatars && <span style={{ fontSize: compactMode ? '10px' : '12px' }}>▶</span>}
-                          <span style={{ fontSize: compactMode ? '11px' : '13px' }}>{artist.nom_artiste || artist.nom || ''}</span>
+                        <div
+                          key={artist._id}
+                          onDoubleClick={() => openDetail(artist)}
+                          onClick={() => setSelectedArtist(artist)}
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'minmax(180px, 2fr) minmax(100px, 1fr) minmax(120px, 1.2fr) minmax(120px, 1.2fr) minmax(110px, 1fr) 100px',
+                            background: isSelected ? '#000080' : idx % 2 === 0 ? '#ffffff' : '#f4f4f4',
+                            color: isSelected ? '#ffffff' : '#000000',
+                            cursor: 'default',
+                            borderBottom: '1px solid #e0e0e0',
+                          }}
+                        >
+                          <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', display: 'flex', alignItems: 'center', gap: compactMode ? '4px' : '10px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                            {showAvatars && (
+                              <img src={artist.photo || artist.image_url || "/sanglier.png"} style={{ width: compactMode ? 14 : 48, height: compactMode ? 14 : 48, objectFit: 'cover', flexShrink: 0, background: '#ccc', border: compactMode ? 'none' : '1px solid #808080' }} alt="" />
+                            )}
+                            {!showAvatars && <span style={{ fontSize: compactMode ? '10px' : '12px' }}>▶</span>}
+                            <span style={{ fontSize: compactMode ? '11px' : '13px' }}>{artist.nom_artiste || artist.nom || ''}</span>
+                          </div>
+                          <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', fontSize: compactMode ? '10px' : '12px', color: isSelected ? '#ddd' : '#555', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center' }}>
+                            {artist.zone || ''}
+                          </div>
+                          <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', fontSize: compactMode ? '10px' : '12px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center' }}>
+                            {artist.style || ''}
+                          </div>
+                          <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', fontSize: compactMode ? '10px' : '12px', color: isSelected ? '#ddd' : '#555', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center' }}>
+                            {artist.type_performance || '—'}
+                          </div>
+                          <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', fontSize: compactMode ? '10px' : '11px', color: isSelected ? '#adf' : '#000080', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
+                            {artist.statut_localite || '—'}
+                          </div>
+                          <div style={{ padding: compactMode ? '2px 4px' : '10px 8px', display: 'flex', gap: '4px', alignItems: 'center', flexWrap: 'wrap', overflow: 'hidden' }}>
+                            {artist.soundcloud && <a title="SoundCloud" href={artist.soundcloud} target="_blank" onClick={e => e.stopPropagation()} style={{ ...raised, ...winFont, background: '#c0c0c0', color: '#000', textDecoration: 'none', padding: '1px 3px', fontSize: '9px', fontWeight: 'bold' }}>SC</a>}
+                            {artist.instagram && <a title="Instagram" href={artist.instagram} target="_blank" onClick={e => e.stopPropagation()} style={{ ...raised, ...winFont, background: '#c0c0c0', color: '#000', textDecoration: 'none', padding: '1px 3px', fontSize: '9px', fontWeight: 'bold' }}>IG</a>}
+                          </div>
                         </div>
-                        <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', fontSize: compactMode ? '10px' : '12px', color: isSelected ? '#ddd' : '#555', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center' }}>
-                          {artist.zone || ''}
-                        </div>
-                        <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', fontSize: compactMode ? '10px' : '12px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center' }}>
-                          {artist.style || ''}
-                        </div>
-                        <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', fontSize: compactMode ? '10px' : '12px', color: isSelected ? '#cce' : '#666', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center' }}>
-                          {artist.sous_genre || artist.sousGenre || ''}
-                        </div>
-                        <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', fontSize: compactMode ? '10px' : '12px', color: isSelected ? '#ddd' : '#555', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center' }}>
-                          {artist.type_performance || artist.typePerf || '—'}
-                        </div>
-                        <div style={{ padding: compactMode ? '2px 4px' : '10px 8px', display: 'flex', gap: '4px', alignItems: 'center', flexWrap: 'wrap' }}>
-                          {artist.soundcloud && <a href={artist.soundcloud} target="_blank" onClick={e => e.stopPropagation()} style={{ ...raised, ...winFont, background: '#c0c0c0', color: '#000', textDecoration: 'none', padding: '1px 3px', fontSize: '9px', fontWeight: 'bold' }}>SC</a>}
-                          {artist.instagram && <a href={artist.instagram} target="_blank" onClick={e => e.stopPropagation()} style={{ ...raised, ...winFont, background: '#c0c0c0', color: '#000', textDecoration: 'none', padding: '1px 3px', fontSize: '9px', fontWeight: 'bold' }}>IG</a>}
-                        </div>
-                      </div>
                     )
                   })}
                 </div>
@@ -379,41 +392,62 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
 
               <div style={{ border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '12px', background: '#c0c0c0', marginTop: '-2px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                    <img src="/sanglier.png" style={{ width: 32, height: 32, ...raised }} />
-                    <div>
+                    <img src={selectedArtist.photo || "/sanglier.png"} style={{ width: 64, height: 64, objectFit: 'cover', ...raised }} />
+                    <div style={{ flex: 1 }}>
                       <div style={{ ...winFont, fontSize: '16px', fontWeight: 'bold' }}>{selectedArtist.nom_artiste || selectedArtist.nom}</div>
-                      <div style={{ ...winFont, color: '#444' }}>Type : Fichier Artiste Local</div>
+                      <div style={{ ...winFont, color: '#444' }}>{selectedArtist.style || '—'} ({selectedArtist.type_performance || '—'})</div>
+                      <div style={{ ...winFont, color: '#000080', fontWeight: 'bold' }}>{selectedArtist.statut_localite || 'Statut inconnu'}</div>
                     </div>
                   </div>
                   
                   <div style={{ height: '2px', ...sunken, marginBottom: '12px' }} />
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '8px', alignItems: 'center' }}>
-                     <span style={winFont}>Emplacement :</span>
-                     <span style={winFont}>{selectedArtist.zone || 'Inconnu'}</span>
-
-                     <span style={winFont}>Style musical :</span>
-                     <span style={winFont}>{selectedArtist.style || '—'}</span>
+                  <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '8px', alignItems: 'start' }}>
+                     <span style={winFont}>Localisation :</span>
+                     <span style={winFont}>{selectedArtist.zone || '—'}{selectedArtist.commune_precise ? ` (${selectedArtist.commune_precise})` : ''}</span>
 
                      <span style={winFont}>Sous-genre :</span>
                      <span style={winFont}>{selectedArtist.sous_genre || '—'}</span>
 
-                     <span style={winFont}>Performance :</span>
-                     <span style={winFont}>{selectedArtist.type_performance || '—'}</span>
+                     <span style={winFont}>Qualif / Source :</span>
+                     <span style={winFont}>{selectedArtist.source_type || '—'} {selectedArtist.source_localite ? `(ref: ${selectedArtist.source_localite})` : ''}</span>
+                     
+                     <span style={winFont}>Preuves :</span>
+                     <span style={{ ...winFont, fontStyle: 'italic', color: '#555' }}>
+                       {selectedArtist.preuves || 'Aucune preuve renseignée'}
+                       {selectedArtist.date_preuve ? ` [Le ${selectedArtist.date_preuve}]` : ''}
+                     </span>
                   </div>
 
                   <div style={{ height: '2px', ...sunken, margin: '12px 0' }} />
                   
-                  <div style={{ ...winFont, marginBottom: '4px' }}>Liens :</div>
-                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                  <div style={{ ...winFont, marginBottom: '4px', fontWeight: 'bold' }}>Liens & Réseaux :</div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                      {[
-                       { label: 'SoundCloud', url: selectedArtist.soundcloud },
                        { label: 'Instagram', url: selectedArtist.instagram },
+                       { label: 'Facebook', url: selectedArtist.facebook },
+                       { label: 'SoundCloud', url: selectedArtist.soundcloud },
                        { label: 'Bandcamp', url: selectedArtist.bandcamp },
-                       { label: 'Spotify', url: selectedArtist.spotify }
+                       { label: 'Spotify', url: selectedArtist.spotify },
+                       { label: 'YouTube', url: selectedArtist.youtube },
+                       { label: 'Site Officiel', url: selectedArtist.site_officiel }
                      ].filter(x => x.url).map(x => (
-                        <a key={x.label} href={x.url} target="_blank" style={{ ...winFont, color: '#000080' }}>{x.label}</a>
+                        <a key={x.label} href={x.url} target="_blank" style={{ ...winFont, color: '#000080', textDecoration: 'underline' }}>{x.label}</a>
                      ))}
+                  </div>
+
+                  <div style={{ height: '2px', ...sunken, margin: '12px 0' }} />
+                  <div style={{ ...winFont, fontWeight: 'bold' }}>Notes :</div>
+                  <div style={{ ...winFont, whiteSpace: 'pre-wrap', maxHeight: '100px', overflowY: 'auto', background: '#fcfcfc', ...sunken, padding: '4px' }}>
+                    {selectedArtist.notes || '—'}
+                  </div>
+                  {selectedArtist.note_perso && (
+                    <div style={{ ...winFont, marginTop: '8px', color: '#800080' }}>
+                      <b>Note perso :</b> {selectedArtist.note_perso}
+                    </div>
+                  )}
+                  <div style={{ ...winFont, marginTop: '8px', fontSize: '9px', textAlign: 'right', color: '#888' }}>
+                    Dernière vérification : {selectedArtist.derniere_verification || '—'}
                   </div>
               </div>
 
@@ -439,8 +473,8 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
               
               let updated
               let label
-              if (editingArtistId) {
-                updated = artists.map(a => a._id === editingArtistId ? { ...a, ...data } : a)
+              if (editingArtistId !== null) {
+                updated = artists.map(a => String(a._id) === String(editingArtistId) ? { ...a, ...data } : a)
                 label = `Édition : ${data.nom_artiste}`
               } else {
                 const newArtist = { _id: Date.now() + Math.random().toString() }
@@ -450,40 +484,144 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh }) {
               }
               setAddEditOpen(false)
               setDetailOpen(false)
+              setActiveTab('general') // Reset for next time
               saveArtists(updated, label)
-            }} style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
-               
-               <div style={{ ...winFont, fontStyle: 'italic', marginBottom: '8px' }}>Veuillez entrer les propriétés de l'artiste.</div>
+            }} style={{ padding: '0', display: 'flex', flexDirection: 'column', flex: 1, overflowY: 'hidden' }}>
+                
+                {/* Windows 95 Tab Bar */}
+                <div style={{ display: 'flex', padding: '8px 8px 0 8px', gap: '2px', background: '#c0c0c0' }}>
+                  {TABS.map(tab => {
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <div
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        style={{
+                          padding: '3px 10px',
+                          cursor: 'default',
+                          background: '#c0c0c0',
+                          ...winFont,
+                          borderLeft: '1px solid #fff',
+                          borderTop: '1px solid #fff',
+                          borderRight: '1px solid #000',
+                          borderBottom: isActive ? '1px solid #c0c0c0' : 'none',
+                          boxShadow: isActive ? 'none' : 'inset -1px 0 #808080',
+                          marginTop: isActive ? '0' : '2px',
+                          zIndex: isActive ? 10 : 1,
+                          position: 'relative',
+                          marginBottom: '-1px'
+                        }}
+                      >
+                        {tab.label}
+                      </div>
+                    );
+                  })}
+                </div>
 
-               <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '6px', alignItems: 'center' }}>
-                  <label style={winFont}>Nom de l'artiste :</label>
-                  <input name="nom_artiste" required defaultValue={editingArtistId ? artists.find(a=>a._id===editingArtistId)?.nom_artiste : ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                <div style={{ 
+                  margin: '0 8px 8px 8px', 
+                  ...raised, 
+                  padding: '16px', 
+                  flex: 1, 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  background: '#c0c0c0',
+                  minHeight: '320px'
+                }}>
+                   
+                   {/* Section 1: Général */}
+                   <div style={{ display: activeTab === 'general' ? 'block' : 'none' }}>
+                     <fieldset style={{ border: '1px solid #dfdfdf', padding: '12px', position: 'relative' }}>
+                       <legend style={{ ...winFont, background: '#c0c0c0', padding: '0 4px' }}>Informations Générales</legend>
+                       <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '8px', alignItems: 'center' }}>
+                          <label style={winFont}>Nom de l'artiste :</label>
+                          <input name="nom_artiste" required defaultValue={editingArtist?.nom_artiste || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
 
-                  <label style={winFont}>Zone :</label>
-                  <input name="zone" defaultValue={editingArtistId ? artists.find(a=>a._id===editingArtistId)?.zone : ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          <label style={winFont}>Zone / Ville :</label>
+                          <input name="zone" defaultValue={editingArtist?.zone || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
 
-                  <label style={winFont}>Style musical :</label>
-                  <input name="style" defaultValue={editingArtistId ? artists.find(a=>a._id===editingArtistId)?.style : ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          <label style={winFont}>Commune précise :</label>
+                          <input name="commune_precise" defaultValue={editingArtist?.commune_precise || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
 
-                  <label style={winFont}>Sous-genre :</label>
-                  <input name="sous_genre" defaultValue={editingArtistId ? artists.find(a=>a._id===editingArtistId)?.sous_genre : ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          <label style={winFont}>Style musical :</label>
+                          <input name="style" defaultValue={editingArtist?.style || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
 
-                  <label style={winFont}>Type Performance :</label>
-                  <input name="type_performance" defaultValue={editingArtistId ? artists.find(a=>a._id===editingArtistId)?.type_performance : ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          <label style={winFont}>Sous-genre :</label>
+                          <input name="sous_genre" defaultValue={editingArtist?.sous_genre || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
 
-                  <label style={winFont}>SoundCloud :</label>
-                  <input name="soundcloud" defaultValue={editingArtistId ? artists.find(a=>a._id===editingArtistId)?.soundcloud : ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          <label style={winFont}>Type Performance :</label>
+                          <input name="type_performance" defaultValue={editingArtist?.type_performance || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          
+                          <label style={winFont}>URL Photo :</label>
+                          <input name="photo" defaultValue={editingArtist?.photo || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                       </div>
+                     </fieldset>
+                   </div>
 
-                  <label style={winFont}>Instagram :</label>
-                  <input name="instagram" defaultValue={editingArtistId ? artists.find(a=>a._id===editingArtistId)?.instagram : ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
-                  
-                  <label style={winFont}>Notes diverses :</label>
-                  <textarea name="notes" defaultValue={editingArtistId ? artists.find(a=>a._id===editingArtistId)?.notes : ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none', height: '60px' }} />
-               </div>
+                   {/* Section 2: Réseaux Sociaux */}
+                   <div style={{ display: activeTab === 'links' ? 'block' : 'none' }}>
+                     <fieldset style={{ border: '1px solid #dfdfdf', padding: '12px' }}>
+                       <legend style={{ ...winFont, background: '#c0c0c0', padding: '0 4px' }}>Réseaux Sociaux & Liens</legend>
+                       <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '8px', alignItems: 'center' }}>
+                          <label style={winFont}>Instagram :</label>
+                          <input name="instagram" defaultValue={editingArtist?.instagram || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          <label style={winFont}>Facebook :</label>
+                          <input name="facebook" defaultValue={editingArtist?.facebook || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          <label style={winFont}>SoundCloud :</label>
+                          <input name="soundcloud" defaultValue={editingArtist?.soundcloud || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          <label style={winFont}>Bandcamp :</label>
+                          <input name="bandcamp" defaultValue={editingArtist?.bandcamp || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          <label style={winFont}>Spotify :</label>
+                          <input name="spotify" defaultValue={editingArtist?.spotify || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          <label style={winFont}>YouTube :</label>
+                          <input name="youtube" defaultValue={editingArtist?.youtube || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          <label style={winFont}>Site Officiel :</label>
+                          <input name="site_officiel" defaultValue={editingArtist?.site_officiel || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                       </div>
+                     </fieldset>
+                     <p style={{ ...winFont, fontSize: '10px', color: '#555', marginTop: '8px' }}>Astuce : Laissez vide si non applicable.</p>
+                   </div>
 
-               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', borderTop: '2px solid', borderColor: '#808080 #dfdfdf #dfdfdf #808080', paddingTop: '12px', marginTop: '12px' }}>
+                   {/* Section 3: Qualification & Preuves */}
+                   <div style={{ display: activeTab === 'quality' ? 'block' : 'none' }}>
+                     <fieldset style={{ border: '1px solid #dfdfdf', padding: '12px' }}>
+                       <legend style={{ ...winFont, background: '#c0c0c0', padding: '0 4px' }}>Qualification & Preuves</legend>
+                       <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '8px', alignItems: 'center' }}>
+                          <label style={winFont}>Statut localité :</label>
+                          <input name="statut_localite" defaultValue={editingArtist?.statut_localite || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} placeholder="ex: Actif Montpellier" />
+                          <label style={winFont}>Source Type :</label>
+                          <input name="source_type" defaultValue={editingArtist?.source_type || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          <label style={winFont}>Source Localité :</label>
+                          <input name="source_localite" defaultValue={editingArtist?.source_localite || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          <label style={winFont}>Preuves :</label>
+                          <input name="preuves" defaultValue={editingArtist?.preuves || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          <label style={winFont}>Date preuve :</label>
+                          <input name="date_preuve" defaultValue={editingArtist?.date_preuve || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} placeholder="JJ/MM/AAAA" />
+                       </div>
+                     </fieldset>
+                   </div>
+
+                   {/* Section 4: Notes & Admin */}
+                   <div style={{ display: activeTab === 'admin' ? 'block' : 'none' }}>
+                     <fieldset style={{ border: '1px solid #dfdfdf', padding: '12px' }}>
+                       <legend style={{ ...winFont, background: '#c0c0c0', padding: '0 4px' }}>Notes & Administration</legend>
+                       <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '8px', alignItems: 'start' }}>
+                          <label style={winFont}>Notes métier :</label>
+                          <textarea name="notes" defaultValue={editingArtist?.notes || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none', height: '100px', resize: 'none' }} />
+                          <label style={winFont}>Note perso :</label>
+                          <input name="note_perso" defaultValue={editingArtist?.note_perso || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          <label style={winFont}>Dernière vérif. :</label>
+                          <input name="derniere_verification" defaultValue={editingArtist?.derniere_verification || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                          <label style={winFont}>Archive (true/empty):</label>
+                          <input name="archive" defaultValue={editingArtist?.archive || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                       </div>
+                     </fieldset>
+                   </div>
+                </div>
+
+               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', padding: '0 12px 12px 12px' }}>
                   <Win95Button type="submit" style={{ width: '80px', fontWeight: 'bold' }}>Enregistrer</Win95Button>
-                  <Win95Button type="button" onClick={() => setAddEditOpen(false)} style={{ width: '80px' }}>Annuler</Win95Button>
+                  <Win95Button type="button" onClick={() => { setAddEditOpen(false); setActiveTab('general'); }} style={{ width: '80px' }}>Annuler</Win95Button>
                </div>
             </form>
           </div>

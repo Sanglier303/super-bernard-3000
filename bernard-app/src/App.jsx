@@ -122,6 +122,7 @@ export default function App() {
   useEffect(() => { loadAll() }, [loadAll])
 
   const saveData = async (type, updatedData, actionLabel) => {
+    setLoading(true)
     try {
       const clean = updatedData.map(item => {
         const { _id, ...rest } = item;
