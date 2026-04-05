@@ -715,6 +715,13 @@ export function Desktop({
             >
               Fermer tout
             </div>
+            <div
+              className="win95-menu-item"
+              style={{ fontSize: "11px", padding: "4px 10px" }}
+              onClick={() => { rearrangeIcons(); setContextMenu(null); }}
+            >
+              Ranger les icônes
+            </div>
             <div className="win95-separator" style={{ margin: "2px 0" }} />
             <div
               className="win95-menu-item"
