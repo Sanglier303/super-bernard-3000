@@ -19,7 +19,8 @@ const CONFIG = {
   festivals: { file: 'festivals_montpellier.csv', cols: ['nom', 'periode', 'duree', 'lieu', 'style', 'instagram', 'notes', 'note_perso', 'photo', 'archive'] },
   projets: { file: 'projets_montpellier.csv', cols: ['nom', 'statut', 'priorite', 'echeance', 'notes', 'linked_type', 'linked_id', 'archive'] },
   notes: { file: 'notes_montpellier.csv', cols: ['titre', 'contenu', 'date_derniere_modif', 'archive'] },
-  todos: { file: 'todos_montpellier.csv', cols: ['texte', 'complete', 'date_creation', 'archive'] }
+  todos: { file: 'todos_montpellier.csv', cols: ['texte', 'complete', 'date_creation', 'archive'] },
+  stickies: { file: 'stickies_montpellier.csv', cols: ['id', 'text', 'archive'] }
 };
 
 app.use(cors());

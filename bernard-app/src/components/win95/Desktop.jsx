@@ -15,6 +15,7 @@ import { UniversalSearch } from "./UniversalSearch";
 import { StickyManager } from "./StickyManager";
 import { TodoWindow } from "./TodoWindow";
 import { TrashWindow } from "./TrashWindow";
+import { ManualWindow } from "./ManualWindow";
 import { WALLPAPERS } from "../../constants/wallpapers";
 
 const GRID_X = 80;
@@ -46,7 +47,7 @@ function Clock() {
 }
 
 export function Desktop({ 
-  artists, collectifs, lieux, festivals, projects, notes, todos, onRefresh, saveData, loading,
+  artists, collectifs, lieux, festivals, projects, notes, todos, stickies, onRefresh, saveData, loading,
   renderStatsContent, 
   renderAboutContent,
   renderCategoryContent
@@ -144,56 +145,106 @@ export function Desktop({
   // Context Menu State
   const [contextMenu, setContextMenu] = useState(null); // { x, y }
 
-  // --- Sticky Notes State ---
-  const [stickies, setStickies] = useState(() => {
+  // --- Hybrid Sticky Notes State ---
+  const [localStickySettings, setLocalStickySettings] = useState(() => {
     try {
-      const saved = localStorage.getItem("super_bernard_stickies");
+      const saved = localStorage.getItem("super_bernard_sticky_settings");
       if (saved) return JSON.parse(saved);
     } catch { /* ignore */ }
-    return [];
+    return {};
   });
   
   const maxZ = useRef(20);
 
   useEffect(() => {
     try {
-      localStorage.setItem("super_bernard_stickies", JSON.stringify(stickies));
+      localStorage.setItem("super_bernard_sticky_settings", JSON.stringify(localStickySettings));
     } catch { /* ignore */ }
-  }, [stickies]);
+  }, [localStickySettings]);
+
+  // Combine shared stickies (from App.jsx) with local settings (positions, etc.)
+  const mergedStickies = (stickies || []).map(s => {
+    const local = localStickySettings[s.id] || {
+      x: 100 + (Math.random() * 100),
+      y: 100 + (Math.random() * 100),
+      zIndex: 20,
+      isVisible: true
+    };
+    return { ...s, ...local };
+  });
 
   const addSticky = useCallback(() => {
-    maxZ.current += 1;
-    const newZ = maxZ.current;
-    setStickies(prev => [...prev, { 
-      id: Date.now().toString(), 
-      x: window.innerWidth / 2 - 80 + (Math.random() * 40 - 20), 
-      y: window.innerHeight / 2 - 80 + (Math.random() * 40 - 20), 
-      text: "",
-      zIndex: newZ,
-      isVisible: true
-    }]);
-  }, []);
+    const newId = Date.now().toString();
+    const newShared = [...(stickies || []), { id: newId, text: "", archive: "" }];
+    
+    // Save to server
+    saveData('stickies', newShared, "Nouveau Post-it");
+    
+    // Set initial local position
+    setLocalStickySettings(prev => ({
+      ...prev,
+      [newId]: { 
+        x: window.innerWidth / 2 - 80 + (Math.random() * 40 - 20), 
+        y: window.innerHeight / 2 - 80 + (Math.random() * 40 - 20), 
+        zIndex: ++maxZ.current,
+        isVisible: true
+      }
+    }));
+  }, [stickies, saveData]);
 
   const toggleStickyVisibility = useCallback((id, forceShow = null) => {
-    setStickies(prev => prev.map(n => 
-      n.id === id ? { ...n, isVisible: forceShow !== null ? forceShow : !n.isVisible } : n
-    ));
+    setLocalStickySettings(prev => {
+      const current = prev[id] || { x: 100, y: 100, zIndex: 20, isVisible: true };
+      return {
+        ...prev,
+        [id]: { ...current, isVisible: forceShow !== null ? forceShow : !current.isVisible }
+      };
+    });
   }, []);
 
   const deleteStickyPermanently = useCallback((id) => {
-    if (window.confirm("Supprimer définitivement ce post-it ?")) {
-      setStickies(prev => prev.filter(n => n.id !== id));
+    if (window.confirm("Supprimer définitivement ce post-it pour TOUT LE MONDE ?")) {
+      const newShared = (stickies || []).filter(s => s.id !== id);
+      saveData('stickies', newShared, "Suppression Post-it");
+      
+      setLocalStickySettings(prev => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
     }
-  }, []);
+  }, [stickies, saveData]);
 
   const updateSticky = useCallback((updated) => {
-    setStickies(prev => prev.map(n => n.id === updated.id ? updated : n));
-  }, []);
+    // Check if text changed (Shared)
+    const original = (stickies || []).find(s => s.id === updated.id);
+    if (original && original.text !== updated.text) {
+      const newShared = (stickies || []).map(s => s.id === updated.id ? { ...s, text: updated.text } : s);
+      saveData('stickies', newShared, "Mise à jour texte Post-it");
+    }
+
+    // Update local settings (Position, etc.)
+    setLocalStickySettings(prev => ({
+      ...prev,
+      [updated.id]: { 
+        x: updated.x, 
+        y: updated.y, 
+        zIndex: updated.zIndex || 20, 
+        isVisible: updated.isVisible ?? true 
+      }
+    }));
+  }, [stickies, saveData]);
 
   const bringStickyToFront = useCallback((id) => {
     maxZ.current += 1;
     const newZ = maxZ.current;
-    setStickies(prev => prev.map(n => n.id === id ? { ...n, zIndex: newZ } : n));
+    setLocalStickySettings(prev => {
+      const current = prev[id] || { x: 100, y: 100, isVisible: true };
+      return {
+        ...prev,
+        [id]: { ...current, zIndex: newZ }
+      };
+    });
   }, []);
 
   // Icon Dragging State
@@ -336,6 +387,7 @@ export function Desktop({
       if (id === "notepad") { w = 480; h = 400; }
       if (id === "stats") { w = 340; h = 480; }
       if (id === "about") { w = 360; h = 280; }
+      if (id === "manual") { w = 600; h = 500; }
       if (id === "deskSettings") { w = 360; h = 480; }
       
       const nm = new Map(m);
@@ -373,6 +425,22 @@ export function Desktop({
       nm.set(id, { ...w, ...patch });
       return nm;
     });
+  }, []);
+
+  const minimizeAllWindows = useCallback(() => {
+    setWindows(m => {
+      const nm = new Map();
+      m.forEach((w, id) => {
+        nm.set(id, { ...w, minimized: true });
+      });
+      return nm;
+    });
+    setZOrders([]);
+  }, []);
+
+  const closeAllWindows = useCallback(() => {
+    setWindows(new Map());
+    setZOrders([]);
   }, []);
 
   const handleIconMouseDown = (e, id) => {
@@ -443,6 +511,7 @@ export function Desktop({
     if (id === "trash") return "Corbeille d'Archives";
     if (id === "stats") return "Statistiques Géo-Musique";
     if (id === "about") return "À propos";
+    if (id === "manual") return "Manuel d'utilisation";
     if (id === "deskSettings") return "Propriétés de l'Affichage";
     if (id.startsWith("cat:")) return `Catégorie : ${id.slice(4)}`;
     return "Application";
@@ -461,6 +530,7 @@ export function Desktop({
     if (id === "trash") return "🗑️";
     if (id === "stats") return "📊";
     if (id === "about") return "ℹ";
+    if (id === "manual") return "📖";
     if (id === "deskSettings") return "🎨";
     if (id.startsWith("cat:")) return "📄";
     return "📄";
@@ -495,7 +565,7 @@ export function Desktop({
       {/* Desktop area */}
       <div ref={desktopRef} className="flex-1 relative overflow-hidden">
         <StickyNotesManager 
-           notes={stickies} 
+           notes={mergedStickies} 
            onUpdate={updateSticky} 
            onDelete={(id) => toggleStickyVisibility(id, false)} 
            onFocus={bringStickyToFront} 
@@ -562,7 +632,7 @@ export function Desktop({
             {win.id === "todo" && <TodoWindow todos={todos} saveTodos={(data, action) => saveData('todos', data, action)} loading={loading} />}
             {win.id === "sticky_manager" && (
               <StickyManager 
-                notes={stickies} 
+                notes={mergedStickies} 
                 onToggle={toggleStickyVisibility}
                 onDelete={deleteStickyPermanently}
                 onFocus={toggleStickyVisibility}
@@ -603,7 +673,8 @@ export function Desktop({
               />
             )}
             {win.id === "stats" && renderStatsContent({ onClose: () => closeWindow("stats") })}
-            {win.id === "about" && renderAboutContent({ onClose: () => closeWindow("about") })}
+            {win.id === "about" && renderAboutContent({ onClose: () => closeWindow("about"), openWindow })}
+            {win.id === "manual" && <ManualWindow onClose={() => closeWindow("manual")} />}
             {win.id.startsWith("cat:") && renderCategoryContent(win.id.slice(4))}
           </DraggableResizableWindow>
         ))}
@@ -630,15 +701,20 @@ export function Desktop({
             >
               Actualiser
             </div>
-            <div 
-              className="win95-menu-item" 
-              style={{ fontSize: "11px", padding: "4px 10px" }} 
-              onClick={rearrangeIcons}
+            <div
+              className="win95-menu-item"
+              style={{ fontSize: "11px", padding: "4px 10px" }}
+              onClick={() => { minimizeAllWindows(); setContextMenu(null); }}
             >
-              Ranger les icônes
+              Réduire tout
             </div>
-            <div className="win95-separator" style={{ margin: "2px 0" }} />
-            <div className="win95-menu-item" style={{ fontSize: "11px", padding: "4px 10px", opacity: 0.5 }}>Nouveau</div>
+            <div
+              className="win95-menu-item"
+              style={{ fontSize: "11px", padding: "4px 10px" }}
+              onClick={() => { closeAllWindows(); setContextMenu(null); }}
+            >
+              Fermer tout
+            </div>
             <div className="win95-separator" style={{ margin: "2px 0" }} />
             <div
               className="win95-menu-item"
@@ -656,6 +732,8 @@ export function Desktop({
         <StartMenu
           onOpen={openWindow}
           onClose={() => setStartMenuOpen(false)}
+          onMinimizeAll={minimizeAllWindows}
+          onCloseAll={closeAllWindows}
           mascotEnabled={mascotEnabled}
           onToggleMascot={toggleMascot}
           artists={artists}
@@ -713,6 +791,15 @@ export function Desktop({
           </button>
         ))}
 
+        <div style={{ flex: 1 }} />
+        <button 
+          className="win95-taskbar-btn" 
+          style={{ width: "22px", minWidth: "22px", padding: "2px", marginLeft: "2px" }}
+          title="Réduire toutes les fenêtres"
+          onClick={minimizeAllWindows}
+        >
+          🗗
+        </button>
         <Clock />
       </div>
 

@@ -11,7 +11,7 @@ function styleIcon(s) {
   return STYLE_ICONS.default;
 }
 
-export function StartMenu({ onOpen, onClose, mascotEnabled, onToggleMascot, artists }) {
+export function StartMenu({ onOpen, onClose, onMinimizeAll, onCloseAll, mascotEnabled, onToggleMascot, artists }) {
   const categories = useMemo(() => {
     const map = new Map();
     artists.forEach(a => {
@@ -120,6 +120,24 @@ export function StartMenu({ onOpen, onClose, mascotEnabled, onToggleMascot, arti
 
         <div
           className="win95-menu-item"
+          style={{ fontSize: "11px", padding: "4px 8px" }}
+          onClick={() => { onMinimizeAll(); onClose(); }}
+        >
+          🗗 Réduire tout
+        </div>
+
+        <div
+          className="win95-menu-item"
+          style={{ fontSize: "11px", padding: "4px 8px" }}
+          onClick={() => { if (window.confirm("Fermer toutes les fenêtres ?")) { onCloseAll(); onClose(); } }}
+        >
+          ✕ Fermer tout
+        </div>
+
+        <div className="win95-separator" style={{ margin: "2px 0" }} />
+
+        <div
+          className="win95-menu-item"
           style={{ fontSize: "11px", padding: "4px 8px", color: "#800000" }}
           onClick={onClose}
         >
@@ -141,6 +159,7 @@ export function StartMenu({ onOpen, onClose, mascotEnabled, onToggleMascot, arti
             { id: 'projets', name: 'Mes Projets', icon: '📋' },
             { id: 'calendar', name: 'Calendrier', icon: '📅' },
             { id: 'notepad', name: 'Bloc-notes', icon: '📝' },
+            { id: 'new_sticky', name: 'Nouveau Post-it', icon: '📌' },
           ].map(app => (
             <div
               key={app.id}

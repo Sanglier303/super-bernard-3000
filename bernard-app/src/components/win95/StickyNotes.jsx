@@ -4,7 +4,29 @@ const winFont = { fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', fo
 
 export function StickyNote({ note, onUpdate, onDelete, onFocus }) {
   const [isDragging, setIsDragging] = useState(false);
+  const [localText, setLocalText] = useState(note.text);
   const dragInfo = useRef({ startX: 0, startY: 0, initialX: note.x, initialY: note.y });
+  const lastSyncText = useRef(note.text);
+
+  // Sync with incoming shared text if it changed externally (e.g. by another user)
+  useEffect(() => {
+    if (note.text !== lastSyncText.current) {
+      setLocalText(note.text);
+      lastSyncText.current = note.text;
+    }
+  }, [note.text]);
+
+  // Debounce text updates to server
+  useEffect(() => {
+    if (localText === note.text) return;
+
+    const timer = setTimeout(() => {
+      lastSyncText.current = localText;
+      onUpdate({ ...note, text: localText });
+    }, 1000); // Wait 1 second after typing
+
+    return () => clearTimeout(timer);
+  }, [localText, note, onUpdate]);
 
   const handleMouseDown = (e) => {
     if (e.target.tagName.toLowerCase() === 'textarea') {
@@ -81,8 +103,8 @@ export function StickyNote({ note, onUpdate, onDelete, onFocus }) {
         </button>
       </div>
       <textarea
-        value={note.text}
-        onChange={(e) => onUpdate({ ...note, text: e.target.value })}
+        value={localText}
+        onChange={(e) => setLocalText(e.target.value)}
         placeholder="Écrire une note..."
         onMouseDown={onFocus}
         style={{

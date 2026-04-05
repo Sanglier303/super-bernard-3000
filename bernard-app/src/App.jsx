@@ -81,6 +81,7 @@ export default function App() {
   const [projects, setProjects] = useState([])
   const [notes, setNotes] = useState([])
   const [todos, setTodos] = useState([])
+  const [stickies, setStickies] = useState([])
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState(null)
 
@@ -111,7 +112,8 @@ export default function App() {
       fetchGeneric('festivals', setFestivals),
       fetchGeneric('projets', setProjects),
       fetchGeneric('notes', setNotes),
-      fetchGeneric('todos', setTodos)
+      fetchGeneric('todos', setTodos),
+      fetchGeneric('stickies', setStickies)
     ]);
     setLoading(false)
   }, [fetchGeneric])
@@ -153,18 +155,19 @@ export default function App() {
         projects={projects}
         notes={notes}
         todos={todos}
+        stickies={stickies}
         onRefresh={loadAll}
         saveData={saveData}
         loading={loading}
         renderStatsContent={({ onClose }) => <StatsContent artists={artists} onClose={onClose} />}
         renderCategoryContent={(categoryId) => <CategoryContent category={categoryId} artists={artists} />}
-        renderAboutContent={({ onClose }) => (
+        renderAboutContent={({ onClose, openWindow }) => (
           <div style={{ background: "#c0c0c0", padding: "16px", fontSize: "11px", height: "100%", overflow: "auto", fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' }}>
             <div className="flex items-start gap-3 mb-4">
               <div style={{ fontSize: "48px" }}>🎵</div>
               <div>
                 <div style={{ fontWeight: "bold", fontSize: "14px" }}>Super Bernard 3000</div>
-                <div style={{ fontSize: "10px", opacity: 0.7 }}>Version 1.0.0 (build 19950801)</div>
+                <div style={{ fontSize: "10px", opacity: 0.7 }}>Version 4.0.0 (build 20260405)</div>
                 <div style={{ fontSize: "10px", opacity: 0.7 }}>© 1995–2026 Base de Données Musique</div>
               </div>
             </div>
@@ -173,7 +176,14 @@ export default function App() {
               <br />
               <p>Ce programme documente les DJs, producteurs et artistes live basés dans la région.</p>
             </div>
-            <div style={{ display: "flex", justifyContent: "center" }}>
+            <div style={{ display: "flex", justifyContent: "center", gap: "8px" }}>
+              <button 
+                className="win95-btn" 
+                onClick={() => openWindow('manual')}
+                id="btn-open-manual"
+              >
+                📖 Manuel
+              </button>
               <button className="win95-btn win95-btn-primary" onClick={onClose}>OK</button>
             </div>
           </div>
