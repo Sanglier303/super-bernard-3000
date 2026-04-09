@@ -129,7 +129,7 @@ export function StartMenu({ onOpen, onClose, onMinimizeAll, onCloseAll, mascotEn
         <div
           className="win95-menu-item"
           style={{ fontSize: "11px", padding: "4px 8px" }}
-          onClick={() => { if (window.confirm("Fermer toutes les fenêtres ?")) { onCloseAll(); onClose(); } }}
+          onClick={() => { onCloseAll(); onClose(); }}
         >
           ✕ Fermer tout
         </div>
