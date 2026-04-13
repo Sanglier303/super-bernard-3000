@@ -84,11 +84,50 @@ export default function App() {
   const [stickies, setStickies] = useState([])
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState(null)
+  const [currentTrack, setCurrentTrack] = useState(null) // { artist, url, source }
+  const [radioOpen, setRadioOpen] = useState(false)
 
   const showToast = useCallback((message) => {
     setToast(message)
     setTimeout(() => setToast(null), 3000)
   }, [])
+
+  const playTrack = useCallback((artist) => {
+    // Priority: Spotify > SoundCloud > YouTube > Bandcamp
+    const url = artist.spotify || artist.soundcloud || artist.youtube || artist.bandcamp;
+    if (!url) {
+      showToast("Aucun lien audio pour cet artiste");
+      return;
+    }
+
+    let source = "Unknown";
+    if (url.includes("spotify")) source = "Spotify";
+    else if (url.includes("soundcloud")) source = "SoundCloud";
+    else if (url.includes("youtube") || url.includes("youtu.be")) source = "YouTube";
+    else if (url.includes("bandcamp")) source = "Bandcamp";
+
+    setCurrentTrack({ artist, url, source });
+    setRadioOpen(true);
+  }, [showToast]);
+
+  const playNext = useCallback(() => {
+    if (!currentTrack || !artists || artists.length === 0) return;
+    
+    const curId = String(currentTrack.artist._id || currentTrack.artist.id);
+    const currentIndex = artists.findIndex(a => String(a._id || a.id) === curId);
+    
+    for (let i = 1; i <= artists.length; i++) {
+      const nextIndex = (currentIndex + i) % artists.length;
+      const artist = artists[nextIndex];
+      const hasTrack = !!(artist.spotify || artist.soundcloud || artist.youtube || artist.bandcamp);
+      
+      if (hasTrack) {
+        playTrack(artist);
+        return;
+      }
+    }
+    showToast("Fin de la liste de lecture ou aucun lien trouvé");
+  }, [currentTrack, artists, playTrack, showToast]);
 
   // ─── Data API ───
   const fetchGeneric = useCallback(async (type, setter) => {
@@ -160,6 +199,11 @@ export default function App() {
         onRefresh={loadAll}
         saveData={saveData}
         loading={loading}
+        currentTrack={currentTrack}
+        playTrack={playTrack}
+        playNext={playNext}
+        radioOpen={radioOpen}
+        setRadioOpen={setRadioOpen}
         renderStatsContent={({ onClose }) => <StatsContent artists={artists} onClose={onClose} />}
         renderCategoryContent={(categoryId) => <CategoryContent category={categoryId} artists={artists} />}
         renderAboutContent={({ onClose, openWindow }) => (

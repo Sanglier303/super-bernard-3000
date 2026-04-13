@@ -16,6 +16,8 @@ import { StickyManager } from "./StickyManager";
 import { TodoWindow } from "./TodoWindow";
 import { TrashWindow } from "./TrashWindow";
 import { ManualWindow } from "./ManualWindow";
+import { ArtistDetailView, ArtistEditView } from "./ArtistSubWindows";
+import { RadioWindow } from "./RadioWindow";
 import { WALLPAPERS } from "../../constants/wallpapers";
 
 const GRID_X = 80;
@@ -33,6 +35,7 @@ const DESKTOP_ICONS = [
   { id: "sticky_manager", label: "Gestionnaire Post-it", icon: "📋📌" },
   { id: "todo", label: "Ma Todo", icon: "✅" },
   { id: "stats", label: "Statistiques", icon: "📊" },
+  { id: "radio", label: "Radio Bernard", icon: "📻" },
   { id: "trash", label: "Corbeille", icon: "🗑️" },
   { id: "about", label: "À propos", icon: "ℹ" },
 ];
@@ -46,8 +49,29 @@ function Clock() {
   return <div className="win95-clock">{time}</div>;
 }
 
+function MiniPlayer({ currentTrack, onToggle, isPlaying }) {
+  if (!currentTrack) return null;
+  return (
+    <div 
+      className="win95-sunken" 
+      onClick={onToggle}
+      style={{ 
+        display: 'flex', alignItems: 'center', gap: '8px', padding: '0 8px', 
+        fontSize: '10px', height: '22px', background: '#c0c0c0', cursor: 'default',
+        maxWidth: '180px', overflow: 'hidden', border: '1px solid #808080'
+      }}
+    >
+      <span style={{ fontSize: '12px' }}>{isPlaying ? '📻' : '🔇'}</span>
+      <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 'bold' }}>
+        {currentTrack.artist.nom_artiste || currentTrack.artist.nom}
+      </div>
+    </div>
+  );
+}
+
 export function Desktop({ 
   artists, collectifs, lieux, festivals, projects, notes, todos, stickies, onRefresh, saveData, loading,
+  currentTrack, playTrack, playNext, radioOpen, setRadioOpen,
   renderStatsContent, 
   renderAboutContent,
   renderCategoryContent
@@ -85,6 +109,97 @@ export function Desktop({
     return ["artistes"];
   });
 
+  const activeWin = Array.isArray(zOrders) ? zOrders[zOrders.length - 1] : null;
+
+  const getWindowZIndex = (id) => {
+    if (!Array.isArray(zOrders)) return 100;
+    const idx = zOrders.indexOf(id);
+    return idx === -1 ? 100 : 100 + idx;
+  };
+
+  const focusWin = useCallback((id) => {
+    setZOrders(z => {
+      const arr = Array.isArray(z) ? z : [];
+      return [...arr.filter(x => x !== id), id];
+    });
+    setWindows(m => {
+      const w = m.get(id);
+      if (w?.minimized) {
+        const nm = new Map(m);
+        nm.set(id, { ...w, minimized: false });
+        return nm;
+      }
+      return m;
+    });
+  }, []);
+
+  const addSticky = useCallback(() => {
+    const newId = Date.now().toString();
+    const newShared = [...(stickies || []), { id: newId, text: "", archive: "" }];
+    saveData('stickies', newShared, "Nouveau Post-it");
+    setLocalStickySettings(prev => ({
+      ...prev,
+      [newId]: { 
+        x: window.innerWidth / 2 - 80 + (Math.random() * 40 - 20), 
+        y: window.innerHeight / 2 - 80 + (Math.random() * 40 - 20), 
+        zIndex: ++maxZ.current,
+        isVisible: true
+      }
+    }));
+  }, [stickies, saveData]);
+
+  const openWindow = useCallback((id, props = {}) => {
+    if (id === "new_sticky") {
+      addSticky();
+      return;
+    }
+    setWindows(m => {
+      const nm = new Map(m);
+      if (m.has(id)) {
+        const w = nm.get(id);
+        nm.set(id, { ...w, minimized: false, props: { ...(w.props || {}), ...props } });
+      } else {
+        const desk = desktopRef.current;
+        const dw = desk?.clientWidth ?? 800;
+        const dh = desk?.clientHeight ?? 600;
+        const offset = m.size * 12;
+        let w = 500, h = 360;
+        
+        if (["artistes", "collectifs", "lieux", "festivals", "projets"].includes(id)) { w = 700; h = 460; }
+        if (id === "calendar") { w = 540; h = 420; }
+        if (id === "notepad") { w = 480; h = 400; }
+        if (id === "stats") { w = 340; h = 480; }
+        if (id === "about") { w = 360; h = 280; }
+        if (id === "manual") { w = 600; h = 500; }
+        if (id === "deskSettings") { w = 360; h = 480; }
+        if (id.startsWith("artist_props_")) { w = 520; h = 420; }
+        if (id.startsWith("artist_edit_")) { w = 500; h = 500; }
+
+        nm.set(id, { 
+          id, 
+          x: Math.min(dw - w, 50 + offset), 
+          y: Math.min(dh - h, 50 + offset), 
+          w, 
+          h, 
+          props 
+        });
+      }
+      return nm;
+    });
+    setZOrders(prev => {
+      const arr = Array.isArray(prev) ? prev : [];
+      const filtered = arr.filter(wid => wid !== id);
+      return [...filtered, id];
+    });
+  }, [addSticky]);
+
+  const closeWindow = useCallback((id) => {
+    if (id === "radio") setRadioOpen(false);
+    setWindows(m => { const nm = new Map(m); nm.delete(id); return nm; });
+    setZOrders(z => Array.isArray(z) ? z.filter(x => x !== id) : []);
+  }, [setRadioOpen]);
+
+  // Persistence Effects
   useEffect(() => {
     try {
       localStorage.setItem("super_bernard_windows", JSON.stringify(Array.from(windows.values())));
@@ -96,6 +211,13 @@ export function Desktop({
       localStorage.setItem("super_bernard_zorders", JSON.stringify(zOrders));
     } catch {}
   }, [zOrders]);
+
+  useEffect(() => {
+    if (radioOpen && !windows.has("radio")) {
+      openWindow("radio");
+    }
+  }, [radioOpen, openWindow, windows]); // Added windows check safely as openWindow is now above
+
   const [startMenuOpen, setStartMenuOpen] = useState(false);
   const [searchMenuOpen, setSearchMenuOpen] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(null);
@@ -173,24 +295,6 @@ export function Desktop({
     return { ...s, ...local };
   });
 
-  const addSticky = useCallback(() => {
-    const newId = Date.now().toString();
-    const newShared = [...(stickies || []), { id: newId, text: "", archive: "" }];
-    
-    // Save to server
-    saveData('stickies', newShared, "Nouveau Post-it");
-    
-    // Set initial local position
-    setLocalStickySettings(prev => ({
-      ...prev,
-      [newId]: { 
-        x: window.innerWidth / 2 - 80 + (Math.random() * 40 - 20), 
-        y: window.innerHeight / 2 - 80 + (Math.random() * 40 - 20), 
-        zIndex: ++maxZ.current,
-        isVisible: true
-      }
-    }));
-  }, [stickies, saveData]);
 
   const toggleStickyVisibility = useCallback((id, forceShow = null) => {
     setLocalStickySettings(prev => {
@@ -339,72 +443,6 @@ export function Desktop({
     return () => clearInterval(interval);
   }, [rotation, background.value, changeBackground]);
 
-  const activeWin = Array.isArray(zOrders) ? zOrders[zOrders.length - 1] : null;
-
-  const focusWin = useCallback((id) => {
-    setZOrders(z => {
-      const arr = Array.isArray(z) ? z : [];
-      return [...arr.filter(x => x !== id), id];
-    });
-    setWindows(m => {
-      const w = m.get(id);
-      if (w?.minimized) {
-        const nm = new Map(m);
-        nm.set(id, { ...w, minimized: false });
-        return nm;
-      }
-      return m;
-    });
-  }, []);
-
-  const getWindowZIndex = (id) => {
-    if (!Array.isArray(zOrders)) return 100;
-    const idx = zOrders.indexOf(id);
-    return idx === -1 ? 100 : 100 + idx;
-  };
-
-  const openWindow = useCallback((id) => {
-    if (id === "new_sticky") {
-      addSticky();
-      return;
-    }
-    setWindows(m => {
-      if (m.has(id)) {
-        const nm = new Map(m);
-        const w = nm.get(id);
-        nm.set(id, { ...w, minimized: false });
-        focusWin(id);
-        return nm;
-      }
-      const desk = desktopRef.current;
-      const dw = desk?.clientWidth ?? 800;
-      const dh = desk?.clientHeight ?? 600;
-      const offset = m.size * 24;
-      let w = 500, h = 360;
-      
-      if (["artistes", "collectifs", "lieux", "festivals", "projets"].includes(id)) { w = 700; h = 460; }
-      if (id === "calendar") { w = 540; h = 420; }
-      if (id === "notepad") { w = 480; h = 400; }
-      if (id === "stats") { w = 340; h = 480; }
-      if (id === "about") { w = 360; h = 280; }
-      if (id === "manual") { w = 600; h = 500; }
-      if (id === "deskSettings") { w = 360; h = 480; }
-      
-      const nm = new Map(m);
-      nm.set(id, {
-        id, x: Math.min(80 + offset, dw - w - 20), y: Math.min(30 + offset, dh - h - 60),
-        w, h, maximized: false, minimized: false,
-      });
-      return nm;
-    });
-    focusWin(id);
-    setZOrders(z => z.includes(id) ? [...z.filter(x => x !== id), id] : [...z, id]);
-  }, [focusWin, addSticky]);
-
-  const closeWindow = useCallback((id) => {
-    setWindows(m => { const nm = new Map(m); nm.delete(id); return nm; });
-    setZOrders(z => Array.isArray(z) ? z.filter(x => x !== id) : []);
-  }, []);
 
   const minimizeWindow = useCallback((id) => {
     setWindows(m => {
@@ -513,6 +551,9 @@ export function Desktop({
     if (id === "about") return "À propos";
     if (id === "manual") return "Manuel d'utilisation";
     if (id === "deskSettings") return "Propriétés de l'Affichage";
+    if (id === "radio") return "Radio Bernard 3000";
+    if (id.startsWith("artist_props_")) return `Propriétés — ${windows.get(id)?.props?.artistName || 'Artiste'}`;
+    if (id.startsWith("artist_edit_")) return windows.get(id)?.props?.artistId ? `Modifier : ${windows.get(id)?.props?.artistName || 'l\'entité'}` : "Nouvelle Entité";
     if (id.startsWith("cat:")) return `Catégorie : ${id.slice(4)}`;
     return "Application";
   }
@@ -532,6 +573,9 @@ export function Desktop({
     if (id === "about") return "ℹ";
     if (id === "manual") return "📖";
     if (id === "deskSettings") return "🎨";
+    if (id === "radio") return "📻";
+    if (id.startsWith("artist_props_")) return "🔎";
+    if (id.startsWith("artist_edit_")) return "✍️";
     if (id.startsWith("cat:")) return "📄";
     return "📄";
   }
@@ -611,7 +655,17 @@ export function Desktop({
             icon={winIcon(win.id)}
             zIndex={getWindowZIndex(win.id)}
           >
-            {win.id === "artistes" && <DatabaseWindow artists={artists} loading={loading} saveArtists={(data, action) => saveData('artistes', data, action)} onRefresh={onRefresh} />}
+            {win.id === "artistes" && (
+              <DatabaseWindow 
+                artists={artists} 
+                loading={loading} 
+                saveArtists={(data, action) => saveData('artistes', data, action)} 
+                onRefresh={onRefresh} 
+                openWindow={openWindow}
+                closeWindow={closeWindow}
+                playTrack={playTrack}
+              />
+            )}
             {win.id === "collectifs" && <CollectifsWindow collectifs={collectifs} loading={loading} saveCollectifs={(data, action) => saveData('collectifs', data, action)} onRefresh={onRefresh} />}
             {win.id === "lieux" && <LieuxWindow lieux={lieux} loading={loading} saveLieux={(data, action) => saveData('lieux', data, action)} onRefresh={onRefresh} />}
             {win.id === "festivals" && <FestivalsWindow festivals={festivals} loading={loading} saveFestivals={(data, action) => saveData('festivals', data, action)} onRefresh={onRefresh} />}
@@ -672,10 +726,47 @@ export function Desktop({
                 onClose={() => closeWindow('deskSettings')} 
               />
             )}
+            {win.id === "manual" && <ManualWindow onClose={() => closeWindow("manual")} />}
             {win.id === "stats" && renderStatsContent({ onClose: () => closeWindow("stats") })}
             {win.id === "about" && renderAboutContent({ onClose: () => closeWindow("about"), openWindow })}
-            {win.id === "manual" && <ManualWindow onClose={() => closeWindow("manual")} />}
             {win.id.startsWith("cat:") && renderCategoryContent(win.id.slice(4))}
+
+            {/* ARTIST SUB-WINDOWS (PROPS & EDIT) */}
+            {win.id.startsWith("artist_props_") && (
+              <ArtistDetailView 
+                artist={win.props?.artist}
+                playTrack={playTrack}
+                onClose={() => closeWindow(win.id)}
+                onEdit={() => {
+                  const a = win.props?.artist;
+                  closeWindow(win.id);
+                  openWindow(`artist_edit_${a._id}`, { artist: a, artistName: a.nom_artiste || a.nom, artistId: a._id });
+                }}
+              />
+            )}
+
+            {win.id === "radio" && (
+              <RadioWindow 
+                currentTrack={currentTrack} 
+                onNext={playNext}
+                onClose={() => {
+                  closeWindow("radio");
+                  setRadioOpen(false);
+                }} 
+              />
+            )}
+
+            {win.id.startsWith("artist_edit_") && (
+              <ArtistEditView 
+                artist={win.props?.artist}
+                artists={artists}
+                onSave={async (updated, label) => {
+                  await saveData('artistes', updated, label);
+                  closeWindow(win.id);
+                }}
+                onCancel={() => closeWindow(win.id)}
+              />
+            )}
           </DraggableResizableWindow>
         ))}
 
@@ -799,6 +890,11 @@ export function Desktop({
         ))}
 
         <div style={{ flex: 1 }} />
+        <MiniPlayer 
+          currentTrack={currentTrack} 
+          onToggle={() => openWindow('radio')} 
+          isPlaying={true} 
+        />
         <button 
           className="win95-taskbar-btn" 
           style={{ width: "22px", minWidth: "22px", padding: "2px", marginLeft: "2px" }}
