@@ -55,16 +55,16 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh, openW
 
   const handleEdit = () => {
     if (!selectedArtist) return
-    openWindow(`artist_edit_${selectedArtist._id}`, { artist: selectedArtist, artistName: selectedArtist.nom_artiste || selectedArtist.nom, artistId: selectedArtist._id });
+    openWindow(`artist_edit_${selectedArtist.id}`, { artist: selectedArtist, artistName: selectedArtist.nom_artiste || selectedArtist.nom, artistId: selectedArtist.id });
   }
 
   const handleDelete = async () => {
     if (!selectedArtist) return
     if (!window.confirm(`Mettre "${selectedArtist.nom_artiste || selectedArtist.nom}" à la corbeille ?`)) return
-    const updated = artists.map(a => String(a._id) === String(selectedArtist._id) ? { ...a, archive: "true" } : a)
+    const updated = artists.map(a => String(a.id) === String(selectedArtist.id) ? { ...a, archive: "true" } : a)
     const name = selectedArtist.nom_artiste || selectedArtist.nom;
     setSelectedArtist(null)
-    closeWindow(`artist_props_${selectedArtist._id}`);
+    closeWindow(`artist_props_${selectedArtist.id}`);
     await saveArtists(updated, `Archivage artiste : ${name}`)
   }
 
@@ -276,11 +276,11 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh, openW
                   ) : filteredArtists.length === 0 ? (
                     <div style={{ ...winFont, padding: '20px', color: '#808080', textAlign: 'center' }}>Aucun résultat trouvé.</div>
                   ) : filteredArtists.map((artist, idx) => {
-                    const isSelected = selectedArtist?._id === artist._id;
+                    const isSelected = selectedArtist?.id === artist.id;
                     return (
                         <div
-                          key={artist._id}
-                          onDoubleClick={() => openWindow(`artist_props_${artist._id}`, { artist, artistName: artist.nom_artiste || artist.nom })}
+                          key={artist.id}
+                          onDoubleClick={() => openWindow(`artist_props_${artist.id}`, { artist, artistName: artist.nom_artiste || artist.nom })}
                           onClick={() => setSelectedArtist(artist)}
                           style={{
                             display: 'grid',

@@ -67,11 +67,11 @@ export function CollectifsWindow({ collectifs, loading, saveCollectifs, onRefres
   const allStyles = Array.from(new Set(collectifs.flatMap(c => (c.style || '').split(/[/,]/).map(x => x.trim()).filter(Boolean)))).sort();
 
   const handleAdd = () => { setEditingId(null); setAddEditOpen(true); };
-  const handleEdit = () => { if (!selected) return; setEditingId(selected._id); setAddEditOpen(true); };
+  const handleEdit = () => { if (!selected) return; setEditingId(selected.id); setAddEditOpen(true); };
   const handleDelete = async () => {
     if (!selected) return;
     if (!window.confirm(`Mettre "${selected.nom}" à la corbeille ?`)) return;
-    const updated = collectifs.map(c => c._id === selected._id ? { ...c, archive: "true" } : c);
+    const updated = collectifs.map(c => c.id === selected.id ? { ...c, archive: "true" } : c);
     setSelected(null);
     await saveCollectifs(updated, `Archivage collectif : ${selected.nom}`);
   };
@@ -188,9 +188,9 @@ export function CollectifsWindow({ collectifs, loading, saveCollectifs, onRefres
               ) : filtered.length === 0 ? (
                 <div style={{ ...winFont, padding: '20px', color: '#808080', textAlign: 'center' }}>Aucun résultat.</div>
               ) : filtered.map((c, idx) => {
-                const isSel = selected?._id === c._id;
+                const isSel = selected?.id === c.id;
                 return (
-                  <div key={c._id} onDoubleClick={() => { setSelected(c); handleEdit(); }} onClick={() => setSelected(c)}
+                  <div key={c.id} onDoubleClick={() => { setSelected(c); handleEdit(); }} onClick={() => setSelected(c)}
                     style={{ display: 'grid', gridTemplateColumns: GRID, background: isSel ? '#000080' : idx % 2 === 0 ? '#fff' : '#f4f4f4', color: isSel ? '#fff' : '#000', cursor: 'default', borderBottom: '1px solid #e0e0e0' }}>
                     <div style={{ ...winFont, padding: COL, borderRight: '1px dotted #ccc', display: 'flex', alignItems: 'center', gap: compactMode ? '4px' : '10px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                       {showAvatars && <img src={c.photo || '/sanglier.png'} style={{ width: AVATAR_SIZE, height: AVATAR_SIZE, objectFit: 'cover', flexShrink: 0, background: '#ccc', border: compactMode ? 'none' : '1px solid #808080' }} alt="" />}
@@ -228,9 +228,9 @@ export function CollectifsWindow({ collectifs, loading, saveCollectifs, onRefres
               const data = Object.fromEntries(fd.entries());
               let updated;
               if (editingId) {
-                updated = collectifs.map(c => c._id === editingId ? { ...c, ...data } : c);
+                updated = collectifs.map(c => c.id === editingId ? { ...c, ...data } : c);
               } else {
-                updated = [...collectifs, { _id: Date.now() + Math.random().toString(), ...data }];
+                updated = [...collectifs, { id: Date.now() + Math.random().toString(), ...data }];
               }
               setAddEditOpen(false);
               saveCollectifs(updated, editingId ? `Édition : ${data.nom}` : `Ajout : ${data.nom}`);
@@ -239,11 +239,11 @@ export function CollectifsWindow({ collectifs, loading, saveCollectifs, onRefres
                 {[['Nom :', 'nom'], ['Style musical :', 'style'], ['Date de création :', 'date_creation'], ['Instagram :', 'instagram'], ['Photo (URL) :', 'photo']].map(([label, name]) => (
                   <React.Fragment key={name}>
                     <label style={winFont}>{label}</label>
-                    <input name={name} defaultValue={editingId ? collectifs.find(c => c._id === editingId)?.[name] : ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                    <input name={name} defaultValue={editingId ? collectifs.find(c => c.id === editingId)?.[name] : ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
                   </React.Fragment>
                 ))}
                 <label style={winFont}>Notes :</label>
-                <textarea name="notes" defaultValue={editingId ? collectifs.find(c => c._id === editingId)?.notes : ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none', height: '60px' }} />
+                <textarea name="notes" defaultValue={editingId ? collectifs.find(c => c.id === editingId)?.notes : ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none', height: '60px' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', borderTop: '2px solid', borderColor: '#808080 #dfdfdf #dfdfdf #808080', paddingTop: '12px', marginTop: '12px' }}>
                 <Win95Button type="submit" style={{ width: '80px', fontWeight: 'bold' }}>Enregistrer</Win95Button>

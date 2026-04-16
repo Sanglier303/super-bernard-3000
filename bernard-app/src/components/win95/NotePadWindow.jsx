@@ -6,7 +6,7 @@ export function NotePadWindow({ notes = [], onSave }) {
   const [titre, setTitre] = useState(notes[0]?.titre || "Notes Sans Titre");
 
   const handleSave = () => {
-    const updatedNotes = notes.map(n => n._id === notes[0]?._id ? {
+    const updatedNotes = notes.map(n => n.id === notes[0]?.id ? {
       ...n,
       titre,
       contenu: content,
@@ -14,9 +14,9 @@ export function NotePadWindow({ notes = [], onSave }) {
     } : n);
     
     // If it's a new note
-    if (!notes.find(n => n._id === (notes[0]?._id || 'none'))) {
+    if (!notes.find(n => n.id === (notes[0]?.id || 'none'))) {
       updatedNotes.push({
-        _id: Date.now().toString(),
+        id: Date.now().toString(),
         titre,
         contenu: content,
         date_derniere_modif: new Date().toLocaleString()
@@ -29,7 +29,7 @@ export function NotePadWindow({ notes = [], onSave }) {
   const handleArchive = () => {
     if (!notes[0]) return;
     if (!window.confirm("Mettre cette note à la corbeille ?")) return;
-    const updated = notes.map(n => n._id === notes[0]._id ? { ...n, archive: "true" } : n);
+    const updated = notes.map(n => n.id === notes[0].id ? { ...n, archive: "true" } : n);
     onSave(updated, `Archivage note : ${titre}`);
   };
 

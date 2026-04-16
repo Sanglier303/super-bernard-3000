@@ -139,13 +139,13 @@ export function ArtistEditView({ artist, onSave, onCancel, artists }) {
     
     let updated;
     let label;
-    if (artist && artist._id) {
-      updated = artists.map(a => String(a._id) === String(artist._id) ? { ...a, ...data } : a);
+    if (artist && artist.id) {
+      updated = artists.map(a => String(a.id) === String(artist.id) ? { ...a, ...data } : a);
       label = `Édition : ${data.nom_artiste}`;
     } else {
       const newArtist = { 
         ...data, 
-        _id: Date.now() + Math.random().toString() 
+        id: Date.now() + Math.random().toString() 
       };
       updated = [...artists, newArtist];
       label = `Création : ${data.nom_artiste}`;

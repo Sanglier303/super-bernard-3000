@@ -111,7 +111,7 @@ export function CalendarWindow({ projects = [] }) {
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1px', marginTop: '2px' }}>
                       {projectsToday.map(p => (
                         <div 
-                          key={p._id} 
+                          key={p.id} 
                           title={`${p.nom} (${p.statut || 'N/A'})`}
                           style={{ 
                             fontSize: '8px', 

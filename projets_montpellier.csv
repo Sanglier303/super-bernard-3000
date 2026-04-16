@@ -1,4 +1,4 @@
-"nom","statut","priorite","echeance","notes","linked_type","linked_id","archive"
-"V2.3 Final Check","En cours","!!! Haute","2026-04-10","","","",""
-"Audit Kanban","En cours","Normale","","","","",""
-"Stability Project","À faire","Normale","","","","","true"
+"id","nom","statut","priorite","echeance","notes","linked_type","linked_id","archive"
+"d44c478f-e785-4696-a088-97a11c9dd5b2","V2.3 Final Check","En cours","!!! Haute","2026-04-10","","","",""
+"55befe5f-dc06-4c10-b44f-4c6fd361f23d","Audit Kanban","En attente","Normale","","","","",""
+"7d3e9a75-47c8-4f47-98c6-9fbc3ece8a65","Stability Project","À faire","Normale","","","","","true"

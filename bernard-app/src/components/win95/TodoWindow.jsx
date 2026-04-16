@@ -10,7 +10,7 @@ export function TodoWindow({ todos, saveTodos, loading }) {
     e.preventDefault();
     if (!inputValue.trim()) return;
     const newTodo = {
-      _id: Date.now().toString(),
+      id: Date.now().toString(),
       texte: inputValue.trim(),
       complete: "false",
       archive: "false",
@@ -22,14 +22,14 @@ export function TodoWindow({ todos, saveTodos, loading }) {
 
   const toggleTodo = (id) => {
     const updated = todos.map(t => 
-      t._id === id ? { ...t, complete: t.complete === "true" ? "false" : "true" } : t
+      t.id === id ? { ...t, complete: t.complete === "true" ? "false" : "true" } : t
     );
     saveTodos(updated, `Changement état tâche`);
   };
 
   const archiveTodo = (id) => {
     const updated = todos.map(t => 
-      t._id === id ? { ...t, archive: "true" } : t
+      t.id === id ? { ...t, archive: "true" } : t
     );
     saveTodos(updated, `Archivage tâche`);
   };
@@ -56,11 +56,11 @@ export function TodoWindow({ todos, saveTodos, loading }) {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {activeTodos.map((t, idx) => (
-              <div key={t._id || idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px', borderBottom: '1px solid #f0f0f0' }}>
+              <div key={t.id || idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px', borderBottom: '1px solid #f0f0f0' }}>
                 <input 
                   type="checkbox" 
                   checked={t.complete === "true"} 
-                  onChange={() => toggleTodo(t._id)} 
+                  onChange={() => toggleTodo(t.id)} 
                 />
                 <span style={{ 
                   flex: 1, 
@@ -71,7 +71,7 @@ export function TodoWindow({ todos, saveTodos, loading }) {
                   {t.texte}
                 </span>
                 <button 
-                  onClick={() => archiveTodo(t._id)}
+                  onClick={() => archiveTodo(t.id)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '10px', color: '#808080' }}
                   title="Archiver"
                 >

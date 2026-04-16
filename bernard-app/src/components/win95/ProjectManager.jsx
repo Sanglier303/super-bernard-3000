@@ -64,7 +64,7 @@ function ProjectFormModal({ project, onSave, onCancel, artists, collectifs, lieu
   const raised = { boxShadow: 'inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf' };
   
   const [type, setType] = useState(project?.linked_type || '');
-  const [linkedId, setLinkedId] = useState(project?.linked_id || '');
+  const [linkedId, setLinkedId] = useState(project?.linkedid || '');
 
   const entities = useMemo(() => {
     if (type === 'Artiste') return artists || [];
@@ -79,7 +79,7 @@ function ProjectFormModal({ project, onSave, onCancel, artists, collectifs, lieu
     const fd = new FormData(e.target);
     const data = Object.fromEntries(fd.entries());
     data.linked_type = type;
-    data.linked_id = linkedId;
+    data.linkedid = linkedId;
     onSave(data);
   };
 
@@ -122,7 +122,7 @@ function ProjectFormModal({ project, onSave, onCancel, artists, collectifs, lieu
             <select value={linkedId} onChange={e => setLinkedId(e.target.value)} disabled={!type} style={{ ...sunken, ...winFont, border: 'none', background: type ? '#fff' : '#dfdfdf' }}>
               <option value="">-- Sélectionner --</option>
               {entities.map(ent => (
-                <option key={ent._id} value={ent._id}>
+                <option key={ent.id} value={ent.id}>
                   {ent.nom_artiste || ent.nom_collectif || ent.nom_structure || ent.nom_festival || 'Inconnu'}
                 </option>
               ))}
@@ -157,7 +157,7 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
   const raised = { boxShadow: 'inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf' };
 
   const selectedProject = useMemo(() => 
-    (projects || []).find(p => String(p._id) === String(selectedProjectId)), 
+    (projects || []).find(p => String(p.id) === String(selectedProjectId)), 
     [projects, selectedProjectId]
   );
 
@@ -179,7 +179,7 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
 
   const handleDragStart = (e, project) => {
     e.stopPropagation();
-    const pid = String(project._id);
+    const pid = String(project.id);
     
     // Set standard and custom MIME types
     e.dataTransfer.setData("text/plain", pid);
@@ -190,7 +190,7 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
     e.dataTransfer.dropEffect = "move";
     
     // Set active state
-    setSelectedProjectId(project._id);
+    setSelectedProjectId(project.id);
     console.log("Kanban: dragStart", pid, project.nom);
   };
 
@@ -216,11 +216,11 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
       return;
     }
 
-    const project = (projects || []).find(p => String(p._id) === String(projectId));
+    const project = (projects || []).find(p => String(p.id) === String(projectId));
     if (project) {
       if (project.statut !== newStatus) {
         console.log(`Kanban: Moving ${project.nom} (${projectId}) to ${newStatus}`);
-        const updated = projects.map(p => String(p._id) === String(projectId) ? { ...p, statut: newStatus } : p);
+        const updated = projects.map(p => String(p.id) === String(projectId) ? { ...p, statut: newStatus } : p);
         saveProjects(updated, `Déplacement Kanban : ${project.nom} -> ${newStatus}`);
       }
     } else {
@@ -261,7 +261,7 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
 
   const handleEdit = () => {
     if (!selectedProject) return
-    setEditingProjectId(selectedProject._id)
+    setEditingProjectId(selectedProject.id)
     setAddEditOpen(true)
   }
 
@@ -270,7 +270,7 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
     if (!window.confirm(`Voulez-vous envoyer "${selectedProject.nom}" à la corbeille ?`)) return;
     
     const updated = (projects || []).map(p => 
-      String(p._id) === String(selectedProject._id) ? { ...p, archive: "true" } : p
+      String(p.id) === String(selectedProject.id) ? { ...p, archive: "true" } : p
     );
     saveProjects(updated, `Archivage projet: ${selectedProject.nom}`);
     setSelectedProjectId(null);
@@ -278,10 +278,10 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
 
   const getEntityName = (type, id) => {
     if (!type || !id) return '';
-    if (type === 'Artiste') return artists?.find(a => String(a._id) === String(id))?.nom_artiste || 'Inconnu';
-    if (type === 'Collectif') return collectifs?.find(c => String(c._id) === String(id))?.nom_collectif || 'Inconnu';
-    if (type === 'Lieu') return lieux?.find(l => String(l._id) === String(id))?.nom_structure || 'Inconnu';
-    if (type === 'Festival') return festivals?.find(f => String(f._id) === String(id))?.nom_festival || 'Inconnu';
+    if (type === 'Artiste') return artists?.find(a => String(a.id) === String(id))?.nom_artiste || 'Inconnu';
+    if (type === 'Collectif') return collectifs?.find(c => String(c.id) === String(id))?.nom_collectif || 'Inconnu';
+    if (type === 'Lieu') return lieux?.find(l => String(l.id) === String(id))?.nom_structure || 'Inconnu';
+    if (type === 'Festival') return festivals?.find(f => String(f.id) === String(id))?.nom_festival || 'Inconnu';
     return type;
   };
 
@@ -351,12 +351,12 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
                     <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px', color: '#808080' }}>Aucun projet.</td></tr>
                   ) : filteredProjects.map((p, i) => (
                     <tr
-                      key={p._id}
-                      onClick={() => setSelectedProjectId(p._id)}
+                      key={p.id}
+                      onClick={() => setSelectedProjectId(p.id)}
                       onDoubleClick={handleEdit}
                       style={{ 
-                        background: String(selectedProjectId) === String(p._id) ? '#000080' : i % 2 === 0 ? '#fff' : '#f4f4f4', 
-                        color: String(selectedProjectId) === String(p._id) ? '#fff' : '#000', 
+                        background: String(selectedProjectId) === String(p.id) ? '#000080' : i % 2 === 0 ? '#fff' : '#f4f4f4', 
+                        color: String(selectedProjectId) === String(p.id) ? '#fff' : '#000', 
                         cursor: 'default' 
                       }}
                     >
@@ -364,9 +364,9 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
                       <td style={{ padding: '4px' }}>{p.statut}</td>
                       <td style={{ padding: '4px' }}>{p.priorite}</td>
                       <td style={{ padding: '4px' }}>
-                        {p.linked_type && p.linked_id ? (
-                          <span title={`Lié à: ${p.linked_type}`} style={{color: String(selectedProjectId) === String(p._id) ? '#fff' : '#000080'}}>
-                            🔗 {getEntityName(p.linked_type, p.linked_id)}
+                        {p.linked_type && p.linkedid ? (
+                          <span title={`Lié à: ${p.linked_type}`} style={{color: String(selectedProjectId) === String(p.id) ? '#fff' : '#000080'}}>
+                            🔗 {getEntityName(p.linked_type, p.linkedid)}
                           </span>
                         ) : '—'}
                       </td>
@@ -403,17 +403,17 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
                   <div style={{ flex: 1, overflowY: 'auto', padding: '4px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {filteredProjects.filter(p => (p.statut || '') === status).map(p => (
                       <div
-                        key={p._id}
+                        key={p.id}
                         className="win95-raised"
                         draggable
                         onDragStart={(e) => handleDragStart(e, p)}
                         onDragEnd={handleDragEnd}
-                        onClick={() => setSelectedProjectId(p._id)}
-                        data-id={p._id}
+                        onClick={() => setSelectedProjectId(p.id)}
+                        data-id={p.id}
                         style={{ 
                           ...raised, 
-                          background: String(selectedProjectId) === String(p._id) ? '#000080' : '#fff', 
-                          color: String(selectedProjectId) === String(p._id) ? '#fff' : '#000',
+                          background: String(selectedProjectId) === String(p.id) ? '#000080' : '#fff', 
+                          color: String(selectedProjectId) === String(p.id) ? '#fff' : '#000',
                           padding: "8px", 
                           cursor: "grab",
                           fontSize: "11px",
@@ -423,8 +423,8 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
                         <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>{p.nom}</div>
                         <div style={{ fontSize: '9px', opacity: 0.8 }}>{p.priorite}</div>
                         {p.linked_type && (
-                          <div style={{ fontSize: '9px', marginTop: '2px', color: String(selectedProjectId) === String(p._id) ? '#ccf' : '#000080' }}>
-                            🔗 {getEntityName(p.linked_type, p.linked_id)}
+                          <div style={{ fontSize: '9px', marginTop: '2px', color: String(selectedProjectId) === String(p.id) ? '#ccf' : '#000080' }}>
+                            🔗 {getEntityName(p.linked_type, p.linkedid)}
                           </div>
                         )}
                       </div>
@@ -446,7 +446,7 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
       {/* Add/Edit Modal */}
       {addEditOpen && (
         <ProjectFormModal
-          project={editingProjectId ? projects.find(p => p._id === editingProjectId) : null}
+          project={editingProjectId ? projects.find(p => p.id === editingProjectId) : null}
           artists={artists}
           collectifs={collectifs}
           lieux={lieux}
@@ -454,9 +454,9 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
           onSave={(data) => {
              let updated
              if (editingProjectId) {
-               updated = projects.map(p => p._id === editingProjectId ? { ...p, ...data } : p)
+               updated = projects.map(p => p.id === editingProjectId ? { ...p, ...data } : p)
              } else {
-               updated = [...projects, { _id: Date.now() + Math.random().toString(), ...data }]
+               updated = [...projects, { id: crypto.randomUUID?.() || Date.now().toString(), ...data }]
              }
              setAddEditOpen(false)
              saveProjects(updated, editingProjectId ? `Édition : ${data.nom}` : `Nouveau : ${data.nom}`)

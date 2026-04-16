@@ -65,7 +65,7 @@ export function TrashWindow({
     if (!list || !save) return;
     
     const updated = list.map(item => 
-      String(item._id) === String(selectedItem._id) ? { ...item, archive: "false" } : item
+      String(item.id) === String(selectedItem.id) ? { ...item, archive: "false" } : item
     );
     
     save(updated);
@@ -88,7 +88,7 @@ export function TrashWindow({
     const { list, save } = collectionMap[type] || {};
     if (!list || !save) return;
     
-    const updated = list.filter(item => String(item._id) !== String(selectedItem._id));
+    const updated = list.filter(item => String(item.id) !== String(selectedItem.id));
     
     save(updated);
     setSelectedItem(null);
@@ -148,11 +148,11 @@ export function TrashWindow({
             ) : (
               archivedItems.map((item, idx) => (
                 <tr 
-                  key={`${item._type}-${item._id}`}
+                  key={`${item._type}-${item.id}`}
                   onClick={() => setSelectedItem(item)}
                   style={{ 
-                    background: selectedItem?._id === item._id && selectedItem?._type === item._type ? '#000080' : idx % 2 === 0 ? '#fff' : '#f4f4f4',
-                    color: selectedItem?._id === item._id && selectedItem?._type === item._type ? '#fff' : '#000',
+                    background: selectedItem?.id === item.id && selectedItem?._type === item._type ? '#000080' : idx % 2 === 0 ? '#fff' : '#f4f4f4',
+                    color: selectedItem?.id === item.id && selectedItem?._type === item._type ? '#fff' : '#000',
                     cursor: 'default'
                   }}
                 >

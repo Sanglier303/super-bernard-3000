@@ -59,7 +59,7 @@ function CategoryContent({ category, artists }) {
           </thead>
           <tbody>
             {items.map(a => (
-              <tr key={a._id || a.id} style={{ cursor: "pointer" }}>
+              <tr key={a.id} style={{ cursor: "pointer" }}>
                 <td><strong>{a.nom_artiste || a.nom}</strong></td>
                 <td style={{ maxWidth: "120px" }}>{a.sous_genre || "—"}</td>
                 <td>{a.zone}</td>
@@ -113,8 +113,8 @@ export default function App() {
   const playNext = useCallback(() => {
     if (!currentTrack || !artists || artists.length === 0) return;
     
-    const curId = String(currentTrack.artist._id || currentTrack.artist.id);
-    const currentIndex = artists.findIndex(a => String(a._id || a.id) === curId);
+    const curId = String(currentTrack.artist.id);
+    const currentIndex = artists.findIndex(a => String(a.id) === curId);
     
     for (let i = 1; i <= artists.length; i++) {
       const nextIndex = (currentIndex + i) % artists.length;
@@ -164,8 +164,9 @@ export default function App() {
     setLoading(true)
     try {
       const clean = updatedData.map(item => {
+        // Keep 'id', remove volatile '_id'
         const { _id, ...rest } = item;
-        void _id; // Mark as used
+        void _id;
         return rest;
       })
       const res = await fetch('/api/data/' + type, {

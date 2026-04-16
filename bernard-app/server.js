@@ -1,8 +1,10 @@
 import express from 'express';
 import cors from 'cors';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFile, writeFile, access } from 'fs/promises';
+import { constants } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -16,18 +18,18 @@ const CONFIG = {
   artistes: { 
     file: 'artistes_montpellier.csv', 
     cols: [
-      'nom_artiste', 'zone', 'commune_precise', 'style', 'sous_genre', 'type_performance', 
+      'id', 'nom_artiste', 'zone', 'commune_precise', 'style', 'sous_genre', 'type_performance', 
       'statut_localite', 'source_type', 'preuves', 'date_preuve', 'instagram', 'facebook', 
       'soundcloud', 'bandcamp', 'spotify', 'youtube', 'site_officiel', 'source_localite', 
       'notes', 'note_perso', 'photo', 'archive', 'derniere_verification'
     ] 
   },
-  collectifs: { file: 'collectifs_montpellier.csv', cols: ['nom', 'style', 'date_creation', 'instagram', 'notes', 'note_perso', 'photo', 'archive'] },
-  lieux: { file: 'lieux_montpellier.csv', cols: ['nom', 'capacite', 'adresse', 'type', 'instagram', 'notes', 'note_perso', 'photo', 'archive'] },
-  festivals: { file: 'festivals_montpellier.csv', cols: ['nom', 'periode', 'duree', 'lieu', 'style', 'instagram', 'notes', 'note_perso', 'photo', 'archive'] },
-  projets: { file: 'projets_montpellier.csv', cols: ['nom', 'statut', 'priorite', 'echeance', 'notes', 'linked_type', 'linked_id', 'archive'] },
-  notes: { file: 'notes_montpellier.csv', cols: ['titre', 'contenu', 'date_derniere_modif', 'archive'] },
-  todos: { file: 'todos_montpellier.csv', cols: ['texte', 'complete', 'date_creation', 'archive'] },
+  collectifs: { file: 'collectifs_montpellier.csv', cols: ['id', 'nom', 'style', 'date_creation', 'instagram', 'notes', 'note_perso', 'photo', 'archive'] },
+  lieux: { file: 'lieux_montpellier.csv', cols: ['id', 'nom', 'capacite', 'adresse', 'type', 'instagram', 'notes', 'note_perso', 'photo', 'archive'] },
+  festivals: { file: 'festivals_montpellier.csv', cols: ['id', 'nom', 'periode', 'duree', 'lieu', 'style', 'instagram', 'notes', 'note_perso', 'photo', 'archive'] },
+  projets: { file: 'projets_montpellier.csv', cols: ['id', 'nom', 'statut', 'priorite', 'echeance', 'notes', 'linked_type', 'linked_id', 'archive'] },
+  notes: { file: 'notes_montpellier.csv', cols: ['id', 'titre', 'contenu', 'date_derniere_modif', 'archive'] },
+  todos: { file: 'todos_montpellier.csv', cols: ['id', 'texte', 'complete', 'date_creation', 'archive'] },
   stickies: { file: 'stickies_montpellier.csv', cols: ['id', 'text', 'archive'] }
 };
 
@@ -65,27 +67,35 @@ function escapeCSVField(field) {
   return '"' + f + '"';
 }
 
-function readData(type) {
+async function exists(path) {
+  try {
+    await access(path, constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function readData(type) {
   const config = CONFIG[type];
   if (!config) return { headers: [], data: [] };
   const filePath = resolve(DATA_DIR, config.file);
   
-  if (!existsSync(filePath)) {
+  if (!(await exists(filePath))) {
     return { headers: config.cols, data: [] };
   }
 
   try {
-    const content = readFileSync(filePath, 'utf-8');
+    const content = await readFile(filePath, 'utf-8');
     const rows = parseCSV(content);
     if (rows.length === 0) return { headers: config.cols, data: [] };
     
     const fileHeaders = rows[0].map(h => h.trim());
     const jsonData = [];
     
-    // Always include CONFIG cols even if missing from file
-    // Preserve any existing columns from file not in CONFIG
     const finalHeaders = [...new Set([...config.cols, ...fileHeaders])];
 
+    let hasMissingIds = false;
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       if (row.length === 0) continue;
@@ -94,8 +104,25 @@ function readData(type) {
         const fileIdx = fileHeaders.indexOf(col);
         obj[col] = fileIdx !== -1 ? row[fileIdx] || '' : '';
       });
+      
+      // Auto-generate stable ID if missing
+      if (!obj.id) {
+        obj.id = crypto.randomUUID();
+        hasMissingIds = true;
+      }
+      
       jsonData.push(obj);
     }
+
+    // If we auto-generated IDs, we should probably save them back, 
+    // but to avoid side-effects during a GET, we'll wait for the next POST 
+    // or just let them be volatile until saved. 
+    // Actually, for stability, we SHOULD save them if they are missing.
+    if (hasMissingIds) {
+      console.log(`[server] Migrating IDs for ${type}...`);
+      await writeData(type, finalHeaders, jsonData);
+    }
+
     return { headers: finalHeaders, data: jsonData };
   } catch (err) {
     console.error(`[server] readError ${type}:`, err);
@@ -103,48 +130,59 @@ function readData(type) {
   }
 }
 
-function writeData(type, headers, data) {
+async function writeData(type, headers, data) {
   const config = CONFIG[type];
   if (!config) return;
   const filePath = resolve(DATA_DIR, config.file);
   
-  // Use config.cols as the preferred order, adding any extra headers found
   const finalHeaders = [...new Set([...config.cols, ...headers])];
   
   const headerLine = finalHeaders.map(escapeCSVField).join(',');
   const lines = [headerLine];
   data.forEach(row => {
+    // Ensure every row has an ID on save
+    if (!row.id) row.id = crypto.randomUUID();
     const line = finalHeaders.map(h => escapeCSVField(row[h] || '')).join(',');
     lines.push(line);
   });
-  writeFileSync(filePath, lines.join('\n'), 'utf-8');
+  await writeFile(filePath, lines.join('\n'), 'utf-8');
 }
 
-function logAction(type, label) {
+async function logAction(type, label) {
   const logFile = resolve(DATA_DIR, 'actions_log.csv');
   const timestamp = new Date().toISOString();
   const line = `${escapeCSVField(timestamp)},${escapeCSVField(type)},${escapeCSVField(label)}\n`;
-  if (!existsSync(logFile)) writeFileSync(logFile, '"timestamp","type","label"\n', 'utf-8');
-  writeFileSync(logFile, line, { flag: 'a' });
+  if (!(await exists(logFile))) {
+    await writeFile(logFile, '"timestamp","type","label"\n', 'utf-8');
+  }
+  // For append, we still use synchronous for simplicity in this specific log or we can use a lock
+  // But let's use writeFile with flag 'a' (async)
+  await writeFile(logFile, line, { flag: 'a' });
 }
 
-app.get('/api/data/:type', (req, res) => {
+app.get('/api/data/:type', async (req, res) => {
   let type = req.params.type;
   if (type === 'todo-list') type = 'todos';
   if (!CONFIG[type]) return res.json({ headers: [], data: [] });
-  res.json(readData(type));
+  res.json(await readData(type));
 });
 
-app.post('/api/data/:type', (req, res) => {
+app.post('/api/data/:type', async (req, res) => {
   let type = req.params.type;
   if (type === 'todo-list') type = 'todos';
   if (!CONFIG[type]) return res.status(400).json({ status: 'error', message: 'Invalid type' });
   const { data, actionLabel } = req.body;
-  writeData(type, CONFIG[type].cols, data);
-  logAction('update_' + type, actionLabel || `Mise à jour ${type}`);
-  res.json({ status: 'ok' });
+  try {
+    await writeData(type, CONFIG[type].cols, data);
+    await logAction('update_' + type, actionLabel || `Mise à jour ${type}`);
+    res.json({ status: 'ok' });
+  } catch (err) {
+    console.error(`[server] writeError ${type}:`, err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server v3.1 running on http://localhost:${PORT}`);
+  console.log(`Server v5.1 running on http://localhost:${PORT}`);
 });
+

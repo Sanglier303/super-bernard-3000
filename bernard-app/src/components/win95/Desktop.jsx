@@ -615,7 +615,7 @@ export function Desktop({
            onFocus={bringStickyToFront} 
         />
         {/* Desktop icons */}
-        {DESKTOP_ICONS.filter(ic => visibleIcons.includes(ic.id)).map(ic => {
+        {DESKTOP_ICONS.filter(ic => (visibleIcons || []).includes(ic.id)).map(ic => {
           const pos = dragging?.id === ic.id ? { x: dragging.iconX, y: dragging.iconY } : iconPositions[ic.id];
           return (
             <div
@@ -740,7 +740,7 @@ export function Desktop({
                 onEdit={() => {
                   const a = win.props?.artist;
                   closeWindow(win.id);
-                  openWindow(`artist_edit_${a._id}`, { artist: a, artistName: a.nom_artiste || a.nom, artistId: a._id });
+                  openWindow(`artist_edit_${a.id}`, { artist: a, artistName: a.nom_artiste || a.nom, artistId: a.id });
                 }}
               />
             )}

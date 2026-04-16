@@ -69,11 +69,11 @@ export function FestivalsWindow({ festivals, loading, saveFestivals, onRefresh }
   const allStyles = Array.from(new Set(festivals.flatMap(f => (f.style || '').split(/[/,]/).map(x => x.trim()).filter(Boolean)))).sort();
 
   const handleAdd = () => { setEditingId(null); setAddEditOpen(true); };
-  const handleEdit = () => { if (!selected) return; setEditingId(selected._id); setAddEditOpen(true); };
+  const handleEdit = () => { if (!selected) return; setEditingId(selected.id); setAddEditOpen(true); };
   const handleDelete = async () => {
     if (!selected) return;
     if (!window.confirm(`Mettre "${selected.nom}" à la corbeille ?`)) return;
-    const updated = festivals.map(f => f._id === selected._id ? { ...f, archive: "true" } : f);
+    const updated = festivals.map(f => f.id === selected.id ? { ...f, archive: "true" } : f);
     setSelected(null);
     await saveFestivals(updated, `Archivage festival : ${selected.nom}`);
   };
@@ -187,9 +187,9 @@ export function FestivalsWindow({ festivals, loading, saveFestivals, onRefresh }
               ) : filtered.length === 0 ? (
                 <div style={{ ...winFont, padding: '20px', color: '#808080', textAlign: 'center' }}>Aucun résultat.</div>
               ) : filtered.map((f, idx) => {
-                const isSel = selected?._id === f._id;
+                const isSel = selected?.id === f.id;
                 return (
-                  <div key={f._id} onDoubleClick={() => { setSelected(f); setEditingId(f._id); setAddEditOpen(true); }} onClick={() => setSelected(f)}
+                  <div key={f.id} onDoubleClick={() => { setSelected(f); setEditingId(f.id); setAddEditOpen(true); }} onClick={() => setSelected(f)}
                     style={{ display: 'grid', gridTemplateColumns: GRID, background: isSel ? '#000080' : idx % 2 === 0 ? '#fff' : '#f4f4f4', color: isSel ? '#fff' : '#000', cursor: 'default', borderBottom: '1px solid #e0e0e0' }}>
                     <div style={{ ...winFont, padding: COL, borderRight: '1px dotted #ccc', display: 'flex', alignItems: 'center', gap: compactMode ? '4px' : '10px', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                       {showAvatars && <img src={f.photo || '/sanglier.png'} style={{ width: AVATAR_SIZE, height: AVATAR_SIZE, objectFit: 'cover', flexShrink: 0, background: '#ccc', border: compactMode ? 'none' : '1px solid #808080' }} alt="" />}
@@ -226,9 +226,9 @@ export function FestivalsWindow({ festivals, loading, saveFestivals, onRefresh }
               const data = Object.fromEntries(fd.entries());
               let updated;
               if (editingId) {
-                updated = festivals.map(f => f._id === editingId ? { ...f, ...data } : f);
+                updated = festivals.map(f => f.id === editingId ? { ...f, ...data } : f);
               } else {
-                updated = [...festivals, { _id: Date.now() + Math.random().toString(), ...data }];
+                updated = [...festivals, { id: Date.now() + Math.random().toString(), ...data }];
               }
               setAddEditOpen(false);
               saveFestivals(updated, editingId ? `Édition : ${data.nom}` : `Ajout : ${data.nom}`);
@@ -237,11 +237,11 @@ export function FestivalsWindow({ festivals, loading, saveFestivals, onRefresh }
                 {[['Nom :', 'nom'], ['Période (ex: Juillet) :', 'periode'], ['Durée (ex: 3 jours) :', 'duree'], ['Lieu :', 'lieu'], ['Style Musical :', 'style'], ['Instagram :', 'instagram'], ['Photo (URL) :', 'photo']].map(([label, name]) => (
                   <React.Fragment key={name}>
                     <label style={winFont}>{label}</label>
-                    <input name={name} defaultValue={editingId ? festivals.find(f => f._id === editingId)?.[name] : ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                    <input name={name} defaultValue={editingId ? festivals.find(f => f.id === editingId)?.[name] : ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
                   </React.Fragment>
                 ))}
                 <label style={winFont}>Notes :</label>
-                <textarea name="notes" defaultValue={editingId ? festivals.find(f => f._id === editingId)?.notes : ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none', height: '60px' }} />
+                <textarea name="notes" defaultValue={editingId ? festivals.find(f => f.id === editingId)?.notes : ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none', height: '60px' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', borderTop: '2px solid', borderColor: '#808080 #dfdfdf #dfdfdf #808080', paddingTop: '12px', marginTop: '12px' }}>
                 <Win95Button type="submit" style={{ width: '80px', fontWeight: 'bold' }}>Enregistrer</Win95Button>
