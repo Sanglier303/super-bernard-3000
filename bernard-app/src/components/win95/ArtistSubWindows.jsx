@@ -51,7 +51,7 @@ export function ArtistDetailView({ artist, onClose, onEdit, playTrack }) {
 
           <div style={{ border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '12px', background: '#c0c0c0', marginTop: '-2px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                <img src={artist.photo || "/sanglier.png"} style={{ width: 64, height: 64, objectFit: 'cover', ...raised }} />
+                <img src={artist.photo_or_logo_link || artist.photo || "/sanglier.png"} style={{ width: 64, height: 64, objectFit: 'cover', ...raised }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ ...winFont, fontSize: '16px', fontWeight: 'bold' }}>{artist.nom_artiste || artist.nom}</div>
                   <div style={{ ...winFont, color: '#444' }}>{artist.style || '—'} ({artist.type_performance || '—'})</div>
@@ -216,6 +216,8 @@ export function ArtistEditView({ artist, onSave, onCancel, artists }) {
                       <input name="type_performance" defaultValue={artist?.type_performance || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
                       <label style={winFont}>URL Photo :</label>
                       <input name="photo" defaultValue={artist?.photo || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                      <label style={winFont}>Photo/Logo (lien) :</label>
+                      <input name="photo_or_logo_link" defaultValue={artist?.photo_or_logo_link || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
                    </div>
                  </fieldset>
                </div>
