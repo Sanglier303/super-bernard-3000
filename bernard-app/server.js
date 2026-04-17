@@ -5,6 +5,7 @@ import { constants } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
+import { existsSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -114,13 +115,11 @@ async function readData(type) {
       jsonData.push(obj);
     }
 
-    // If we auto-generated IDs, we should probably save them back, 
-    // but to avoid side-effects during a GET, we'll wait for the next POST 
-    // or just let them be volatile until saved. 
-    // Actually, for stability, we SHOULD save them if they are missing.
+    // IDs are assigned in memory only on GET.
+    // They will be persisted to the CSV on the next real POST (save).
+    // This avoids any silent write side-effect on read-only requests.
     if (hasMissingIds) {
-      console.log(`[server] Migrating IDs for ${type}...`);
-      await writeData(type, finalHeaders, jsonData);
+      console.log(`[server] IDs manquants pour ${type} — assignés en mémoire (persisteront au prochain enregistrement).`);
     }
 
     return { headers: finalHeaders, data: jsonData };
@@ -182,7 +181,18 @@ app.post('/api/data/:type', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server v5.1 running on http://localhost:${PORT}`);
-});
+// ─── Static frontend (optional) ───
+// Serves the Vite build if it exists — useful for production/local-network mode.
+// In dev, Vite's own server on :5173 takes over and this block is bypassed.
+const DIST_DIR = resolve(__dirname, 'dist');
+if (existsSync(DIST_DIR)) {
+  app.use(express.static(DIST_DIR));
+  // SPA fallback: any non-API route returns index.html (Express 5 syntax)
+  app.get('/*path', (req, res) => {
+    res.sendFile(resolve(DIST_DIR, 'index.html'));
+  });
+}
 
+app.listen(PORT, () => {
+  console.log(`Server v6-fusion running on http://localhost:${PORT}`);
+});
