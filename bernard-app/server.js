@@ -22,7 +22,8 @@ const CONFIG = {
       'id', 'nom_artiste', 'zone', 'commune_precise', 'style', 'sous_genre', 'type_performance', 
       'statut_localite', 'source_type', 'preuves', 'date_preuve', 'instagram', 'facebook', 
       'soundcloud', 'bandcamp', 'spotify', 'youtube', 'site_officiel', 'source_localite', 
-      'notes', 'note_perso', 'photo', 'photo_or_logo_link', 'archive', 'derniere_verification'
+      'notes', 'note_perso', 'photo', 'photo_or_logo_link', 'archive', 'derniere_verification',
+      'validation_sanglier', 'date_validation'
     ] 
   },
   collectifs: { file: 'collectifs_montpellier.csv', cols: ['id', 'nom', 'style', 'date_creation', 'instagram', 'notes', 'note_perso', 'photo', 'archive'] },

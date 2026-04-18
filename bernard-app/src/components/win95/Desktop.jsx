@@ -16,7 +16,7 @@ import { StickyManager } from "./StickyManager";
 import { TodoWindow } from "./TodoWindow";
 import { TrashWindow } from "./TrashWindow";
 import { ManualWindow } from "./ManualWindow";
-import { ArtistDetailView, ArtistEditView } from "./ArtistSubWindows";
+import { ArtistDetailView, ArtistEditView, ArtistQuickEditView } from "./ArtistSubWindows";
 import { RadioWindow } from "./RadioWindow";
 import { WALLPAPERS } from "../../constants/wallpapers";
 
@@ -174,6 +174,7 @@ export function Desktop({
         if (id === "deskSettings") { w = 360; h = 480; }
         if (id.startsWith("artist_props_")) { w = 520; h = 420; }
         if (id.startsWith("artist_edit_")) { w = 500; h = 500; }
+        if (id.startsWith("artist_quickedit_")) { w = 620; h = 420; }
 
         nm.set(id, { 
           id, 
@@ -554,6 +555,7 @@ export function Desktop({
     if (id === "radio") return "Radio Bernard 3000";
     if (id.startsWith("artist_props_")) return `Propriétés — ${windows.get(id)?.props?.artistName || 'Artiste'}`;
     if (id.startsWith("artist_edit_")) return windows.get(id)?.props?.artistId ? `Modifier : ${windows.get(id)?.props?.artistName || 'l\'entité'}` : "Nouvelle Entité";
+    if (id.startsWith("artist_quickedit_")) return `Édition rapide — ${windows.get(id)?.props?.artistName || 'Artiste'}`;
     if (id.startsWith("cat:")) return `Catégorie : ${id.slice(4)}`;
     return "Application";
   }
@@ -576,6 +578,7 @@ export function Desktop({
     if (id === "radio") return "📻";
     if (id.startsWith("artist_props_")) return "🔎";
     if (id.startsWith("artist_edit_")) return "✍️";
+    if (id.startsWith("artist_quickedit_")) return "⚡";
     if (id.startsWith("cat:")) return "📄";
     return "📄";
   }
@@ -737,6 +740,28 @@ export function Desktop({
                 artist={win.props?.artist}
                 playTrack={playTrack}
                 onClose={() => closeWindow(win.id)}
+                onToggleValidation={async (targetArtist) => {
+                  const alreadyValidated = String(targetArtist?.validation_sanglier || '').trim().toLowerCase() === 'true'
+                  const today = new Date().toISOString().slice(0, 10)
+                  const updated = artists.map(a => String(a.id) === String(targetArtist.id)
+                    ? {
+                        ...a,
+                        validation_sanglier: alreadyValidated ? '' : 'true',
+                        date_validation: alreadyValidated ? '' : today,
+                      }
+                    : a
+                  )
+                  const refreshedArtist = updated.find(a => String(a.id) === String(targetArtist.id))
+                  setWindows(m => {
+                    const nm = new Map(m)
+                    const current = nm.get(win.id)
+                    if (current && refreshedArtist) {
+                      nm.set(win.id, { ...current, props: { ...(current.props || {}), artist: refreshedArtist } })
+                    }
+                    return nm
+                  })
+                  await saveData('artistes', updated, `${alreadyValidated ? 'Retrait validation sanglier' : 'Validation sanglier'} : ${targetArtist.nom_artiste || targetArtist.nom}`)
+                }}
                 onEdit={() => {
                   const a = win.props?.artist;
                   closeWindow(win.id);
@@ -758,6 +783,18 @@ export function Desktop({
 
             {win.id.startsWith("artist_edit_") && (
               <ArtistEditView 
+                artist={win.props?.artist}
+                artists={artists}
+                onSave={async (updated, label) => {
+                  await saveData('artistes', updated, label);
+                  closeWindow(win.id);
+                }}
+                onCancel={() => closeWindow(win.id)}
+              />
+            )}
+
+            {win.id.startsWith("artist_quickedit_") && (
+              <ArtistQuickEditView
                 artist={win.props?.artist}
                 artists={artists}
                 onSave={async (updated, label) => {

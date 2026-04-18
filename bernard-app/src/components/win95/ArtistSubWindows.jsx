@@ -1,5 +1,19 @@
 import React, { useState, useMemo } from "react";
 
+function isArtistValidated(artist) {
+  const raw = String(artist?.validation_sanglier || '').trim().toLowerCase();
+  return ['true', '1', 'yes', 'oui', '🐗', 'valide', 'validé'].includes(raw);
+}
+
+function formatValidationDate(date) {
+  if (!date) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    const [y, m, d] = date.split('-');
+    return `${d}/${m}/${y}`;
+  }
+  return date;
+}
+
 // Identical to DatabaseWindow helpers for consistency
 function Win95Button({ children, onClick, active, disabled, style, type = "button" }) {
   const winFont = { fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', fontSize: '11px' };
@@ -34,10 +48,12 @@ const winFont = { fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', fo
 const raised = { boxShadow: 'inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf' };
 const sunken = { boxShadow: 'inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf' };
 
-export function ArtistDetailView({ artist, onClose, onEdit, playTrack }) {
+export function ArtistDetailView({ artist, onClose, onEdit, playTrack, onToggleValidation }) {
   if (!artist) return null;
 
   const hasAudio = artist.spotify || artist.soundcloud || artist.youtube || artist.bandcamp;
+  const validated = isArtistValidated(artist);
+  const validationDate = formatValidationDate(artist.date_validation);
 
   return (
     <div style={{ padding: '12px', background: '#c0c0c0', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -56,6 +72,9 @@ export function ArtistDetailView({ artist, onClose, onEdit, playTrack }) {
                   <div style={{ ...winFont, fontSize: '16px', fontWeight: 'bold' }}>{artist.nom_artiste || artist.nom}</div>
                   <div style={{ ...winFont, color: '#444' }}>{artist.style || '—'} ({artist.type_performance || '—'})</div>
                   <div style={{ ...winFont, color: '#000080', fontWeight: 'bold' }}>{artist.statut_localite || 'Statut inconnu'}</div>
+                  <div style={{ ...winFont, color: validated ? '#0a5f00' : '#666', fontWeight: 'bold', marginTop: '4px' }}>
+                    {validated ? `🐗 Validé${validationDate ? ` le ${validationDate}` : ''}` : 'À valider'}
+                  </div>
                 </div>
               </div>
               
@@ -75,6 +94,11 @@ export function ArtistDetailView({ artist, onClose, onEdit, playTrack }) {
                  <span style={{ ...winFont, fontStyle: 'italic', color: '#555' }}>
                    {artist.preuves || 'Aucune preuve renseignée'}
                    {artist.date_preuve ? ` [Le ${artist.date_preuve}]` : ''}
+                 </span>
+
+                 <span style={winFont}>Validation Bernard :</span>
+                 <span style={{ ...winFont, color: validated ? '#0a5f00' : '#666', fontWeight: 'bold' }}>
+                   {validated ? `🐗 Validé${validationDate ? ` le ${validationDate}` : ''}` : 'Non validé'}
                  </span>
               </div>
 
@@ -112,6 +136,11 @@ export function ArtistDetailView({ artist, onClose, onEdit, playTrack }) {
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', marginTop: '12px' }}>
+          {onToggleValidation && (
+            <Win95Button onClick={() => onToggleValidation(artist)} style={{ fontWeight: 'bold' }}>
+              {validated ? '↺ Retirer 🐗' : '🐗 Valider'}
+            </Win95Button>
+          )}
           {hasAudio && (
             <Win95Button onClick={() => playTrack(artist)} style={{ fontWeight: 'bold' }}>▷ Écouter</Win95Button>
           )}
@@ -272,6 +301,13 @@ export function ArtistEditView({ artist, onSave, onCancel, artists }) {
                       <input name="note_perso" defaultValue={artist?.note_perso || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
                       <label style={winFont}>Dernière vérif. :</label>
                       <input name="derniere_verification" defaultValue={artist?.derniere_verification || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+                      <label style={winFont}>Validation 🐗 :</label>
+                      <select name="validation_sanglier" defaultValue={artist?.validation_sanglier || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none', background: '#fff' }}>
+                        <option value="">Non validé</option>
+                        <option value="true">Validé</option>
+                      </select>
+                      <label style={winFont}>Date validation :</label>
+                      <input name="date_validation" defaultValue={artist?.date_validation || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} placeholder="YYYY-MM-DD" />
                       <label style={winFont}>Archive (true/empty):</label>
                       <input name="archive" defaultValue={artist?.archive || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
                    </div>
@@ -285,6 +321,72 @@ export function ArtistEditView({ artist, onSave, onCancel, artists }) {
             <Win95Button type="button" onClick={onCancel} style={{ width: '80px' }}>Annuler</Win95Button>
           </div>
        </form>
+    </div>
+  );
+}
+
+export function ArtistQuickEditView({ artist, artists, onSave, onCancel }) {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const data = Object.fromEntries(fd.entries());
+
+    const updated = artists.map(a =>
+      String(a.id) === String(artist.id)
+        ? { ...a, ...data }
+        : a
+    );
+
+    onSave(updated, `Édition rapide : ${artist?.nom_artiste || artist?.nom || 'Artiste'}`);
+  };
+
+  if (!artist) return null;
+
+  return (
+    <div style={{ background: '#c0c0c0', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div style={{ padding: '12px', flex: 1, overflowY: 'auto' }}>
+          <fieldset style={{ border: '1px solid #dfdfdf', padding: '12px', marginBottom: '12px' }}>
+            <legend style={{ ...winFont, background: '#c0c0c0', padding: '0 4px' }}>Photo & Visuel</legend>
+            <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '8px', alignItems: 'center' }}>
+              <label style={winFont}>URL Photo :</label>
+              <input name="photo" defaultValue={artist?.photo || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+              <label style={winFont}>Photo/Logo (lien) :</label>
+              <input name="photo_or_logo_link" defaultValue={artist?.photo_or_logo_link || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+            </div>
+          </fieldset>
+
+          <fieldset style={{ border: '1px solid #dfdfdf', padding: '12px' }}>
+            <legend style={{ ...winFont, background: '#c0c0c0', padding: '0 4px' }}>Liens rapides</legend>
+            <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '8px', alignItems: 'center' }}>
+              <label style={winFont}>Instagram :</label>
+              <input name="instagram" defaultValue={artist?.instagram || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+              <label style={winFont}>Facebook :</label>
+              <input name="facebook" defaultValue={artist?.facebook || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+              <label style={winFont}>SoundCloud :</label>
+              <input name="soundcloud" defaultValue={artist?.soundcloud || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+              <label style={winFont}>Bandcamp :</label>
+              <input name="bandcamp" defaultValue={artist?.bandcamp || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+              <label style={winFont}>Spotify :</label>
+              <input name="spotify" defaultValue={artist?.spotify || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+              <label style={winFont}>YouTube :</label>
+              <input name="youtube" defaultValue={artist?.youtube || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+              <label style={winFont}>Site officiel :</label>
+              <input name="site_officiel" defaultValue={artist?.site_officiel || ''} style={{ ...sunken, padding: '2px 4px', ...winFont, border: 'none' }} />
+            </div>
+          </fieldset>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 12px 12px 12px' }}>
+          <div style={{ ...winFont, color: '#444' }}>
+            {artist?.nom_artiste || artist?.nom}
+          </div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <Win95Button type="submit" style={{ width: '95px', fontWeight: 'bold' }}>Enregistrer</Win95Button>
+            <Win95Button type="button" onClick={onCancel} style={{ width: '80px' }}>Annuler</Win95Button>
+          </div>
+        </div>
+      </form>
     </div>
   );
 }
