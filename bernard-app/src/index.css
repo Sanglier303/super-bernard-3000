@@ -18,6 +18,10 @@
   padding: 0;
 }
 
+html, body, #root {
+  min-height: 100%;
+}
+
 body {
   font-family: "Tahoma", "MS Sans Serif", Arial, sans-serif;
   background: var(--win95-desktop);
@@ -26,6 +30,17 @@ body {
   -webkit-font-smoothing: auto;
   -moz-osx-font-smoothing: auto;
   overflow: hidden; /* OS layout manages its own scroll */
+}
+
+body.mobile-mode {
+  overflow-x: hidden;
+  overflow-y: auto;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+body.mobile-mode #root {
+  min-height: 100vh;
 }
 
 /* Scrollbar minimale retro */

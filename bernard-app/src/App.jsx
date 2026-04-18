@@ -181,6 +181,16 @@ export default function App() {
     return () => media.removeListener(updateMode)
   }, [])
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined
+
+    document.body.classList.toggle('mobile-mode', isMobile)
+
+    return () => {
+      document.body.classList.remove('mobile-mode')
+    }
+  }, [isMobile])
+
   const saveData = async (type, updatedData, actionLabel) => {
     setLoading(true)
     try {
@@ -215,6 +225,7 @@ export default function App() {
           loading={loading}
           onRefresh={loadAll}
           saveArtists={(data, action) => saveData('artistes', data, action)}
+          saveCollectifs={(data, action) => saveData('collectifs', data, action)}
           collectifs={collectifs}
           lieux={lieux}
           festivals={festivals}

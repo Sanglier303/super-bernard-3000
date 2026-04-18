@@ -105,7 +105,7 @@ function MobileField({ label, children }) {
 function MobileBottomSheet({ title, onClose, children }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1800, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'flex-end' }}>
-      <div style={{ width: '100%', maxHeight: '75vh', overflowY: 'auto', background: '#c0c0c0', borderTop: '2px solid #fff', boxShadow: '0 -2px 0 #404040', padding: '12px' }}>
+      <div style={{ width: '100%', maxHeight: '75vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#c0c0c0', borderTop: '2px solid #fff', boxShadow: '0 -2px 0 #404040', padding: '12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
           <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#000080' }}>{title}</div>
           <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
@@ -169,7 +169,7 @@ function MobileQuickEditSheet({ artist, artists, onSave, onClose }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end' }}>
-      <div style={{ width: '100%', maxHeight: '92vh', overflowY: 'auto', background: '#c0c0c0', borderTop: '2px solid #fff', boxShadow: '0 -2px 0 #404040', padding: '12px' }}>
+      <div style={{ width: '100%', maxHeight: '92vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#c0c0c0', borderTop: '2px solid #fff', boxShadow: '0 -2px 0 #404040', padding: '12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <div>
             <div style={{ fontSize: '16px', fontWeight: 'bold' }}>⚡ Édition rapide</div>
@@ -234,7 +234,7 @@ function MobileArtistDetail({ artist, onClose, onQuickEdit, onToggleValidation }
   const validationDate = formatValidationDate(artist.date_validation)
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 1900, background: '#c0c0c0', overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1900, background: '#c0c0c0', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
       <div style={{ position: 'sticky', top: 0, background: '#000080', color: '#fff', padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ fontWeight: 'bold' }}>Fiche artiste</div>
         <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
@@ -326,7 +326,120 @@ function MobilePlaceholderSection({ title, count, description }) {
   )
 }
 
-export function MobileArtistApp({ artists, loading, saveArtists, onRefresh, collectifs = [], lieux = [], festivals = [], projects = [] }) {
+function MobileCollectifDetail({ collectif, onClose, onQuickEdit }) {
+  if (!collectif) return null
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1900, background: '#c0c0c0', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <div style={{ position: 'sticky', top: 0, background: '#000080', color: '#fff', padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontWeight: 'bold' }}>Fiche collectif</div>
+        <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
+      </div>
+
+      <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+          <img
+            src={collectif.photo || '/sanglier.png'}
+            alt=""
+            style={{ width: '92px', height: '92px', objectFit: 'cover', border: '2px solid #808080', background: '#ddd', flexShrink: 0 }}
+          />
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '20px', fontWeight: 'bold', lineHeight: 1.15 }}>{collectif.nom || 'Collectif'}</div>
+            <div style={{ marginTop: '6px', fontSize: '13px', color: '#333' }}>{collectif.style || '—'}</div>
+            <div style={{ marginTop: '4px', fontSize: '13px', color: '#444' }}>Création : {collectif.date_creation || '—'}</div>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gap: '8px', background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px' }}>
+          <div><b>Style :</b> {collectif.style || '—'}</div>
+          <div><b>Date de création :</b> {collectif.date_creation || '—'}</div>
+          <div><b>Instagram :</b> {collectif.instagram || '—'}</div>
+        </div>
+
+        {collectif.notes && (
+          <div style={{ background: '#fff', border: '2px solid', borderColor: '#808080 #fff #fff #808080', padding: '10px', whiteSpace: 'pre-wrap', fontSize: '13px' }}>
+            <b>Notes</b>
+            <div style={{ marginTop: '6px' }}>{collectif.notes}</div>
+          </div>
+        )}
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingBottom: '12px' }}>
+          <MobileButton onClick={() => collectif.instagram ? window.open(collectif.instagram, '_blank', 'noopener,noreferrer') : null} disabled={!collectif.instagram}>Instagram</MobileButton>
+          <MobileButton primary onClick={() => onQuickEdit(collectif)}>⚡ Modifier</MobileButton>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MobileCollectifQuickEditSheet({ collectif, collectifs, onSave, onClose }) {
+  if (!collectif) return null
+
+  const inputStyle = {
+    minHeight: '42px',
+    border: '2px solid',
+    borderColor: '#808080 #ffffff #ffffff #808080',
+    background: '#fff',
+    padding: '8px 10px',
+    fontSize: '14px',
+    fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif',
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const fd = new FormData(e.target)
+    const data = Object.fromEntries(fd.entries())
+    const updated = collectifs.map(c =>
+      String(c.id) === String(collectif.id)
+        ? { ...c, ...data }
+        : c
+    )
+    await onSave(updated, `Édition mobile collectif : ${collectif.nom || 'Collectif'}`)
+    onClose()
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end' }}>
+      <div style={{ width: '100%', maxHeight: '92vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#c0c0c0', borderTop: '2px solid #fff', boxShadow: '0 -2px 0 #404040', padding: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <div>
+            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>⚡ Édition rapide collectif</div>
+            <div style={{ fontSize: '12px', color: '#333' }}>{collectif.nom || 'Collectif'}</div>
+          </div>
+          <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <MobileField label="Nom">
+            <input name="nom" defaultValue={collectif.nom || ''} style={inputStyle} />
+          </MobileField>
+          <MobileField label="Style">
+            <input name="style" defaultValue={collectif.style || ''} style={inputStyle} />
+          </MobileField>
+          <MobileField label="Date de création">
+            <input name="date_creation" defaultValue={collectif.date_creation || ''} style={inputStyle} />
+          </MobileField>
+          <MobileField label="Instagram">
+            <input name="instagram" defaultValue={collectif.instagram || ''} style={inputStyle} />
+          </MobileField>
+          <MobileField label="Photo (URL)">
+            <input name="photo" defaultValue={collectif.photo || ''} style={inputStyle} />
+          </MobileField>
+          <MobileField label="Notes">
+            <textarea name="notes" defaultValue={collectif.notes || ''} style={{ ...inputStyle, minHeight: '110px', resize: 'vertical' }} />
+          </MobileField>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px', paddingBottom: '8px' }}>
+            <MobileButton type="button" onClick={onClose}>Annuler</MobileButton>
+            <MobileButton type="submit" primary>Enregistrer</MobileButton>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs, onRefresh, collectifs = [], lieux = [], festivals = [], projects = [] }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [validationFilter, setValidationFilter] = useState('all')
   const [sortConfig, setSortConfig] = useState({ key: 'artist', direction: 'asc' })
@@ -334,6 +447,9 @@ export function MobileArtistApp({ artists, loading, saveArtists, onRefresh, coll
   const [quickEditArtist, setQuickEditArtist] = useState(null)
   const [activePanel, setActivePanel] = useState('browse')
   const [activeSection, setActiveSection] = useState('artists')
+  const [collectifSearchQuery, setCollectifSearchQuery] = useState('')
+  const [detailCollectif, setDetailCollectif] = useState(null)
+  const [quickEditCollectif, setQuickEditCollectif] = useState(null)
 
   const filteredArtists = useMemo(() => {
     const q = searchQuery.toLowerCase()
@@ -422,6 +538,122 @@ export function MobileArtistApp({ artists, loading, saveArtists, onRefresh, coll
     { id: 'festivals', label: 'Festivals' },
     { id: 'projects', label: 'Projets' },
   ]
+
+  const mobileCollectifs = useMemo(() => {
+    const q = collectifSearchQuery.toLowerCase()
+    return collectifs
+      .filter(collectif => collectif.archive !== 'true')
+      .filter(collectif => {
+        const name = (collectif.nom || '').toLowerCase()
+        const style = (collectif.style || '').toLowerCase()
+        return !q || name.includes(q) || style.includes(q)
+      })
+      .sort((a, b) => compareSortValues(a.nom || '', b.nom || '', 'asc'))
+  }, [collectifs, collectifSearchQuery])
+
+  if (activeSection === 'collectifs') {
+    return (
+      <div style={{ minHeight: '100vh', background: '#008080', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ position: 'sticky', top: 0, zIndex: 20, background: '#c0c0c0', borderBottom: '2px solid #808080', padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+            <div>
+              <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000080' }}>Super Bernard 3000</div>
+              <div style={{ fontSize: '12px', color: '#333' }}>Mode mobile collectifs</div>
+            </div>
+            <MobileButton onClick={onRefresh} style={{ minHeight: '34px', padding: '6px 10px' }}>↻</MobileButton>
+          </div>
+
+          <input
+            value={collectifSearchQuery}
+            onChange={e => setCollectifSearchQuery(e.target.value)}
+            placeholder="Rechercher un collectif, style..."
+            style={{
+              minHeight: '44px',
+              border: '2px solid',
+              borderColor: '#808080 #ffffff #ffffff #808080',
+              background: '#fff',
+              padding: '10px 12px',
+              fontSize: '15px',
+              fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif',
+            }}
+          />
+
+          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+            {sectionTabs.map(tab => (
+              <MobileButton
+                key={tab.id}
+                onClick={() => setActiveSection(tab.id)}
+                primary={activeSection === tab.id}
+                style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}
+              >
+                {tab.label}
+              </MobileButton>
+            ))}
+          </div>
+
+          <div style={{ fontSize: '12px', color: '#333' }}>{mobileCollectifs.length} collectif(s) visible(s)</div>
+        </div>
+
+        <div style={{ flex: 1, padding: '12px 12px 84px 12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {loading ? (
+            <div style={{ background: '#c0c0c0', padding: '16px', border: '2px solid', borderColor: '#fff #404040 #404040 #fff' }}>Chargement...</div>
+          ) : mobileCollectifs.length === 0 ? (
+            <div style={{ background: '#c0c0c0', padding: '16px', border: '2px solid', borderColor: '#fff #404040 #404040 #fff' }}>Aucun collectif trouvé.</div>
+          ) : mobileCollectifs.map(collectif => (
+            <div key={collectif.id} style={{ background: '#c0c0c0', border: '2px solid', borderColor: '#fff #404040 #404040 #fff', padding: '10px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <img
+                  src={collectif.photo || '/sanglier.png'}
+                  alt=""
+                  style={{ width: '72px', height: '72px', objectFit: 'cover', background: '#ddd', border: '2px solid #808080', flexShrink: 0 }}
+                />
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: '17px', fontWeight: 'bold', lineHeight: 1.1 }}>{collectif.nom || 'Collectif'}</div>
+                  <div style={{ marginTop: '4px', fontSize: '13px', color: '#333' }}>{collectif.style || '—'}</div>
+                  <div style={{ marginTop: '4px', fontSize: '12px', color: '#444' }}>Création : {collectif.date_creation || '—'}</div>
+                  <div style={{ marginTop: '6px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{collectif.instagram ? 'Instagram ok' : 'Sans Instagram'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <MobileButton onClick={() => setDetailCollectif(collectif)}>Voir</MobileButton>
+                <MobileButton primary onClick={() => setQuickEditCollectif(collectif)}>⚡ Modifier</MobileButton>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {detailCollectif && (
+          <MobileCollectifDetail
+            collectif={detailCollectif}
+            onClose={() => setDetailCollectif(null)}
+            onQuickEdit={(collectif) => {
+              setDetailCollectif(null)
+              setQuickEditCollectif(collectif)
+            }}
+          />
+        )}
+
+        {quickEditCollectif && (
+          <MobileCollectifQuickEditSheet
+            collectif={quickEditCollectif}
+            collectifs={collectifs}
+            onSave={saveCollectifs}
+            onClose={() => setQuickEditCollectif(null)}
+          />
+        )}
+
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 25, background: '#c0c0c0', borderTop: '2px solid #fff', padding: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
+          <MobileTabButton active={true} onClick={() => setActiveSection('collectifs')}>Liste</MobileTabButton>
+          <MobileTabButton active={false} onClick={() => setCollectifSearchQuery('')}>Reset</MobileTabButton>
+          <MobileTabButton active={false} onClick={onRefresh}>Refresh</MobileTabButton>
+          <MobileTabButton active={false} onClick={() => setActiveSection('artists')}>Artistes</MobileTabButton>
+        </div>
+      </div>
+    )
+  }
 
   if (activeSection !== 'artists') {
     const sectionMeta = {
