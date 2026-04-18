@@ -215,6 +215,10 @@ export default function App() {
           loading={loading}
           onRefresh={loadAll}
           saveArtists={(data, action) => saveData('artistes', data, action)}
+          collectifs={collectifs}
+          lieux={lieux}
+          festivals={festivals}
+          projects={projects}
         />
       ) : (
         <Desktop 

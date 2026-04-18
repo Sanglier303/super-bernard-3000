@@ -300,13 +300,40 @@ function MobileArtistDetail({ artist, onClose, onQuickEdit, onToggleValidation }
   )
 }
 
-export function MobileArtistApp({ artists, loading, saveArtists, onRefresh }) {
+function MobilePlaceholderSection({ title, count, description }) {
+  return (
+    <div style={{ minHeight: '100vh', background: '#008080', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 20, background: '#c0c0c0', borderBottom: '2px solid #808080', padding: '12px' }}>
+        <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000080' }}>{title}</div>
+        <div style={{ fontSize: '12px', color: '#333' }}>Mode mobile en préparation</div>
+      </div>
+
+      <div style={{ flex: 1, padding: '12px 12px 84px 12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ background: '#c0c0c0', border: '2px solid', borderColor: '#fff #404040 #404040 #fff', padding: '14px' }}>
+          <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '6px' }}>{count} élément(s)</div>
+          <div style={{ fontSize: '13px', color: '#333', lineHeight: 1.45 }}>{description}</div>
+        </div>
+
+        <div style={{ background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '12px', display: 'grid', gap: '8px' }}>
+          <div style={{ fontWeight: 'bold', color: '#000080' }}>Prochain chantier mobile</div>
+          <div style={{ fontSize: '13px', color: '#333' }}>- liste responsive</div>
+          <div style={{ fontSize: '13px', color: '#333' }}>- fiche plein écran</div>
+          <div style={{ fontSize: '13px', color: '#333' }}>- actions tactiles simples</div>
+          <div style={{ fontSize: '13px', color: '#333' }}>- navigation cohérente avec la base artistes</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function MobileArtistApp({ artists, loading, saveArtists, onRefresh, collectifs = [], lieux = [], festivals = [], projects = [] }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [validationFilter, setValidationFilter] = useState('all')
   const [sortConfig, setSortConfig] = useState({ key: 'artist', direction: 'asc' })
   const [detailArtist, setDetailArtist] = useState(null)
   const [quickEditArtist, setQuickEditArtist] = useState(null)
   const [activePanel, setActivePanel] = useState('browse')
+  const [activeSection, setActiveSection] = useState('artists')
 
   const filteredArtists = useMemo(() => {
     const q = searchQuery.toLowerCase()
@@ -388,6 +415,64 @@ export function MobileArtistApp({ artists, loading, saveArtists, onRefresh }) {
     { key: 'links', label: 'Liens' },
   ]
 
+  const sectionTabs = [
+    { id: 'artists', label: 'Artistes' },
+    { id: 'collectifs', label: 'Collectifs' },
+    { id: 'lieux', label: 'Lieux' },
+    { id: 'festivals', label: 'Festivals' },
+    { id: 'projects', label: 'Projets' },
+  ]
+
+  if (activeSection !== 'artists') {
+    const sectionMeta = {
+      collectifs: {
+        title: 'Collectifs',
+        count: collectifs.length,
+        description: 'La base collectifs sera branchée sur le même schéma mobile : cartes, fiche plein écran et actions tactiles simples.'
+      },
+      lieux: {
+        title: 'Lieux',
+        count: lieux.length,
+        description: 'La base lieux aura ensuite sa vue mobile dédiée pour repérer rapidement salles, spots et infos utiles.'
+      },
+      festivals: {
+        title: 'Festivals',
+        count: festivals.length,
+        description: 'La partie festivals sera ensuite adaptée au téléphone avec navigation directe et lecture confortable.'
+      },
+      projects: {
+        title: 'Projets',
+        count: projects.length,
+        description: 'Le gestionnaire de projets passera ensuite en version mobile simple, avec priorités et statut bien visibles.'
+      },
+    }
+
+    const current = sectionMeta[activeSection]
+    return (
+      <div style={{ minHeight: '100vh', background: '#008080' }}>
+        <MobilePlaceholderSection title={current.title} count={current.count} description={current.description} />
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 60, zIndex: 24, background: '#c0c0c0', borderTop: '2px solid #fff', padding: '6px 8px', display: 'flex', gap: '6px', overflowX: 'auto' }}>
+          {sectionTabs.map(tab => (
+            <MobileButton
+              key={tab.id}
+              onClick={() => setActiveSection(tab.id)}
+              primary={activeSection === tab.id}
+              style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}
+            >
+              {tab.label}
+            </MobileButton>
+          ))}
+        </div>
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 25, background: '#c0c0c0', borderTop: '2px solid #fff', padding: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
+          <MobileTabButton active={false} onClick={() => setActivePanel('browse')}>Liste</MobileTabButton>
+          <MobileTabButton active={false} onClick={() => setActivePanel('filters')}>Filtres</MobileTabButton>
+          <MobileTabButton active={false} onClick={() => setActivePanel('sort')}>Tri</MobileTabButton>
+          <MobileTabButton active={false} onClick={() => setActivePanel('stats')}>Stats</MobileTabButton>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: '#008080', display: 'flex', flexDirection: 'column' }}>
       <div style={{ position: 'sticky', top: 0, zIndex: 20, background: '#c0c0c0', borderBottom: '2px solid #808080', padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -433,6 +518,19 @@ export function MobileArtistApp({ artists, loading, saveArtists, onRefresh }) {
           </div>
           <MobileButton onClick={() => setSortConfig(prev => ({ ...prev, direction: 'asc' }))} primary={sortConfig.direction === 'asc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▲</MobileButton>
           <MobileButton onClick={() => setSortConfig(prev => ({ ...prev, direction: 'desc' }))} primary={sortConfig.direction === 'desc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▼</MobileButton>
+        </div>
+
+        <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+          {sectionTabs.map(tab => (
+            <MobileButton
+              key={tab.id}
+              onClick={() => setActiveSection(tab.id)}
+              primary={activeSection === tab.id}
+              style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}
+            >
+              {tab.label}
+            </MobileButton>
+          ))}
         </div>
 
         <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
