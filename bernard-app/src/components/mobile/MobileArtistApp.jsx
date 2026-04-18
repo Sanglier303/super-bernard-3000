@@ -510,6 +510,21 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
     setActivePanel(prev => prev === panel ? 'browse' : panel)
   }
 
+  const openArtistDetail = (artist) => {
+    setActivePanel('browse')
+    setQuickEditArtist(null)
+    setDetailArtist(artist)
+  }
+
+  const openArtistQuickEdit = (artist) => {
+    setActivePanel('browse')
+    setDetailArtist(null)
+    setQuickEditArtist(artist)
+  }
+
+  const closeArtistDetail = () => setDetailArtist(null)
+  const closeArtistQuickEdit = () => setQuickEditArtist(null)
+
   const selectStyle = {
     minHeight: '42px',
     border: '2px solid',
@@ -816,8 +831,8 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                <MobileButton onClick={() => setDetailArtist(artist)}>Voir</MobileButton>
-                <MobileButton primary onClick={() => setQuickEditArtist(artist)}>⚡ Modifier</MobileButton>
+                <MobileButton onClick={() => openArtistDetail(artist)}>Voir</MobileButton>
+                <MobileButton primary onClick={() => openArtistQuickEdit(artist)}>⚡ Modifier</MobileButton>
                 <MobileButton onClick={() => handleToggleValidation(artist)}>{validated ? '↺ Retirer 🐗' : '🐗 Valider'}</MobileButton>
                 <MobileButton onClick={() => primaryAudio ? window.open(primaryAudio, '_blank', 'noopener,noreferrer') : null} disabled={!primaryAudio}>▷ Audio</MobileButton>
               </div>
@@ -829,10 +844,9 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
       {detailArtist && (
         <MobileArtistDetail
           artist={detailArtist}
-          onClose={() => setDetailArtist(null)}
+          onClose={closeArtistDetail}
           onQuickEdit={(artist) => {
-            setDetailArtist(null)
-            setQuickEditArtist(artist)
+            openArtistQuickEdit(artist)
           }}
           onToggleValidation={handleToggleValidation}
         />
@@ -843,7 +857,7 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
           artist={quickEditArtist}
           artists={artists}
           onSave={saveArtists}
-          onClose={() => setQuickEditArtist(null)}
+          onClose={closeArtistQuickEdit}
         />
       )}
 
