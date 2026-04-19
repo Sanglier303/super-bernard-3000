@@ -67,6 +67,137 @@ function getPrimaryAudioUrl(artist) {
   return artist?.spotify || artist?.soundcloud || artist?.youtube || artist?.bandcamp || ''
 }
 
+function getCollectifSortValue(collectif, key) {
+  switch (key) {
+    case 'name':
+      return collectif?.nom || ''
+    case 'style':
+      return collectif?.style || ''
+    case 'date':
+      return collectif?.date_creation || ''
+    case 'instagram':
+      return String(collectif?.instagram || '').trim() ? 1 : 0
+    case 'photo':
+      return String(collectif?.photo || '').trim() ? 1 : 0
+    default:
+      return collectif?.nom || ''
+  }
+}
+
+function getLieuSortValue(lieu, key) {
+  switch (key) {
+    case 'name':
+      return lieu?.nom || ''
+    case 'type':
+      return lieu?.type || ''
+    case 'capacity':
+      return Number.parseInt(lieu?.capacite || '0', 10) || 0
+    case 'instagram':
+      return String(lieu?.instagram || '').trim() ? 1 : 0
+    case 'photo':
+      return String(lieu?.photo || '').trim() ? 1 : 0
+    default:
+      return lieu?.nom || ''
+  }
+}
+
+function getFestivalSortValue(festival, key) {
+  switch (key) {
+    case 'name':
+      return festival?.nom || ''
+    case 'style':
+      return festival?.style || ''
+    case 'period':
+      return festival?.periode || ''
+    case 'instagram':
+      return String(festival?.instagram || '').trim() ? 1 : 0
+    case 'photo':
+      return String(festival?.photo || '').trim() ? 1 : 0
+    default:
+      return festival?.nom || ''
+  }
+}
+
+function getProjectSortValue(project, key) {
+  switch (key) {
+    case 'name':
+      return project?.nom || ''
+    case 'status':
+      return project?.statut || ''
+    case 'priority':
+      return project?.priorite || ''
+    case 'deadline':
+      return project?.echeance || ''
+    case 'linked':
+      return project?.linked_type || ''
+    default:
+      return project?.nom || ''
+  }
+}
+
+const mobilePageStyle = {
+  minHeight: '100vh',
+  background: '#008080',
+  display: 'flex',
+  flexDirection: 'column',
+  overflowX: 'hidden',
+}
+
+const mobileHeaderStyle = {
+  position: 'sticky',
+  top: 0,
+  zIndex: 20,
+  background: '#c0c0c0',
+  borderBottom: '2px solid #808080',
+  padding: 'calc(12px + env(safe-area-inset-top, 0px)) 12px 12px 12px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '10px',
+}
+
+const mobileContentStyle = {
+  flex: 1,
+  padding: '12px 12px calc(96px + env(safe-area-inset-bottom, 0px)) 12px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '12px',
+  overflowX: 'hidden',
+}
+
+const mobileCardStyle = {
+  background: '#c0c0c0',
+  border: '2px solid',
+  borderColor: '#fff #404040 #404040 #fff',
+  boxShadow: '1px 1px 0 #808080',
+  padding: '10px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '10px',
+}
+
+const mobileBottomNavStyle = {
+  position: 'fixed',
+  left: 0,
+  right: 0,
+  bottom: 0,
+  zIndex: 25,
+  background: '#c0c0c0',
+  borderTop: '2px solid #fff',
+  padding: '8px 8px calc(8px + env(safe-area-inset-bottom, 0px)) 8px',
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr 1fr 1fr',
+  gap: '8px',
+}
+
+function MobileSummaryCard({ label, value, accent = '#000080' }) {
+  return (
+    <div style={{ background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px' }}>
+      <div style={{ fontSize: '11px', color: '#555' }}>{label}</div>
+      <div style={{ fontSize: '18px', fontWeight: 'bold', color: accent, marginTop: '3px' }}>{value}</div>
+    </div>
+  )
+}
+
 function MobileButton({ children, onClick, type = 'button', primary = false, danger = false, style, disabled }) {
   return (
     <button
@@ -167,6 +298,15 @@ function MobileQuickEditSheet({ artist, artists, onSave, onClose }) {
     fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif',
   }
 
+  const sectionStyle = {
+    background: '#efefef',
+    border: '2px solid',
+    borderColor: '#fff #808080 #808080 #fff',
+    padding: '10px',
+    display: 'grid',
+    gap: '10px',
+  }
+
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end' }}>
       <div style={{ width: '100%', maxHeight: '92vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#c0c0c0', borderTop: '2px solid #fff', boxShadow: '0 -2px 0 #404040', padding: '12px' }}>
@@ -179,33 +319,80 @@ function MobileQuickEditSheet({ artist, artists, onSave, onClose }) {
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <MobileField label="URL Photo">
-            <input name="photo" defaultValue={artist.photo || ''} style={inputStyle} />
-          </MobileField>
-          <MobileField label="Photo / Logo (lien)">
-            <input name="photo_or_logo_link" defaultValue={artist.photo_or_logo_link || ''} style={inputStyle} />
-          </MobileField>
-          <MobileField label="Instagram">
-            <input name="instagram" defaultValue={artist.instagram || ''} style={inputStyle} />
-          </MobileField>
-          <MobileField label="Facebook">
-            <input name="facebook" defaultValue={artist.facebook || ''} style={inputStyle} />
-          </MobileField>
-          <MobileField label="SoundCloud">
-            <input name="soundcloud" defaultValue={artist.soundcloud || ''} style={inputStyle} />
-          </MobileField>
-          <MobileField label="Bandcamp">
-            <input name="bandcamp" defaultValue={artist.bandcamp || ''} style={inputStyle} />
-          </MobileField>
-          <MobileField label="Spotify">
-            <input name="spotify" defaultValue={artist.spotify || ''} style={inputStyle} />
-          </MobileField>
-          <MobileField label="YouTube">
-            <input name="youtube" defaultValue={artist.youtube || ''} style={inputStyle} />
-          </MobileField>
-          <MobileField label="Site officiel">
-            <input name="site_officiel" defaultValue={artist.site_officiel || ''} style={inputStyle} />
-          </MobileField>
+          <div style={sectionStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Identité</div>
+            <MobileField label="Nom artiste">
+              <input name="nom_artiste" defaultValue={artist.nom_artiste || artist.nom || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="Zone">
+              <input name="zone" defaultValue={artist.zone || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="Commune précise">
+              <input name="commune_precise" defaultValue={artist.commune_precise || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="Style">
+              <input name="style" defaultValue={artist.style || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="Sous-genre">
+              <input name="sous_genre" defaultValue={artist.sous_genre || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="Type performance">
+              <input name="type_performance" defaultValue={artist.type_performance || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="Statut localité">
+              <input name="statut_localite" defaultValue={artist.statut_localite || ''} style={inputStyle} />
+            </MobileField>
+          </div>
+
+          <div style={sectionStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Visuel & liens</div>
+            <MobileField label="URL Photo">
+              <input name="photo" defaultValue={artist.photo || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="Photo / Logo (lien)">
+              <input name="photo_or_logo_link" defaultValue={artist.photo_or_logo_link || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="Instagram">
+              <input name="instagram" defaultValue={artist.instagram || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="Facebook">
+              <input name="facebook" defaultValue={artist.facebook || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="SoundCloud">
+              <input name="soundcloud" defaultValue={artist.soundcloud || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="Bandcamp">
+              <input name="bandcamp" defaultValue={artist.bandcamp || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="Spotify">
+              <input name="spotify" defaultValue={artist.spotify || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="YouTube">
+              <input name="youtube" defaultValue={artist.youtube || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="Site officiel">
+              <input name="site_officiel" defaultValue={artist.site_officiel || ''} style={inputStyle} />
+            </MobileField>
+          </div>
+
+          <div style={sectionStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Qualification & validation</div>
+            <MobileField label="Source type">
+              <input name="source_type" defaultValue={artist.source_type || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="Preuves">
+              <textarea name="preuves" defaultValue={artist.preuves || ''} style={{ ...inputStyle, minHeight: '84px', resize: 'vertical' }} />
+            </MobileField>
+            <MobileField label="Validation 🐗">
+              <select name="validation_sanglier" defaultValue={artist.validation_sanglier || ''} style={inputStyle}>
+                <option value="">Non validé</option>
+                <option value="true">Validé</option>
+              </select>
+            </MobileField>
+            <MobileField label="Date validation">
+              <input name="date_validation" defaultValue={artist.date_validation || ''} style={inputStyle} />
+            </MobileField>
+          </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px', paddingBottom: '8px' }}>
             <MobileButton type="button" onClick={onClose}>Annuler</MobileButton>
@@ -232,6 +419,12 @@ function MobileArtistDetail({ artist, onClose, onQuickEdit, onToggleValidation }
 
   const validated = isArtistValidated(artist)
   const validationDate = formatValidationDate(artist.date_validation)
+  const quickFacts = [
+    { label: 'Zone', value: artist.zone || '—' },
+    { label: 'Commune', value: artist.commune_precise || '—' },
+    { label: 'Statut', value: artist.statut_localite || '—' },
+    { label: 'Audio', value: getPrimaryAudioUrl(artist) ? 'Oui' : 'Non' },
+  ]
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1900, background: '#c0c0c0', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -240,7 +433,7 @@ function MobileArtistDetail({ artist, onClose, onQuickEdit, onToggleValidation }
         <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
       </div>
 
-      <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ padding: '12px 12px 84px 12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
           <img
             src={artist.photo_or_logo_link || artist.photo || artist.image_url || '/sanglier.png'}
@@ -254,7 +447,21 @@ function MobileArtistDetail({ artist, onClose, onQuickEdit, onToggleValidation }
             <div style={{ marginTop: '6px', fontSize: '13px', fontWeight: 'bold', color: validated ? '#0a5f00' : '#555' }}>
               {validated ? `🐗 Validé${validationDate ? ` le ${validationDate}` : ''}` : 'À valider'}
             </div>
+            <div style={{ marginTop: '8px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {artist.style && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{artist.style}</span>}
+              {artist.type_performance && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{artist.type_performance}</span>}
+              {artist.sous_genre && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{artist.sous_genre}</span>}
+            </div>
           </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          {quickFacts.map(item => (
+            <div key={item.label} style={{ background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px' }}>
+              <div style={{ fontSize: '11px', color: '#555' }}>{item.label}</div>
+              <div style={{ fontSize: '14px', fontWeight: 'bold', marginTop: '3px' }}>{item.value}</div>
+            </div>
+          ))}
         </div>
 
         <div style={{ display: 'grid', gap: '8px', background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px' }}>
@@ -262,6 +469,7 @@ function MobileArtistDetail({ artist, onClose, onQuickEdit, onToggleValidation }
           <div><b>Sous-genre :</b> {artist.sous_genre || '—'}</div>
           <div><b>Statut :</b> {artist.statut_localite || '—'}</div>
           <div><b>Source :</b> {artist.source_type || '—'}</div>
+          <div><b>Source localité :</b> {artist.source_localite || '—'}</div>
           <div><b>Preuves :</b> {artist.preuves || '—'}</div>
           <div><b>Dernière vérification :</b> {artist.derniere_verification || '—'}</div>
         </div>
@@ -291,9 +499,21 @@ function MobileArtistDetail({ artist, onClose, onQuickEdit, onToggleValidation }
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingBottom: '12px' }}>
-          <MobileButton onClick={() => onToggleValidation(artist)}>{validated ? '↺ Retirer 🐗' : '🐗 Valider'}</MobileButton>
-          <MobileButton primary onClick={() => onQuickEdit(artist)}>⚡ Modifier</MobileButton>
+        {artist.note_perso && (
+          <div style={{ background: '#fff7ff', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px', whiteSpace: 'pre-wrap', fontSize: '13px' }}>
+            <b>Note perso</b>
+            <div style={{ marginTop: '6px' }}>{artist.note_perso}</div>
+          </div>
+        )}
+
+        <div style={{ display: 'grid', gap: '8px' }}>
+          <div style={{ fontSize: '14px', fontWeight: 'bold' }}>Actions rapides</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <MobileButton onClick={() => onToggleValidation(artist)}>{validated ? '↺ Retirer 🐗' : '🐗 Valider'}</MobileButton>
+            <MobileButton primary onClick={() => onQuickEdit(artist)}>⚡ Modifier</MobileButton>
+            <MobileButton onClick={() => getPrimaryAudioUrl(artist) ? window.open(getPrimaryAudioUrl(artist), '_blank', 'noopener,noreferrer') : null} disabled={!getPrimaryAudioUrl(artist)}>▷ Audio</MobileButton>
+            <MobileButton onClick={onClose}>Retour</MobileButton>
+          </div>
         </div>
       </div>
     </div>
@@ -302,14 +522,14 @@ function MobileArtistDetail({ artist, onClose, onQuickEdit, onToggleValidation }
 
 function MobilePlaceholderSection({ title, count, description }) {
   return (
-    <div style={{ minHeight: '100vh', background: '#008080', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ position: 'sticky', top: 0, zIndex: 20, background: '#c0c0c0', borderBottom: '2px solid #808080', padding: '12px' }}>
+    <div style={mobilePageStyle}>
+      <div style={mobileHeaderStyle}>
         <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000080' }}>{title}</div>
         <div style={{ fontSize: '12px', color: '#333' }}>Mode mobile en préparation</div>
       </div>
 
-      <div style={{ flex: 1, padding: '12px 12px 84px 12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ background: '#c0c0c0', border: '2px solid', borderColor: '#fff #404040 #404040 #fff', padding: '14px' }}>
+      <div style={mobileContentStyle}>
+        <div style={{ ...mobileCardStyle, padding: '14px' }}>
           <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '6px' }}>{count} élément(s)</div>
           <div style={{ fontSize: '13px', color: '#333', lineHeight: 1.45 }}>{description}</div>
         </div>
@@ -329,6 +549,13 @@ function MobilePlaceholderSection({ title, count, description }) {
 function MobileCollectifDetail({ collectif, onClose, onQuickEdit }) {
   if (!collectif) return null
 
+  const quickFacts = [
+    { label: 'Style', value: collectif.style || '—' },
+    { label: 'Création', value: collectif.date_creation || '—' },
+    { label: 'Instagram', value: collectif.instagram ? 'Oui' : 'Non' },
+    { label: 'Photo', value: collectif.photo ? 'Oui' : 'Non' },
+  ]
+
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1900, background: '#c0c0c0', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
       <div style={{ position: 'sticky', top: 0, background: '#000080', color: '#fff', padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -336,7 +563,7 @@ function MobileCollectifDetail({ collectif, onClose, onQuickEdit }) {
         <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
       </div>
 
-      <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ padding: '12px 12px 84px 12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
           <img
             src={collectif.photo || '/sanglier.png'}
@@ -348,6 +575,15 @@ function MobileCollectifDetail({ collectif, onClose, onQuickEdit }) {
             <div style={{ marginTop: '6px', fontSize: '13px', color: '#333' }}>{collectif.style || '—'}</div>
             <div style={{ marginTop: '4px', fontSize: '13px', color: '#444' }}>Création : {collectif.date_creation || '—'}</div>
           </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          {quickFacts.map(item => (
+            <div key={item.label} style={{ background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px' }}>
+              <div style={{ fontSize: '11px', color: '#555' }}>{item.label}</div>
+              <div style={{ fontSize: '14px', fontWeight: 'bold', marginTop: '3px' }}>{item.value}</div>
+            </div>
+          ))}
         </div>
 
         <div style={{ display: 'grid', gap: '8px', background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px' }}>
@@ -366,6 +602,7 @@ function MobileCollectifDetail({ collectif, onClose, onQuickEdit }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingBottom: '12px' }}>
           <MobileButton onClick={() => collectif.instagram ? window.open(collectif.instagram, '_blank', 'noopener,noreferrer') : null} disabled={!collectif.instagram}>Instagram</MobileButton>
           <MobileButton primary onClick={() => onQuickEdit(collectif)}>⚡ Modifier</MobileButton>
+          <MobileButton onClick={onClose}>Retour</MobileButton>
         </div>
       </div>
     </div>
@@ -383,6 +620,15 @@ function MobileCollectifQuickEditSheet({ collectif, collectifs, onSave, onClose 
     padding: '8px 10px',
     fontSize: '14px',
     fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif',
+  }
+
+  const sectionStyle = {
+    background: '#efefef',
+    border: '2px solid',
+    borderColor: '#fff #808080 #808080 #fff',
+    padding: '10px',
+    display: 'grid',
+    gap: '10px',
   }
 
   const handleSubmit = async (e) => {
@@ -410,24 +656,35 @@ function MobileCollectifQuickEditSheet({ collectif, collectifs, onSave, onClose 
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <MobileField label="Nom">
-            <input name="nom" defaultValue={collectif.nom || ''} style={inputStyle} />
-          </MobileField>
-          <MobileField label="Style">
-            <input name="style" defaultValue={collectif.style || ''} style={inputStyle} />
-          </MobileField>
-          <MobileField label="Date de création">
-            <input name="date_creation" defaultValue={collectif.date_creation || ''} style={inputStyle} />
-          </MobileField>
-          <MobileField label="Instagram">
-            <input name="instagram" defaultValue={collectif.instagram || ''} style={inputStyle} />
-          </MobileField>
-          <MobileField label="Photo (URL)">
-            <input name="photo" defaultValue={collectif.photo || ''} style={inputStyle} />
-          </MobileField>
-          <MobileField label="Notes">
-            <textarea name="notes" defaultValue={collectif.notes || ''} style={{ ...inputStyle, minHeight: '110px', resize: 'vertical' }} />
-          </MobileField>
+          <div style={sectionStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Identité collectif</div>
+            <MobileField label="Nom">
+              <input name="nom" defaultValue={collectif.nom || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="Style">
+              <input name="style" defaultValue={collectif.style || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="Date de création">
+              <input name="date_creation" defaultValue={collectif.date_creation || ''} style={inputStyle} />
+            </MobileField>
+          </div>
+
+          <div style={sectionStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Présence en ligne</div>
+            <MobileField label="Instagram">
+              <input name="instagram" defaultValue={collectif.instagram || ''} style={inputStyle} />
+            </MobileField>
+            <MobileField label="Photo (URL)">
+              <input name="photo" defaultValue={collectif.photo || ''} style={inputStyle} />
+            </MobileField>
+          </div>
+
+          <div style={sectionStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Notes</div>
+            <MobileField label="Notes">
+              <textarea name="notes" defaultValue={collectif.notes || ''} style={{ ...inputStyle, minHeight: '110px', resize: 'vertical' }} />
+            </MobileField>
+          </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px', paddingBottom: '8px' }}>
             <MobileButton type="button" onClick={onClose}>Annuler</MobileButton>
@@ -439,7 +696,333 @@ function MobileCollectifQuickEditSheet({ collectif, collectifs, onSave, onClose 
   )
 }
 
-export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs, onRefresh, collectifs = [], lieux = [], festivals = [], projects = [] }) {
+function MobileLieuDetail({ lieu, onClose, onQuickEdit }) {
+  if (!lieu) return null
+
+  const quickFacts = [
+    { label: 'Type', value: lieu.type || '—' },
+    { label: 'Capacité', value: lieu.capacite || '—' },
+    { label: 'Instagram', value: lieu.instagram ? 'Oui' : 'Non' },
+    { label: 'Photo', value: lieu.photo ? 'Oui' : 'Non' },
+  ]
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1900, background: '#c0c0c0', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <div style={{ position: 'sticky', top: 0, background: '#000080', color: '#fff', padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontWeight: 'bold' }}>Fiche lieu</div>
+        <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
+      </div>
+
+      <div style={{ padding: '12px 12px 84px 12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+          <img src={lieu.photo || '/sanglier.png'} alt="" style={{ width: '92px', height: '92px', objectFit: 'cover', border: '2px solid #808080', background: '#ddd', flexShrink: 0 }} />
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '20px', fontWeight: 'bold', lineHeight: 1.15 }}>{lieu.nom || 'Lieu'}</div>
+            <div style={{ marginTop: '6px', fontSize: '13px', color: '#333' }}>{lieu.type || '—'}</div>
+            <div style={{ marginTop: '4px', fontSize: '13px', color: '#444' }}>{lieu.adresse || '—'}</div>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          {quickFacts.map(item => <MobileSummaryCard key={item.label} label={item.label} value={item.value} />)}
+        </div>
+
+        <div style={{ display: 'grid', gap: '8px', background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px' }}>
+          <div><b>Adresse :</b> {lieu.adresse || '—'}</div>
+          <div><b>Type :</b> {lieu.type || '—'}</div>
+          <div><b>Capacité :</b> {lieu.capacite || '—'}</div>
+          <div><b>Instagram :</b> {lieu.instagram || '—'}</div>
+        </div>
+
+        {lieu.notes && <div style={{ background: '#fff', border: '2px solid', borderColor: '#808080 #fff #fff #808080', padding: '10px', whiteSpace: 'pre-wrap', fontSize: '13px' }}><b>Notes</b><div style={{ marginTop: '6px' }}>{lieu.notes}</div></div>}
+        {lieu.note_perso && <div style={{ background: '#fff7ff', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px', whiteSpace: 'pre-wrap', fontSize: '13px' }}><b>Note perso</b><div style={{ marginTop: '6px' }}>{lieu.note_perso}</div></div>}
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <MobileButton onClick={() => lieu.instagram ? window.open(lieu.instagram, '_blank', 'noopener,noreferrer') : null} disabled={!lieu.instagram}>Instagram</MobileButton>
+          <MobileButton primary onClick={() => onQuickEdit(lieu)}>⚡ Modifier</MobileButton>
+          <MobileButton onClick={onClose}>Retour</MobileButton>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MobileLieuQuickEditSheet({ lieu, lieux, onSave, onClose }) {
+  if (!lieu) return null
+
+  const inputStyle = {
+    minHeight: '42px',
+    border: '2px solid',
+    borderColor: '#808080 #ffffff #ffffff #808080',
+    background: '#fff',
+    padding: '8px 10px',
+    fontSize: '14px',
+    fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif',
+  }
+  const sectionStyle = { background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px', display: 'grid', gap: '10px' }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const fd = new FormData(e.target)
+    const data = Object.fromEntries(fd.entries())
+    const updated = lieux.map(l => String(l.id) === String(lieu.id) ? { ...l, ...data } : l)
+    await onSave(updated, `Édition mobile lieu : ${lieu.nom || 'Lieu'}`)
+    onClose()
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end' }}>
+      <div style={{ width: '100%', maxHeight: '92vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#c0c0c0', borderTop: '2px solid #fff', boxShadow: '0 -2px 0 #404040', padding: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <div><div style={{ fontSize: '16px', fontWeight: 'bold' }}>⚡ Édition rapide lieu</div><div style={{ fontSize: '12px', color: '#333' }}>{lieu.nom || 'Lieu'}</div></div>
+          <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
+        </div>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={sectionStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Identité lieu</div>
+            <MobileField label="Nom"><input name="nom" defaultValue={lieu.nom || ''} style={inputStyle} /></MobileField>
+            <MobileField label="Type"><input name="type" defaultValue={lieu.type || ''} style={inputStyle} /></MobileField>
+            <MobileField label="Capacité"><input name="capacite" defaultValue={lieu.capacite || ''} style={inputStyle} /></MobileField>
+            <MobileField label="Adresse"><input name="adresse" defaultValue={lieu.adresse || ''} style={inputStyle} /></MobileField>
+          </div>
+          <div style={sectionStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Présence en ligne</div>
+            <MobileField label="Instagram"><input name="instagram" defaultValue={lieu.instagram || ''} style={inputStyle} /></MobileField>
+            <MobileField label="Photo (URL)"><input name="photo" defaultValue={lieu.photo || ''} style={inputStyle} /></MobileField>
+          </div>
+          <div style={sectionStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Notes</div>
+            <MobileField label="Notes"><textarea name="notes" defaultValue={lieu.notes || ''} style={{ ...inputStyle, minHeight: '90px', resize: 'vertical' }} /></MobileField>
+            <MobileField label="Note perso"><textarea name="note_perso" defaultValue={lieu.note_perso || ''} style={{ ...inputStyle, minHeight: '90px', resize: 'vertical' }} /></MobileField>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingBottom: '8px' }}>
+            <MobileButton type="button" onClick={onClose}>Annuler</MobileButton>
+            <MobileButton type="submit" primary>Enregistrer</MobileButton>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function MobileFestivalDetail({ festival, onClose, onQuickEdit }) {
+  if (!festival) return null
+
+  const quickFacts = [
+    { label: 'Période', value: festival.periode || '—' },
+    { label: 'Durée', value: festival.duree || '—' },
+    { label: 'Instagram', value: festival.instagram ? 'Oui' : 'Non' },
+    { label: 'Photo', value: festival.photo ? 'Oui' : 'Non' },
+  ]
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1900, background: '#c0c0c0', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <div style={{ position: 'sticky', top: 0, background: '#000080', color: '#fff', padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontWeight: 'bold' }}>Fiche festival</div>
+        <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
+      </div>
+      <div style={{ padding: '12px 12px 84px 12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+          <img src={festival.photo || '/sanglier.png'} alt="" style={{ width: '92px', height: '92px', objectFit: 'cover', border: '2px solid #808080', background: '#ddd', flexShrink: 0 }} />
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '20px', fontWeight: 'bold', lineHeight: 1.15 }}>{festival.nom || 'Festival'}</div>
+            <div style={{ marginTop: '6px', fontSize: '13px', color: '#333' }}>{festival.style || '—'}</div>
+            <div style={{ marginTop: '4px', fontSize: '13px', color: '#444' }}>{festival.lieu || '—'}</div>
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          {quickFacts.map(item => <MobileSummaryCard key={item.label} label={item.label} value={item.value} />)}
+        </div>
+        <div style={{ display: 'grid', gap: '8px', background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px' }}>
+          <div><b>Lieu :</b> {festival.lieu || '—'}</div>
+          <div><b>Style :</b> {festival.style || '—'}</div>
+          <div><b>Période :</b> {festival.periode || '—'}</div>
+          <div><b>Durée :</b> {festival.duree || '—'}</div>
+          <div><b>Instagram :</b> {festival.instagram || '—'}</div>
+        </div>
+        {festival.notes && <div style={{ background: '#fff', border: '2px solid', borderColor: '#808080 #fff #fff #808080', padding: '10px', whiteSpace: 'pre-wrap', fontSize: '13px' }}><b>Notes</b><div style={{ marginTop: '6px' }}>{festival.notes}</div></div>}
+        {festival.note_perso && <div style={{ background: '#fff7ff', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px', whiteSpace: 'pre-wrap', fontSize: '13px' }}><b>Note perso</b><div style={{ marginTop: '6px' }}>{festival.note_perso}</div></div>}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <MobileButton onClick={() => festival.instagram ? window.open(festival.instagram, '_blank', 'noopener,noreferrer') : null} disabled={!festival.instagram}>Instagram</MobileButton>
+          <MobileButton primary onClick={() => onQuickEdit(festival)}>⚡ Modifier</MobileButton>
+          <MobileButton onClick={onClose}>Retour</MobileButton>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MobileFestivalQuickEditSheet({ festival, festivals, onSave, onClose }) {
+  if (!festival) return null
+
+  const inputStyle = {
+    minHeight: '42px',
+    border: '2px solid',
+    borderColor: '#808080 #ffffff #ffffff #808080',
+    background: '#fff',
+    padding: '8px 10px',
+    fontSize: '14px',
+    fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif',
+  }
+  const sectionStyle = { background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px', display: 'grid', gap: '10px' }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const fd = new FormData(e.target)
+    const data = Object.fromEntries(fd.entries())
+    const updated = festivals.map(f => String(f.id) === String(festival.id) ? { ...f, ...data } : f)
+    await onSave(updated, `Édition mobile festival : ${festival.nom || 'Festival'}`)
+    onClose()
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end' }}>
+      <div style={{ width: '100%', maxHeight: '92vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#c0c0c0', borderTop: '2px solid #fff', boxShadow: '0 -2px 0 #404040', padding: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <div><div style={{ fontSize: '16px', fontWeight: 'bold' }}>⚡ Édition rapide festival</div><div style={{ fontSize: '12px', color: '#333' }}>{festival.nom || 'Festival'}</div></div>
+          <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
+        </div>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={sectionStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Identité festival</div>
+            <MobileField label="Nom"><input name="nom" defaultValue={festival.nom || ''} style={inputStyle} /></MobileField>
+            <MobileField label="Style"><input name="style" defaultValue={festival.style || ''} style={inputStyle} /></MobileField>
+            <MobileField label="Lieu"><input name="lieu" defaultValue={festival.lieu || ''} style={inputStyle} /></MobileField>
+            <MobileField label="Période"><input name="periode" defaultValue={festival.periode || ''} style={inputStyle} /></MobileField>
+            <MobileField label="Durée"><input name="duree" defaultValue={festival.duree || ''} style={inputStyle} /></MobileField>
+          </div>
+          <div style={sectionStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Présence en ligne</div>
+            <MobileField label="Instagram"><input name="instagram" defaultValue={festival.instagram || ''} style={inputStyle} /></MobileField>
+            <MobileField label="Photo (URL)"><input name="photo" defaultValue={festival.photo || ''} style={inputStyle} /></MobileField>
+          </div>
+          <div style={sectionStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Notes</div>
+            <MobileField label="Notes"><textarea name="notes" defaultValue={festival.notes || ''} style={{ ...inputStyle, minHeight: '90px', resize: 'vertical' }} /></MobileField>
+            <MobileField label="Note perso"><textarea name="note_perso" defaultValue={festival.note_perso || ''} style={{ ...inputStyle, minHeight: '90px', resize: 'vertical' }} /></MobileField>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingBottom: '8px' }}>
+            <MobileButton type="button" onClick={onClose}>Annuler</MobileButton>
+            <MobileButton type="submit" primary>Enregistrer</MobileButton>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function MobileProjectDetail({ project, onClose, onQuickEdit }) {
+  if (!project) return null
+
+  const quickFacts = [
+    { label: 'Statut', value: project.statut || '—' },
+    { label: 'Priorité', value: project.priorite || '—' },
+    { label: 'Échéance', value: project.echeance || '—' },
+    { label: 'Lien', value: project.linked_type ? `${project.linked_type}${project.linked_id ? ` #${project.linked_id}` : ''}` : '—' },
+  ]
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1900, background: '#c0c0c0', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <div style={{ position: 'sticky', top: 0, background: '#000080', color: '#fff', padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontWeight: 'bold' }}>Fiche projet</div>
+        <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
+      </div>
+      <div style={{ padding: '12px 12px 84px 12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '12px' }}>
+          <div style={{ fontSize: '20px', fontWeight: 'bold', lineHeight: 1.15 }}>{project.nom || 'Projet'}</div>
+          <div style={{ marginTop: '6px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {project.statut && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#fff', border: '1px solid #808080' }}>{project.statut}</span>}
+            {project.priorite && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#fff', border: '1px solid #808080' }}>{project.priorite}</span>}
+            {project.echeance && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#fff', border: '1px solid #808080' }}>{project.echeance}</span>}
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          {quickFacts.map(item => <MobileSummaryCard key={item.label} label={item.label} value={item.value} />)}
+        </div>
+
+        <div style={{ display: 'grid', gap: '8px', background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px' }}>
+          <div><b>Statut :</b> {project.statut || '—'}</div>
+          <div><b>Priorité :</b> {project.priorite || '—'}</div>
+          <div><b>Échéance :</b> {project.echeance || '—'}</div>
+          <div><b>Type lié :</b> {project.linked_type || '—'}</div>
+          <div><b>ID lié :</b> {project.linked_id || '—'}</div>
+        </div>
+
+        {project.notes && (
+          <div style={{ background: '#fff', border: '2px solid', borderColor: '#808080 #fff #fff #808080', padding: '10px', whiteSpace: 'pre-wrap', fontSize: '13px' }}>
+            <b>Notes</b>
+            <div style={{ marginTop: '6px' }}>{project.notes}</div>
+          </div>
+        )}
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <MobileButton primary onClick={() => onQuickEdit(project)}>⚡ Modifier</MobileButton>
+          <MobileButton onClick={onClose}>Retour</MobileButton>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MobileProjectQuickEditSheet({ project, projects, onSave, onClose }) {
+  if (!project) return null
+
+  const inputStyle = {
+    minHeight: '42px',
+    border: '2px solid',
+    borderColor: '#808080 #ffffff #ffffff #808080',
+    background: '#fff',
+    padding: '8px 10px',
+    fontSize: '14px',
+    fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif',
+  }
+  const sectionStyle = { background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px', display: 'grid', gap: '10px' }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const fd = new FormData(e.target)
+    const data = Object.fromEntries(fd.entries())
+    const updated = projects.map(p => String(p.id) === String(project.id) ? { ...p, ...data } : p)
+    await onSave(updated, `Édition mobile projet : ${project.nom || 'Projet'}`)
+    onClose()
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end' }}>
+      <div style={{ width: '100%', maxHeight: '92vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#c0c0c0', borderTop: '2px solid #fff', boxShadow: '0 -2px 0 #404040', padding: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <div><div style={{ fontSize: '16px', fontWeight: 'bold' }}>⚡ Édition rapide projet</div><div style={{ fontSize: '12px', color: '#333' }}>{project.nom || 'Projet'}</div></div>
+          <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
+        </div>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={sectionStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Identité projet</div>
+            <MobileField label="Nom"><input name="nom" defaultValue={project.nom || ''} style={inputStyle} /></MobileField>
+            <MobileField label="Statut"><input name="statut" defaultValue={project.statut || ''} style={inputStyle} /></MobileField>
+            <MobileField label="Priorité"><input name="priorite" defaultValue={project.priorite || ''} style={inputStyle} /></MobileField>
+            <MobileField label="Échéance"><input name="echeance" defaultValue={project.echeance || ''} style={inputStyle} /></MobileField>
+          </div>
+          <div style={sectionStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Liens internes</div>
+            <MobileField label="Type lié"><input name="linked_type" defaultValue={project.linked_type || ''} style={inputStyle} /></MobileField>
+            <MobileField label="ID lié"><input name="linked_id" defaultValue={project.linked_id || ''} style={inputStyle} /></MobileField>
+          </div>
+          <div style={sectionStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Notes</div>
+            <MobileField label="Notes"><textarea name="notes" defaultValue={project.notes || ''} style={{ ...inputStyle, minHeight: '110px', resize: 'vertical' }} /></MobileField>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingBottom: '8px' }}>
+            <MobileButton type="button" onClick={onClose}>Annuler</MobileButton>
+            <MobileButton type="submit" primary>Enregistrer</MobileButton>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs, saveLieux, saveFestivals, onRefresh, collectifs = [], lieux = [], festivals = [], projects = [] }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [validationFilter, setValidationFilter] = useState('all')
   const [sortConfig, setSortConfig] = useState({ key: 'artist', direction: 'asc' })
@@ -450,6 +1033,27 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   const [collectifSearchQuery, setCollectifSearchQuery] = useState('')
   const [detailCollectif, setDetailCollectif] = useState(null)
   const [quickEditCollectif, setQuickEditCollectif] = useState(null)
+  const [collectifFilter, setCollectifFilter] = useState('all')
+  const [collectifSortConfig, setCollectifSortConfig] = useState({ key: 'name', direction: 'asc' })
+  const [activeCollectifPanel, setActiveCollectifPanel] = useState('browse')
+  const [lieuSearchQuery, setLieuSearchQuery] = useState('')
+  const [detailLieu, setDetailLieu] = useState(null)
+  const [quickEditLieu, setQuickEditLieu] = useState(null)
+  const [lieuFilter, setLieuFilter] = useState('all')
+  const [lieuSortConfig, setLieuSortConfig] = useState({ key: 'name', direction: 'asc' })
+  const [activeLieuPanel, setActiveLieuPanel] = useState('browse')
+  const [festivalSearchQuery, setFestivalSearchQuery] = useState('')
+  const [detailFestival, setDetailFestival] = useState(null)
+  const [quickEditFestival, setQuickEditFestival] = useState(null)
+  const [festivalFilter, setFestivalFilter] = useState('all')
+  const [festivalSortConfig, setFestivalSortConfig] = useState({ key: 'name', direction: 'asc' })
+  const [activeFestivalPanel, setActiveFestivalPanel] = useState('browse')
+  const [projectSearchQuery, setProjectSearchQuery] = useState('')
+  const [detailProject, setDetailProject] = useState(null)
+  const [quickEditProject, setQuickEditProject] = useState(null)
+  const [projectFilter, setProjectFilter] = useState('all')
+  const [projectSortConfig, setProjectSortConfig] = useState({ key: 'name', direction: 'asc' })
+  const [activeProjectPanel, setActiveProjectPanel] = useState('browse')
 
   const filteredArtists = useMemo(() => {
     const q = searchQuery.toLowerCase()
@@ -561,15 +1165,212 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
       .filter(collectif => {
         const name = (collectif.nom || '').toLowerCase()
         const style = (collectif.style || '').toLowerCase()
-        return !q || name.includes(q) || style.includes(q)
+        const matchSearch = !q || name.includes(q) || style.includes(q)
+        const hasInstagram = !!String(collectif.instagram || '').trim()
+        const matchFilter = collectifFilter === 'all'
+          || (collectifFilter === 'instagram' && hasInstagram)
+          || (collectifFilter === 'noinstagram' && !hasInstagram)
+        return matchSearch && matchFilter
       })
-      .sort((a, b) => compareSortValues(a.nom || '', b.nom || '', 'asc'))
-  }, [collectifs, collectifSearchQuery])
+      .sort((a, b) => {
+        const primary = compareSortValues(
+          getCollectifSortValue(a, collectifSortConfig.key),
+          getCollectifSortValue(b, collectifSortConfig.key),
+          collectifSortConfig.direction
+        )
+        if (primary !== 0) return primary
+        return compareSortValues(a.nom || '', b.nom || '', 'asc')
+      })
+  }, [collectifs, collectifSearchQuery, collectifFilter, collectifSortConfig])
+
+  const mobileLieux = useMemo(() => {
+    const q = lieuSearchQuery.toLowerCase()
+    return lieux
+      .filter(lieu => lieu.archive !== 'true')
+      .filter(lieu => {
+        const name = (lieu.nom || '').toLowerCase()
+        const type = (lieu.type || '').toLowerCase()
+        const address = (lieu.adresse || '').toLowerCase()
+        const matchSearch = !q || name.includes(q) || type.includes(q) || address.includes(q)
+        const hasInstagram = !!String(lieu.instagram || '').trim()
+        const matchFilter = lieuFilter === 'all'
+          || (lieuFilter === 'instagram' && hasInstagram)
+          || (lieuFilter === 'noinstagram' && !hasInstagram)
+        return matchSearch && matchFilter
+      })
+      .sort((a, b) => {
+        const primary = compareSortValues(
+          getLieuSortValue(a, lieuSortConfig.key),
+          getLieuSortValue(b, lieuSortConfig.key),
+          lieuSortConfig.direction
+        )
+        if (primary !== 0) return primary
+        return compareSortValues(a.nom || '', b.nom || '', 'asc')
+      })
+  }, [lieux, lieuSearchQuery, lieuFilter, lieuSortConfig])
+
+  const mobileFestivals = useMemo(() => {
+    const q = festivalSearchQuery.toLowerCase()
+    return festivals
+      .filter(festival => festival.archive !== 'true')
+      .filter(festival => {
+        const name = (festival.nom || '').toLowerCase()
+        const style = (festival.style || '').toLowerCase()
+        const place = (festival.lieu || '').toLowerCase()
+        const matchSearch = !q || name.includes(q) || style.includes(q) || place.includes(q)
+        const hasInstagram = !!String(festival.instagram || '').trim()
+        const matchFilter = festivalFilter === 'all'
+          || (festivalFilter === 'instagram' && hasInstagram)
+          || (festivalFilter === 'noinstagram' && !hasInstagram)
+        return matchSearch && matchFilter
+      })
+      .sort((a, b) => {
+        const primary = compareSortValues(
+          getFestivalSortValue(a, festivalSortConfig.key),
+          getFestivalSortValue(b, festivalSortConfig.key),
+          festivalSortConfig.direction
+        )
+        if (primary !== 0) return primary
+        return compareSortValues(a.nom || '', b.nom || '', 'asc')
+      })
+  }, [festivals, festivalSearchQuery, festivalFilter, festivalSortConfig])
+
+  const mobileProjects = useMemo(() => {
+    const q = projectSearchQuery.toLowerCase()
+    return projects
+      .filter(project => project.archive !== 'true')
+      .filter(project => {
+        const name = (project.nom || '').toLowerCase()
+        const status = (project.statut || '').toLowerCase()
+        const priority = (project.priorite || '').toLowerCase()
+        const matchSearch = !q || name.includes(q) || status.includes(q) || priority.includes(q)
+        const matchFilter = projectFilter === 'all'
+          || (projectFilter === 'urgent' && (project.priorite || '').toLowerCase().includes('haut'))
+          || (projectFilter === 'todo' && (project.statut || '').toLowerCase().includes('todo'))
+          || (projectFilter === 'done' && (project.statut || '').toLowerCase().includes('fait'))
+        return matchSearch && matchFilter
+      })
+      .sort((a, b) => {
+        const primary = compareSortValues(
+          getProjectSortValue(a, projectSortConfig.key),
+          getProjectSortValue(b, projectSortConfig.key),
+          projectSortConfig.direction
+        )
+        if (primary !== 0) return primary
+        return compareSortValues(a.nom || '', b.nom || '', 'asc')
+      })
+  }, [projects, projectSearchQuery, projectFilter, projectSortConfig])
+
+  const collectifsActiveCount = collectifs.filter(collectif => collectif.archive !== 'true').length
+  const collectifsInstagramCount = collectifs.filter(collectif => collectif.archive !== 'true' && String(collectif.instagram || '').trim()).length
+  const collectifsPhotoCount = collectifs.filter(collectif => collectif.archive !== 'true' && String(collectif.photo || '').trim()).length
+  const lieuxActiveCount = lieux.filter(lieu => lieu.archive !== 'true').length
+  const lieuxInstagramCount = lieux.filter(lieu => lieu.archive !== 'true' && String(lieu.instagram || '').trim()).length
+  const lieuxPhotoCount = lieux.filter(lieu => lieu.archive !== 'true' && String(lieu.photo || '').trim()).length
+  const festivalsActiveCount = festivals.filter(festival => festival.archive !== 'true').length
+  const festivalsInstagramCount = festivals.filter(festival => festival.archive !== 'true' && String(festival.instagram || '').trim()).length
+  const festivalsPhotoCount = festivals.filter(festival => festival.archive !== 'true' && String(festival.photo || '').trim()).length
+  const projectsActiveCount = projects.filter(project => project.archive !== 'true').length
+  const projectsUrgentCount = projects.filter(project => project.archive !== 'true' && (project.priorite || '').toLowerCase().includes('haut')).length
+  const projectsDoneCount = projects.filter(project => project.archive !== 'true' && (project.statut || '').toLowerCase().includes('fait')).length
+
+  const collectifSortOptions = [
+    { key: 'name', label: 'Nom' },
+    { key: 'style', label: 'Style' },
+    { key: 'date', label: 'Date création' },
+    { key: 'instagram', label: 'Instagram' },
+    { key: 'photo', label: 'Photo' },
+  ]
+  const lieuSortOptions = [
+    { key: 'name', label: 'Nom' },
+    { key: 'type', label: 'Type' },
+    { key: 'capacity', label: 'Capacité' },
+    { key: 'instagram', label: 'Instagram' },
+    { key: 'photo', label: 'Photo' },
+  ]
+  const festivalSortOptions = [
+    { key: 'name', label: 'Nom' },
+    { key: 'style', label: 'Style' },
+    { key: 'period', label: 'Période' },
+    { key: 'instagram', label: 'Instagram' },
+    { key: 'photo', label: 'Photo' },
+  ]
+  const projectSortOptions = [
+    { key: 'name', label: 'Nom' },
+    { key: 'status', label: 'Statut' },
+    { key: 'priority', label: 'Priorité' },
+    { key: 'deadline', label: 'Échéance' },
+    { key: 'linked', label: 'Lien' },
+  ]
+
+  const openCollectifDetail = (collectif) => {
+    setActiveCollectifPanel('browse')
+    setQuickEditCollectif(null)
+    setDetailCollectif(collectif)
+  }
+
+  const openCollectifQuickEdit = (collectif) => {
+    setActiveCollectifPanel('browse')
+    setDetailCollectif(null)
+    setQuickEditCollectif(collectif)
+  }
+
+  const toggleCollectifPanel = (panel) => {
+    setActiveCollectifPanel(prev => prev === panel ? 'browse' : panel)
+  }
+
+  const openLieuDetail = (lieu) => {
+    setActiveLieuPanel('browse')
+    setQuickEditLieu(null)
+    setDetailLieu(lieu)
+  }
+
+  const openLieuQuickEdit = (lieu) => {
+    setActiveLieuPanel('browse')
+    setDetailLieu(null)
+    setQuickEditLieu(lieu)
+  }
+
+  const toggleLieuPanel = (panel) => {
+    setActiveLieuPanel(prev => prev === panel ? 'browse' : panel)
+  }
+
+  const openFestivalDetail = (festival) => {
+    setActiveFestivalPanel('browse')
+    setQuickEditFestival(null)
+    setDetailFestival(festival)
+  }
+
+  const openFestivalQuickEdit = (festival) => {
+    setActiveFestivalPanel('browse')
+    setDetailFestival(null)
+    setQuickEditFestival(festival)
+  }
+
+  const toggleFestivalPanel = (panel) => {
+    setActiveFestivalPanel(prev => prev === panel ? 'browse' : panel)
+  }
+
+  const openProjectDetail = (project) => {
+    setActiveProjectPanel('browse')
+    setQuickEditProject(null)
+    setDetailProject(project)
+  }
+
+  const openProjectQuickEdit = (project) => {
+    setActiveProjectPanel('browse')
+    setDetailProject(null)
+    setQuickEditProject(project)
+  }
+
+  const toggleProjectPanel = (panel) => {
+    setActiveProjectPanel(prev => prev === panel ? 'browse' : panel)
+  }
 
   if (activeSection === 'collectifs') {
     return (
-      <div style={{ minHeight: '100vh', background: '#008080', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ position: 'sticky', top: 0, zIndex: 20, background: '#c0c0c0', borderBottom: '2px solid #808080', padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={mobilePageStyle}>
+        <div style={mobileHeaderStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
             <div>
               <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000080' }}>Super Bernard 3000</div>
@@ -606,16 +1407,49 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
             ))}
           </div>
 
-          <div style={{ fontSize: '12px', color: '#333' }}>{mobileCollectifs.length} collectif(s) visible(s)</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', alignItems: 'center' }}>
+            <div style={{ fontSize: '12px', color: '#333' }}>{mobileCollectifs.length} collectif(s) visible(s)</div>
+            <MobileButton onClick={() => setCollectifSortConfig(prev => ({ ...prev, direction: 'asc' }))} primary={collectifSortConfig.direction === 'asc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▲</MobileButton>
+            <MobileButton onClick={() => setCollectifSortConfig(prev => ({ ...prev, direction: 'desc' }))} primary={collectifSortConfig.direction === 'desc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▼</MobileButton>
+          </div>
+
+          <select value={collectifSortConfig.key} onChange={e => setCollectifSortConfig(prev => ({ ...prev, key: e.target.value }))} style={selectStyle}>
+            {collectifSortOptions.map(option => (
+              <option key={option.key} value={option.key}>{option.label}</option>
+            ))}
+          </select>
+
+          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+            {[
+              { id: 'all', label: 'Tous' },
+              { id: 'instagram', label: 'Avec Instagram' },
+              { id: 'noinstagram', label: 'Sans Instagram' },
+            ].map(item => (
+              <MobileButton
+                key={item.id}
+                onClick={() => setCollectifFilter(item.id)}
+                primary={collectifFilter === item.id}
+                style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}
+              >
+                {item.label}
+              </MobileButton>
+            ))}
+          </div>
         </div>
 
-        <div style={{ flex: 1, padding: '12px 12px 84px 12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={mobileContentStyle}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+            <MobileSummaryCard label="Actifs" value={collectifsActiveCount} />
+            <MobileSummaryCard label="Instagram" value={collectifsInstagramCount} />
+            <MobileSummaryCard label="Photo" value={collectifsPhotoCount} />
+          </div>
+
           {loading ? (
-            <div style={{ background: '#c0c0c0', padding: '16px', border: '2px solid', borderColor: '#fff #404040 #404040 #fff' }}>Chargement...</div>
+            <div style={{ ...mobileCardStyle, padding: '16px' }}>Chargement...</div>
           ) : mobileCollectifs.length === 0 ? (
-            <div style={{ background: '#c0c0c0', padding: '16px', border: '2px solid', borderColor: '#fff #404040 #404040 #fff' }}>Aucun collectif trouvé.</div>
+            <div style={{ ...mobileCardStyle, padding: '16px' }}>Aucun collectif trouvé.</div>
           ) : mobileCollectifs.map(collectif => (
-            <div key={collectif.id} style={{ background: '#c0c0c0', border: '2px solid', borderColor: '#fff #404040 #404040 #fff', padding: '10px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div key={collectif.id} style={mobileCardStyle}>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <img
                   src={collectif.photo || '/sanglier.png'}
@@ -628,13 +1462,14 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
                   <div style={{ marginTop: '4px', fontSize: '12px', color: '#444' }}>Création : {collectif.date_creation || '—'}</div>
                   <div style={{ marginTop: '6px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{collectif.instagram ? 'Instagram ok' : 'Sans Instagram'}</span>
+                    {collectif.photo && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>Photo ok</span>}
                   </div>
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                <MobileButton onClick={() => setDetailCollectif(collectif)}>Voir</MobileButton>
-                <MobileButton primary onClick={() => setQuickEditCollectif(collectif)}>⚡ Modifier</MobileButton>
+                <MobileButton onClick={() => openCollectifDetail(collectif)}>Voir</MobileButton>
+                <MobileButton primary onClick={() => openCollectifQuickEdit(collectif)}>⚡ Modifier</MobileButton>
               </div>
             </div>
           ))}
@@ -645,8 +1480,7 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
             collectif={detailCollectif}
             onClose={() => setDetailCollectif(null)}
             onQuickEdit={(collectif) => {
-              setDetailCollectif(null)
-              setQuickEditCollectif(collectif)
+              openCollectifQuickEdit(collectif)
             }}
           />
         )}
@@ -660,11 +1494,435 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
           />
         )}
 
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 25, background: '#c0c0c0', borderTop: '2px solid #fff', padding: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
-          <MobileTabButton active={true} onClick={() => setActiveSection('collectifs')}>Liste</MobileTabButton>
-          <MobileTabButton active={false} onClick={() => setCollectifSearchQuery('')}>Reset</MobileTabButton>
-          <MobileTabButton active={false} onClick={onRefresh}>Refresh</MobileTabButton>
-          <MobileTabButton active={false} onClick={() => setActiveSection('artists')}>Artistes</MobileTabButton>
+        {activeCollectifPanel === 'filters' && (
+          <MobileBottomSheet title="Filtres collectifs" onClose={() => setActiveCollectifPanel('browse')}>
+            <div style={{ display: 'grid', gap: '8px' }}>
+              <MobileButton primary={collectifFilter === 'all'} onClick={() => { setCollectifFilter('all'); setActiveCollectifPanel('browse') }}>Tous les collectifs</MobileButton>
+              <MobileButton primary={collectifFilter === 'instagram'} onClick={() => { setCollectifFilter('instagram'); setActiveCollectifPanel('browse') }}>Avec Instagram</MobileButton>
+              <MobileButton primary={collectifFilter === 'noinstagram'} onClick={() => { setCollectifFilter('noinstagram'); setActiveCollectifPanel('browse') }}>Sans Instagram</MobileButton>
+              <MobileButton onClick={() => { setCollectifSearchQuery(''); setCollectifFilter('all'); setActiveCollectifPanel('browse') }}>Réinitialiser</MobileButton>
+            </div>
+          </MobileBottomSheet>
+        )}
+
+        {activeCollectifPanel === 'sort' && (
+          <MobileBottomSheet title="Tri collectifs" onClose={() => setActiveCollectifPanel('browse')}>
+            <div style={{ display: 'grid', gap: '8px' }}>
+              {collectifSortOptions.map(option => (
+                <MobileButton
+                  key={option.key}
+                  primary={collectifSortConfig.key === option.key}
+                  onClick={() => {
+                    setCollectifSortConfig(prev => ({ ...prev, key: option.key }))
+                    setActiveCollectifPanel('browse')
+                  }}
+                >
+                  {option.label}{collectifSortConfig.key === option.key ? ` ${collectifSortConfig.direction === 'asc' ? '▲' : '▼'}` : ''}
+                </MobileButton>
+              ))}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
+                <MobileButton primary={collectifSortConfig.direction === 'asc'} onClick={() => setCollectifSortConfig(prev => ({ ...prev, direction: 'asc' }))}>Croissant ▲</MobileButton>
+                <MobileButton primary={collectifSortConfig.direction === 'desc'} onClick={() => setCollectifSortConfig(prev => ({ ...prev, direction: 'desc' }))}>Décroissant ▼</MobileButton>
+              </div>
+            </div>
+          </MobileBottomSheet>
+        )}
+
+        {activeCollectifPanel === 'stats' && (
+          <MobileBottomSheet title="Statistiques collectifs" onClose={() => setActiveCollectifPanel('browse')}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {[
+                { label: 'Actifs', value: collectifsActiveCount },
+                { label: 'Avec Instagram', value: collectifsInstagramCount },
+                { label: 'Avec photo', value: collectifsPhotoCount },
+                { label: 'Sans Instagram', value: collectifsActiveCount - collectifsInstagramCount },
+              ].map(item => (
+                <div key={item.label} style={{ background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '12px' }}>
+                  <div style={{ fontSize: '12px', color: '#333' }}>{item.label}</div>
+                  <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#000080', marginTop: '4px' }}>{item.value}</div>
+                </div>
+              ))}
+            </div>
+          </MobileBottomSheet>
+        )}
+
+        <div style={mobileBottomNavStyle}>
+          <MobileTabButton active={activeCollectifPanel === 'browse'} onClick={() => setActiveCollectifPanel('browse')}>Liste</MobileTabButton>
+          <MobileTabButton active={activeCollectifPanel === 'filters'} onClick={() => toggleCollectifPanel('filters')}>Filtres</MobileTabButton>
+          <MobileTabButton active={activeCollectifPanel === 'sort'} onClick={() => toggleCollectifPanel('sort')}>Tri</MobileTabButton>
+          <MobileTabButton active={activeCollectifPanel === 'stats'} onClick={() => toggleCollectifPanel('stats')}>Stats</MobileTabButton>
+        </div>
+      </div>
+    )
+  }
+
+  if (activeSection === 'lieux') {
+    return (
+      <div style={mobilePageStyle}>
+        <div style={mobileHeaderStyle}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+            <div>
+              <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000080' }}>Super Bernard 3000</div>
+              <div style={{ fontSize: '12px', color: '#333' }}>Mode mobile lieux</div>
+            </div>
+            <MobileButton onClick={onRefresh} style={{ minHeight: '34px', padding: '6px 10px' }}>↻</MobileButton>
+          </div>
+
+          <input value={lieuSearchQuery} onChange={e => setLieuSearchQuery(e.target.value)} placeholder="Rechercher un lieu, type, adresse..." style={{ minHeight: '44px', border: '2px solid', borderColor: '#808080 #ffffff #ffffff #808080', background: '#fff', padding: '10px 12px', fontSize: '15px', fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' }} />
+
+          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+            {sectionTabs.map(tab => (
+              <MobileButton key={tab.id} onClick={() => setActiveSection(tab.id)} primary={activeSection === tab.id} style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}>{tab.label}</MobileButton>
+            ))}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', alignItems: 'center' }}>
+            <div style={{ fontSize: '12px', color: '#333' }}>{mobileLieux.length} lieu(x) visible(s)</div>
+            <MobileButton onClick={() => setLieuSortConfig(prev => ({ ...prev, direction: 'asc' }))} primary={lieuSortConfig.direction === 'asc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▲</MobileButton>
+            <MobileButton onClick={() => setLieuSortConfig(prev => ({ ...prev, direction: 'desc' }))} primary={lieuSortConfig.direction === 'desc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▼</MobileButton>
+          </div>
+
+          <select value={lieuSortConfig.key} onChange={e => setLieuSortConfig(prev => ({ ...prev, key: e.target.value }))} style={selectStyle}>
+            {lieuSortOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}
+          </select>
+
+          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+            {[
+              { id: 'all', label: 'Tous' },
+              { id: 'instagram', label: 'Avec Instagram' },
+              { id: 'noinstagram', label: 'Sans Instagram' },
+            ].map(item => (
+              <MobileButton key={item.id} onClick={() => setLieuFilter(item.id)} primary={lieuFilter === item.id} style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}>{item.label}</MobileButton>
+            ))}
+          </div>
+        </div>
+
+        <div style={mobileContentStyle}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+            <MobileSummaryCard label="Actifs" value={lieuxActiveCount} />
+            <MobileSummaryCard label="Instagram" value={lieuxInstagramCount} />
+            <MobileSummaryCard label="Photo" value={lieuxPhotoCount} />
+          </div>
+
+          {loading ? (
+            <div style={{ ...mobileCardStyle, padding: '16px' }}>Chargement...</div>
+          ) : mobileLieux.length === 0 ? (
+            <div style={{ ...mobileCardStyle, padding: '16px' }}>Aucun lieu trouvé.</div>
+          ) : mobileLieux.map(lieu => (
+            <div key={lieu.id} style={mobileCardStyle}>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <img src={lieu.photo || '/sanglier.png'} alt="" style={{ width: '72px', height: '72px', objectFit: 'cover', background: '#ddd', border: '2px solid #808080', flexShrink: 0 }} />
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: '17px', fontWeight: 'bold', lineHeight: 1.1 }}>{lieu.nom || 'Lieu'}</div>
+                  <div style={{ marginTop: '4px', fontSize: '13px', color: '#333' }}>{lieu.type || '—'}</div>
+                  <div style={{ marginTop: '4px', fontSize: '12px', color: '#444' }}>{lieu.adresse || '—'}</div>
+                  <div style={{ marginTop: '6px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {lieu.capacite && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{lieu.capacite}</span>}
+                    <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{lieu.instagram ? 'Instagram ok' : 'Sans Instagram'}</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <MobileButton onClick={() => openLieuDetail(lieu)}>Voir</MobileButton>
+                <MobileButton primary onClick={() => openLieuQuickEdit(lieu)}>⚡ Modifier</MobileButton>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {detailLieu && <MobileLieuDetail lieu={detailLieu} onClose={() => setDetailLieu(null)} onQuickEdit={openLieuQuickEdit} />}
+        {quickEditLieu && <MobileLieuQuickEditSheet lieu={quickEditLieu} lieux={lieux} onSave={saveLieux} onClose={() => setQuickEditLieu(null)} />}
+
+        {activeLieuPanel === 'filters' && (
+          <MobileBottomSheet title="Filtres lieux" onClose={() => setActiveLieuPanel('browse')}>
+            <div style={{ display: 'grid', gap: '8px' }}>
+              <MobileButton primary={lieuFilter === 'all'} onClick={() => { setLieuFilter('all'); setActiveLieuPanel('browse') }}>Tous les lieux</MobileButton>
+              <MobileButton primary={lieuFilter === 'instagram'} onClick={() => { setLieuFilter('instagram'); setActiveLieuPanel('browse') }}>Avec Instagram</MobileButton>
+              <MobileButton primary={lieuFilter === 'noinstagram'} onClick={() => { setLieuFilter('noinstagram'); setActiveLieuPanel('browse') }}>Sans Instagram</MobileButton>
+              <MobileButton onClick={() => { setLieuSearchQuery(''); setLieuFilter('all'); setActiveLieuPanel('browse') }}>Réinitialiser</MobileButton>
+            </div>
+          </MobileBottomSheet>
+        )}
+
+        {activeLieuPanel === 'sort' && (
+          <MobileBottomSheet title="Tri lieux" onClose={() => setActiveLieuPanel('browse')}>
+            <div style={{ display: 'grid', gap: '8px' }}>
+              {lieuSortOptions.map(option => (
+                <MobileButton key={option.key} primary={lieuSortConfig.key === option.key} onClick={() => { setLieuSortConfig(prev => ({ ...prev, key: option.key })); setActiveLieuPanel('browse') }}>{option.label}{lieuSortConfig.key === option.key ? ` ${lieuSortConfig.direction === 'asc' ? '▲' : '▼'}` : ''}</MobileButton>
+              ))}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
+                <MobileButton primary={lieuSortConfig.direction === 'asc'} onClick={() => setLieuSortConfig(prev => ({ ...prev, direction: 'asc' }))}>Croissant ▲</MobileButton>
+                <MobileButton primary={lieuSortConfig.direction === 'desc'} onClick={() => setLieuSortConfig(prev => ({ ...prev, direction: 'desc' }))}>Décroissant ▼</MobileButton>
+              </div>
+            </div>
+          </MobileBottomSheet>
+        )}
+
+        {activeLieuPanel === 'stats' && (
+          <MobileBottomSheet title="Statistiques lieux" onClose={() => setActiveLieuPanel('browse')}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {[
+                { label: 'Actifs', value: lieuxActiveCount },
+                { label: 'Avec Instagram', value: lieuxInstagramCount },
+                { label: 'Avec photo', value: lieuxPhotoCount },
+                { label: 'Sans Instagram', value: lieuxActiveCount - lieuxInstagramCount },
+              ].map(item => <MobileSummaryCard key={item.label} label={item.label} value={item.value} />)}
+            </div>
+          </MobileBottomSheet>
+        )}
+
+        <div style={mobileBottomNavStyle}>
+          <MobileTabButton active={activeLieuPanel === 'browse'} onClick={() => setActiveLieuPanel('browse')}>Liste</MobileTabButton>
+          <MobileTabButton active={activeLieuPanel === 'filters'} onClick={() => toggleLieuPanel('filters')}>Filtres</MobileTabButton>
+          <MobileTabButton active={activeLieuPanel === 'sort'} onClick={() => toggleLieuPanel('sort')}>Tri</MobileTabButton>
+          <MobileTabButton active={activeLieuPanel === 'stats'} onClick={() => toggleLieuPanel('stats')}>Stats</MobileTabButton>
+        </div>
+      </div>
+    )
+  }
+
+  if (activeSection === 'festivals') {
+    return (
+      <div style={mobilePageStyle}>
+        <div style={mobileHeaderStyle}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+            <div>
+              <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000080' }}>Super Bernard 3000</div>
+              <div style={{ fontSize: '12px', color: '#333' }}>Mode mobile festivals</div>
+            </div>
+            <MobileButton onClick={onRefresh} style={{ minHeight: '34px', padding: '6px 10px' }}>↻</MobileButton>
+          </div>
+
+          <input value={festivalSearchQuery} onChange={e => setFestivalSearchQuery(e.target.value)} placeholder="Rechercher un festival, style, lieu..." style={{ minHeight: '44px', border: '2px solid', borderColor: '#808080 #ffffff #ffffff #808080', background: '#fff', padding: '10px 12px', fontSize: '15px', fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' }} />
+
+          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+            {sectionTabs.map(tab => (
+              <MobileButton key={tab.id} onClick={() => setActiveSection(tab.id)} primary={activeSection === tab.id} style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}>{tab.label}</MobileButton>
+            ))}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', alignItems: 'center' }}>
+            <div style={{ fontSize: '12px', color: '#333' }}>{mobileFestivals.length} festival(s) visible(s)</div>
+            <MobileButton onClick={() => setFestivalSortConfig(prev => ({ ...prev, direction: 'asc' }))} primary={festivalSortConfig.direction === 'asc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▲</MobileButton>
+            <MobileButton onClick={() => setFestivalSortConfig(prev => ({ ...prev, direction: 'desc' }))} primary={festivalSortConfig.direction === 'desc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▼</MobileButton>
+          </div>
+
+          <select value={festivalSortConfig.key} onChange={e => setFestivalSortConfig(prev => ({ ...prev, key: e.target.value }))} style={selectStyle}>
+            {festivalSortOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}
+          </select>
+
+          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+            {[
+              { id: 'all', label: 'Tous' },
+              { id: 'instagram', label: 'Avec Instagram' },
+              { id: 'noinstagram', label: 'Sans Instagram' },
+            ].map(item => (
+              <MobileButton key={item.id} onClick={() => setFestivalFilter(item.id)} primary={festivalFilter === item.id} style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}>{item.label}</MobileButton>
+            ))}
+          </div>
+        </div>
+
+        <div style={mobileContentStyle}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+            <MobileSummaryCard label="Actifs" value={festivalsActiveCount} />
+            <MobileSummaryCard label="Instagram" value={festivalsInstagramCount} />
+            <MobileSummaryCard label="Photo" value={festivalsPhotoCount} />
+          </div>
+
+          {loading ? (
+            <div style={{ ...mobileCardStyle, padding: '16px' }}>Chargement...</div>
+          ) : mobileFestivals.length === 0 ? (
+            <div style={{ ...mobileCardStyle, padding: '16px' }}>Aucun festival trouvé.</div>
+          ) : mobileFestivals.map(festival => (
+            <div key={festival.id} style={mobileCardStyle}>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <img src={festival.photo || '/sanglier.png'} alt="" style={{ width: '72px', height: '72px', objectFit: 'cover', background: '#ddd', border: '2px solid #808080', flexShrink: 0 }} />
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: '17px', fontWeight: 'bold', lineHeight: 1.1 }}>{festival.nom || 'Festival'}</div>
+                  <div style={{ marginTop: '4px', fontSize: '13px', color: '#333' }}>{festival.style || '—'}</div>
+                  <div style={{ marginTop: '4px', fontSize: '12px', color: '#444' }}>{festival.lieu || '—'}</div>
+                  <div style={{ marginTop: '6px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {festival.periode && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{festival.periode}</span>}
+                    <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{festival.instagram ? 'Instagram ok' : 'Sans Instagram'}</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <MobileButton onClick={() => openFestivalDetail(festival)}>Voir</MobileButton>
+                <MobileButton primary onClick={() => openFestivalQuickEdit(festival)}>⚡ Modifier</MobileButton>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {detailFestival && <MobileFestivalDetail festival={detailFestival} onClose={() => setDetailFestival(null)} onQuickEdit={openFestivalQuickEdit} />}
+        {quickEditFestival && <MobileFestivalQuickEditSheet festival={quickEditFestival} festivals={festivals} onSave={saveFestivals} onClose={() => setQuickEditFestival(null)} />}
+
+        {activeFestivalPanel === 'filters' && (
+          <MobileBottomSheet title="Filtres festivals" onClose={() => setActiveFestivalPanel('browse')}>
+            <div style={{ display: 'grid', gap: '8px' }}>
+              <MobileButton primary={festivalFilter === 'all'} onClick={() => { setFestivalFilter('all'); setActiveFestivalPanel('browse') }}>Tous les festivals</MobileButton>
+              <MobileButton primary={festivalFilter === 'instagram'} onClick={() => { setFestivalFilter('instagram'); setActiveFestivalPanel('browse') }}>Avec Instagram</MobileButton>
+              <MobileButton primary={festivalFilter === 'noinstagram'} onClick={() => { setFestivalFilter('noinstagram'); setActiveFestivalPanel('browse') }}>Sans Instagram</MobileButton>
+              <MobileButton onClick={() => { setFestivalSearchQuery(''); setFestivalFilter('all'); setActiveFestivalPanel('browse') }}>Réinitialiser</MobileButton>
+            </div>
+          </MobileBottomSheet>
+        )}
+
+        {activeFestivalPanel === 'sort' && (
+          <MobileBottomSheet title="Tri festivals" onClose={() => setActiveFestivalPanel('browse')}>
+            <div style={{ display: 'grid', gap: '8px' }}>
+              {festivalSortOptions.map(option => (
+                <MobileButton key={option.key} primary={festivalSortConfig.key === option.key} onClick={() => { setFestivalSortConfig(prev => ({ ...prev, key: option.key })); setActiveFestivalPanel('browse') }}>{option.label}{festivalSortConfig.key === option.key ? ` ${festivalSortConfig.direction === 'asc' ? '▲' : '▼'}` : ''}</MobileButton>
+              ))}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
+                <MobileButton primary={festivalSortConfig.direction === 'asc'} onClick={() => setFestivalSortConfig(prev => ({ ...prev, direction: 'asc' }))}>Croissant ▲</MobileButton>
+                <MobileButton primary={festivalSortConfig.direction === 'desc'} onClick={() => setFestivalSortConfig(prev => ({ ...prev, direction: 'desc' }))}>Décroissant ▼</MobileButton>
+              </div>
+            </div>
+          </MobileBottomSheet>
+        )}
+
+        {activeFestivalPanel === 'stats' && (
+          <MobileBottomSheet title="Statistiques festivals" onClose={() => setActiveFestivalPanel('browse')}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {[
+                { label: 'Actifs', value: festivalsActiveCount },
+                { label: 'Avec Instagram', value: festivalsInstagramCount },
+                { label: 'Avec photo', value: festivalsPhotoCount },
+                { label: 'Sans Instagram', value: festivalsActiveCount - festivalsInstagramCount },
+              ].map(item => <MobileSummaryCard key={item.label} label={item.label} value={item.value} />)}
+            </div>
+          </MobileBottomSheet>
+        )}
+
+        <div style={mobileBottomNavStyle}>
+          <MobileTabButton active={activeFestivalPanel === 'browse'} onClick={() => setActiveFestivalPanel('browse')}>Liste</MobileTabButton>
+          <MobileTabButton active={activeFestivalPanel === 'filters'} onClick={() => toggleFestivalPanel('filters')}>Filtres</MobileTabButton>
+          <MobileTabButton active={activeFestivalPanel === 'sort'} onClick={() => toggleFestivalPanel('sort')}>Tri</MobileTabButton>
+          <MobileTabButton active={activeFestivalPanel === 'stats'} onClick={() => toggleFestivalPanel('stats')}>Stats</MobileTabButton>
+        </div>
+      </div>
+    )
+  }
+
+  if (activeSection === 'projects') {
+    return (
+      <div style={mobilePageStyle}>
+        <div style={mobileHeaderStyle}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+            <div>
+              <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000080' }}>Super Bernard 3000</div>
+              <div style={{ fontSize: '12px', color: '#333' }}>Mode mobile projets</div>
+            </div>
+            <MobileButton onClick={onRefresh} style={{ minHeight: '34px', padding: '6px 10px' }}>↻</MobileButton>
+          </div>
+
+          <input value={projectSearchQuery} onChange={e => setProjectSearchQuery(e.target.value)} placeholder="Rechercher un projet, statut, priorité..." style={{ minHeight: '44px', border: '2px solid', borderColor: '#808080 #ffffff #ffffff #808080', background: '#fff', padding: '10px 12px', fontSize: '15px', fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' }} />
+
+          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+            {sectionTabs.map(tab => (
+              <MobileButton key={tab.id} onClick={() => setActiveSection(tab.id)} primary={activeSection === tab.id} style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}>{tab.label}</MobileButton>
+            ))}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', alignItems: 'center' }}>
+            <div style={{ fontSize: '12px', color: '#333' }}>{mobileProjects.length} projet(s) visible(s)</div>
+            <MobileButton onClick={() => setProjectSortConfig(prev => ({ ...prev, direction: 'asc' }))} primary={projectSortConfig.direction === 'asc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▲</MobileButton>
+            <MobileButton onClick={() => setProjectSortConfig(prev => ({ ...prev, direction: 'desc' }))} primary={projectSortConfig.direction === 'desc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▼</MobileButton>
+          </div>
+
+          <select value={projectSortConfig.key} onChange={e => setProjectSortConfig(prev => ({ ...prev, key: e.target.value }))} style={selectStyle}>
+            {projectSortOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}
+          </select>
+
+          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+            {[
+              { id: 'all', label: 'Tous' },
+              { id: 'urgent', label: 'Priorité haute' },
+              { id: 'todo', label: 'À faire' },
+              { id: 'done', label: 'Faits' },
+            ].map(item => (
+              <MobileButton key={item.id} onClick={() => setProjectFilter(item.id)} primary={projectFilter === item.id} style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}>{item.label}</MobileButton>
+            ))}
+          </div>
+        </div>
+
+        <div style={mobileContentStyle}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+            <MobileSummaryCard label="Actifs" value={projectsActiveCount} />
+            <MobileSummaryCard label="Urgents" value={projectsUrgentCount} accent="#a40000" />
+            <MobileSummaryCard label="Faits" value={projectsDoneCount} accent="#0a5f00" />
+          </div>
+
+          {loading ? (
+            <div style={{ ...mobileCardStyle, padding: '16px' }}>Chargement...</div>
+          ) : mobileProjects.length === 0 ? (
+            <div style={{ ...mobileCardStyle, padding: '16px' }}>Aucun projet trouvé.</div>
+          ) : mobileProjects.map(project => (
+            <div key={project.id} style={mobileCardStyle}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ fontSize: '17px', fontWeight: 'bold', lineHeight: 1.1 }}>{project.nom || 'Projet'}</div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {project.statut && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{project.statut}</span>}
+                  {project.priorite && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{project.priorite}</span>}
+                  {project.echeance && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{project.echeance}</span>}
+                </div>
+                {project.linked_type && <div style={{ fontSize: '12px', color: '#444' }}>Lié : {project.linked_type}{project.linked_id ? ` #${project.linked_id}` : ''}</div>}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <MobileButton onClick={() => openProjectDetail(project)}>Voir</MobileButton>
+                <MobileButton primary onClick={() => openProjectQuickEdit(project)}>⚡ Modifier</MobileButton>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {detailProject && <MobileProjectDetail project={detailProject} onClose={() => setDetailProject(null)} onQuickEdit={openProjectQuickEdit} />}
+        {quickEditProject && <MobileProjectQuickEditSheet project={quickEditProject} projects={projects} onSave={saveProjects} onClose={() => setQuickEditProject(null)} />}
+
+        {activeProjectPanel === 'filters' && (
+          <MobileBottomSheet title="Filtres projets" onClose={() => setActiveProjectPanel('browse')}>
+            <div style={{ display: 'grid', gap: '8px' }}>
+              <MobileButton primary={projectFilter === 'all'} onClick={() => { setProjectFilter('all'); setActiveProjectPanel('browse') }}>Tous les projets</MobileButton>
+              <MobileButton primary={projectFilter === 'urgent'} onClick={() => { setProjectFilter('urgent'); setActiveProjectPanel('browse') }}>Priorité haute</MobileButton>
+              <MobileButton primary={projectFilter === 'todo'} onClick={() => { setProjectFilter('todo'); setActiveProjectPanel('browse') }}>À faire</MobileButton>
+              <MobileButton primary={projectFilter === 'done'} onClick={() => { setProjectFilter('done'); setActiveProjectPanel('browse') }}>Faits</MobileButton>
+              <MobileButton onClick={() => { setProjectSearchQuery(''); setProjectFilter('all'); setActiveProjectPanel('browse') }}>Réinitialiser</MobileButton>
+            </div>
+          </MobileBottomSheet>
+        )}
+
+        {activeProjectPanel === 'sort' && (
+          <MobileBottomSheet title="Tri projets" onClose={() => setActiveProjectPanel('browse')}>
+            <div style={{ display: 'grid', gap: '8px' }}>
+              {projectSortOptions.map(option => (
+                <MobileButton key={option.key} primary={projectSortConfig.key === option.key} onClick={() => { setProjectSortConfig(prev => ({ ...prev, key: option.key })); setActiveProjectPanel('browse') }}>{option.label}{projectSortConfig.key === option.key ? ` ${projectSortConfig.direction === 'asc' ? '▲' : '▼'}` : ''}</MobileButton>
+              ))}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
+                <MobileButton primary={projectSortConfig.direction === 'asc'} onClick={() => setProjectSortConfig(prev => ({ ...prev, direction: 'asc' }))}>Croissant ▲</MobileButton>
+                <MobileButton primary={projectSortConfig.direction === 'desc'} onClick={() => setProjectSortConfig(prev => ({ ...prev, direction: 'desc' }))}>Décroissant ▼</MobileButton>
+              </div>
+            </div>
+          </MobileBottomSheet>
+        )}
+
+        {activeProjectPanel === 'stats' && (
+          <MobileBottomSheet title="Statistiques projets" onClose={() => setActiveProjectPanel('browse')}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <MobileSummaryCard label="Actifs" value={projectsActiveCount} />
+              <MobileSummaryCard label="Urgents" value={projectsUrgentCount} accent="#a40000" />
+              <MobileSummaryCard label="Faits" value={projectsDoneCount} accent="#0a5f00" />
+              <MobileSummaryCard label="Ouverts" value={projectsActiveCount - projectsDoneCount} />
+            </div>
+          </MobileBottomSheet>
+        )}
+
+        <div style={mobileBottomNavStyle}>
+          <MobileTabButton active={activeProjectPanel === 'browse'} onClick={() => setActiveProjectPanel('browse')}>Liste</MobileTabButton>
+          <MobileTabButton active={activeProjectPanel === 'filters'} onClick={() => toggleProjectPanel('filters')}>Filtres</MobileTabButton>
+          <MobileTabButton active={activeProjectPanel === 'sort'} onClick={() => toggleProjectPanel('sort')}>Tri</MobileTabButton>
+          <MobileTabButton active={activeProjectPanel === 'stats'} onClick={() => toggleProjectPanel('stats')}>Stats</MobileTabButton>
         </div>
       </div>
     )
@@ -721,8 +1979,8 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#008080', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ position: 'sticky', top: 0, zIndex: 20, background: '#c0c0c0', borderBottom: '2px solid #808080', padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+    <div style={mobilePageStyle}>
+      <div style={mobileHeaderStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
           <div>
             <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000080' }}>Super Bernard 3000</div>
@@ -798,17 +2056,23 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
         </div>
       </div>
 
-      <div style={{ flex: 1, padding: '12px 12px 84px 12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={mobileContentStyle}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+          <MobileSummaryCard label="Actifs" value={activeCount} />
+          <MobileSummaryCard label="Validés 🐗" value={validatedCount} accent="#0a5f00" />
+          <MobileSummaryCard label="Avec liens" value={withLinksCount} />
+        </div>
+
         {loading ? (
-          <div style={{ background: '#c0c0c0', padding: '16px', border: '2px solid', borderColor: '#fff #404040 #404040 #fff' }}>Chargement...</div>
+          <div style={{ ...mobileCardStyle, padding: '16px' }}>Chargement...</div>
         ) : filteredArtists.length === 0 ? (
-          <div style={{ background: '#c0c0c0', padding: '16px', border: '2px solid', borderColor: '#fff #404040 #404040 #fff' }}>Aucun artiste trouvé.</div>
+          <div style={{ ...mobileCardStyle, padding: '16px' }}>Aucun artiste trouvé.</div>
         ) : filteredArtists.map(artist => {
           const validated = isArtistValidated(artist)
           const linkCount = getArtistLinkCount(artist)
           const primaryAudio = getPrimaryAudioUrl(artist)
           return (
-            <div key={artist.id} style={{ background: '#c0c0c0', border: '2px solid', borderColor: '#fff #404040 #404040 #fff', padding: '10px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div key={artist.id} style={mobileCardStyle}>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <img
                   src={artist.photo_or_logo_link || artist.photo || artist.image_url || '/sanglier.png'}
@@ -915,7 +2179,7 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
         </MobileBottomSheet>
       )}
 
-      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 25, background: '#c0c0c0', borderTop: '2px solid #fff', padding: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
+      <div style={mobileBottomNavStyle}>
         <MobileTabButton active={activePanel === 'browse'} onClick={() => setActivePanel('browse')}>Liste</MobileTabButton>
         <MobileTabButton active={activePanel === 'filters'} onClick={() => togglePanel('filters')}>Filtres</MobileTabButton>
         <MobileTabButton active={activePanel === 'sort'} onClick={() => togglePanel('sort')}>Tri</MobileTabButton>

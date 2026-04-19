@@ -1,6 +1,9 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import { Desktop } from './components/win95/Desktop'
-import { MobileArtistApp } from './components/mobile/MobileArtistApp'
+
+const MobileArtistApp = lazy(() =>
+  import('./components/mobile/MobileArtistApp').then(module => ({ default: module.MobileArtistApp }))
+)
 
 // --- OS Additional Window Contents ---
 function StatsContent({ artists, onClose }) {
@@ -220,17 +223,22 @@ export default function App() {
   return (
     <>
       {isMobile ? (
-        <MobileArtistApp
-          artists={artists}
-          loading={loading}
-          onRefresh={loadAll}
-          saveArtists={(data, action) => saveData('artistes', data, action)}
-          saveCollectifs={(data, action) => saveData('collectifs', data, action)}
-          collectifs={collectifs}
-          lieux={lieux}
-          festivals={festivals}
-          projects={projects}
-        />
+        <Suspense fallback={<div style={{ minHeight: '100vh', background: '#008080', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' }}>Chargement mobile...</div>}>
+          <MobileArtistApp
+            artists={artists}
+            loading={loading}
+            onRefresh={loadAll}
+            saveArtists={(data, action) => saveData('artistes', data, action)}
+            saveCollectifs={(data, action) => saveData('collectifs', data, action)}
+            saveLieux={(data, action) => saveData('lieux', data, action)}
+            saveFestivals={(data, action) => saveData('festivals', data, action)}
+            saveProjects={(data, action) => saveData('projets', data, action)}
+            collectifs={collectifs}
+            lieux={lieux}
+            festivals={festivals}
+            projects={projects}
+          />
+        </Suspense>
       ) : (
         <Desktop 
           artists={artists}
