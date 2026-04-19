@@ -233,10 +233,16 @@ export default function App() {
             saveLieux={(data, action) => saveData('lieux', data, action)}
             saveFestivals={(data, action) => saveData('festivals', data, action)}
             saveProjects={(data, action) => saveData('projets', data, action)}
+            saveNotes={(data, action) => saveData('notes', data, action)}
+            saveTodos={(data, action) => saveData('todos', data, action)}
+            saveStickies={(data, action) => saveData('stickies', data, action)}
             collectifs={collectifs}
             lieux={lieux}
             festivals={festivals}
             projects={projects}
+            notes={notes}
+            todos={todos}
+            stickies={stickies}
           />
         </Suspense>
       ) : (

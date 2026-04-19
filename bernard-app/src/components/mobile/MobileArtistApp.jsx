@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 function isArtistValidated(artist) {
   const raw = String(artist?.validation_sanglier || '').trim().toLowerCase()
@@ -135,6 +135,10 @@ function getProjectSortValue(project, key) {
   }
 }
 
+function makeId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
 const mobilePageStyle = {
   minHeight: '100vh',
   background: '#008080',
@@ -235,8 +239,8 @@ function MobileField({ label, children }) {
 
 function MobileBottomSheet({ title, onClose, children }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 1800, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'flex-end' }}>
-      <div style={{ width: '100%', maxHeight: '75vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#c0c0c0', borderTop: '2px solid #fff', boxShadow: '0 -2px 0 #404040', padding: '12px' }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 1800, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'flex-end' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxHeight: '75vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#c0c0c0', borderTop: '2px solid #fff', boxShadow: '0 -2px 0 #404040', padding: '12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
           <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#000080' }}>{title}</div>
           <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
@@ -1022,7 +1026,153 @@ function MobileProjectQuickEditSheet({ project, projects, onSave, onClose }) {
   )
 }
 
-export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs, saveLieux, saveFestivals, onRefresh, collectifs = [], lieux = [], festivals = [], projects = [] }) {
+function MobileNoteEditSheet({ note, notes, onSave, onClose }) {
+  const inputStyle = {
+    minHeight: '42px',
+    border: '2px solid',
+    borderColor: '#808080 #ffffff #ffffff #808080',
+    background: '#fff',
+    padding: '8px 10px',
+    fontSize: '14px',
+    fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif',
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const fd = new FormData(e.target)
+    const data = Object.fromEntries(fd.entries())
+    const now = new Date().toISOString().slice(0, 10)
+    let updated
+
+    if (note?.id) {
+      updated = notes.map(n => String(n.id) === String(note.id) ? { ...n, ...data, date_derniere_modif: now } : n)
+    } else {
+      updated = [...notes, { id: makeId(), archive: '', ...data, date_derniere_modif: now }]
+    }
+
+    await onSave(updated, `${note?.id ? 'Édition' : 'Ajout'} note mobile : ${data.titre || 'Sans titre'}`)
+    onClose()
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end' }}>
+      <div style={{ width: '100%', maxHeight: '92vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#c0c0c0', borderTop: '2px solid #fff', boxShadow: '0 -2px 0 #404040', padding: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <div><div style={{ fontSize: '16px', fontWeight: 'bold' }}>📝 Note mobile</div><div style={{ fontSize: '12px', color: '#333' }}>{note?.titre || 'Nouvelle note'}</div></div>
+          <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
+        </div>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <MobileField label="Titre"><input name="titre" defaultValue={note?.titre || ''} style={inputStyle} /></MobileField>
+          <MobileField label="Contenu"><textarea name="contenu" defaultValue={note?.contenu || ''} style={{ ...inputStyle, minHeight: '180px', resize: 'vertical' }} /></MobileField>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingBottom: '8px' }}>
+            <MobileButton type="button" onClick={onClose}>Annuler</MobileButton>
+            <MobileButton type="submit" primary>Enregistrer</MobileButton>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function MobileTodoEditSheet({ todo, todos, onSave, onClose }) {
+  const inputStyle = {
+    minHeight: '42px',
+    border: '2px solid',
+    borderColor: '#808080 #ffffff #ffffff #808080',
+    background: '#fff',
+    padding: '8px 10px',
+    fontSize: '14px',
+    fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif',
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const fd = new FormData(e.target)
+    const data = Object.fromEntries(fd.entries())
+    let updated
+
+    if (todo?.id) {
+      updated = todos.map(t => String(t.id) === String(todo.id) ? { ...t, ...data } : t)
+    } else {
+      updated = [...todos, { id: makeId(), archive: '', complete: '', date_creation: new Date().toISOString().slice(0, 10), ...data }]
+    }
+
+    await onSave(updated, `${todo?.id ? 'Édition' : 'Ajout'} todo mobile : ${data.texte || 'Sans texte'}`)
+    onClose()
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end' }}>
+      <div style={{ width: '100%', maxHeight: '92vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#c0c0c0', borderTop: '2px solid #fff', boxShadow: '0 -2px 0 #404040', padding: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <div><div style={{ fontSize: '16px', fontWeight: 'bold' }}>✅ Todo mobile</div><div style={{ fontSize: '12px', color: '#333' }}>{todo?.texte || 'Nouveau todo'}</div></div>
+          <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
+        </div>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <MobileField label="Texte"><textarea name="texte" defaultValue={todo?.texte || ''} style={{ ...inputStyle, minHeight: '120px', resize: 'vertical' }} /></MobileField>
+          <MobileField label="Statut">
+            <select name="complete" defaultValue={todo?.complete || ''} style={inputStyle}>
+              <option value="">À faire</option>
+              <option value="true">Fait</option>
+            </select>
+          </MobileField>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingBottom: '8px' }}>
+            <MobileButton type="button" onClick={onClose}>Annuler</MobileButton>
+            <MobileButton type="submit" primary>Enregistrer</MobileButton>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function MobileStickyEditSheet({ sticky, stickies, onSave, onClose }) {
+  const inputStyle = {
+    minHeight: '42px',
+    border: '2px solid',
+    borderColor: '#808080 #ffffff #ffffff #808080',
+    background: '#fff8a6',
+    padding: '8px 10px',
+    fontSize: '14px',
+    fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif',
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const fd = new FormData(e.target)
+    const data = Object.fromEntries(fd.entries())
+    let updated
+
+    if (sticky?.id) {
+      updated = stickies.map(s => String(s.id) === String(sticky.id) ? { ...s, ...data } : s)
+    } else {
+      updated = [...stickies, { id: makeId(), archive: '', ...data }]
+    }
+
+    await onSave(updated, `${sticky?.id ? 'Édition' : 'Ajout'} sticky mobile`)
+    onClose()
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end' }}>
+      <div style={{ width: '100%', maxHeight: '92vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#c0c0c0', borderTop: '2px solid #fff', boxShadow: '0 -2px 0 #404040', padding: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <div><div style={{ fontSize: '16px', fontWeight: 'bold' }}>📌 Sticky mobile</div><div style={{ fontSize: '12px', color: '#333' }}>{sticky?.text ? 'Modifier sticky' : 'Nouveau sticky'}</div></div>
+          <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
+        </div>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <MobileField label="Texte"><textarea name="text" defaultValue={sticky?.text || ''} style={{ ...inputStyle, minHeight: '180px', resize: 'vertical' }} /></MobileField>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingBottom: '8px' }}>
+            <MobileButton type="button" onClick={onClose}>Annuler</MobileButton>
+            <MobileButton type="submit" primary>Enregistrer</MobileButton>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs, saveLieux, saveFestivals, saveProjects, saveNotes, saveTodos, saveStickies, onRefresh, collectifs = [], lieux = [], festivals = [], projects = [], notes = [], todos = [], stickies = [] }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [validationFilter, setValidationFilter] = useState('all')
   const [sortConfig, setSortConfig] = useState({ key: 'artist', direction: 'asc' })
@@ -1054,6 +1204,11 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   const [projectFilter, setProjectFilter] = useState('all')
   const [projectSortConfig, setProjectSortConfig] = useState({ key: 'name', direction: 'asc' })
   const [activeProjectPanel, setActiveProjectPanel] = useState('browse')
+  const [toolsSearchQuery, setToolsSearchQuery] = useState('')
+  const [activeToolsPanel, setActiveToolsPanel] = useState('browse')
+  const [editingNote, setEditingNote] = useState(null)
+  const [editingTodo, setEditingTodo] = useState(null)
+  const [editingSticky, setEditingSticky] = useState(null)
 
   const filteredArtists = useMemo(() => {
     const q = searchQuery.toLowerCase()
@@ -1156,7 +1311,56 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
     { id: 'lieux', label: 'Lieux' },
     { id: 'festivals', label: 'Festivals' },
     { id: 'projects', label: 'Projets' },
+    { id: 'tools', label: 'Outils' },
   ]
+
+  useEffect(() => {
+    setDetailArtist(null)
+    setQuickEditArtist(null)
+    setActivePanel('browse')
+    setDetailCollectif(null)
+    setQuickEditCollectif(null)
+    setActiveCollectifPanel('browse')
+    setDetailLieu(null)
+    setQuickEditLieu(null)
+    setActiveLieuPanel('browse')
+    setDetailFestival(null)
+    setQuickEditFestival(null)
+    setActiveFestivalPanel('browse')
+    setDetailProject(null)
+    setQuickEditProject(null)
+    setActiveProjectPanel('browse')
+    setActiveToolsPanel('browse')
+    setEditingNote(null)
+    setEditingTodo(null)
+    setEditingSticky(null)
+  }, [activeSection])
+
+  const hasOverlayOpen = !!(
+    detailArtist || quickEditArtist || activePanel !== 'browse'
+    || detailCollectif || quickEditCollectif || activeCollectifPanel !== 'browse'
+    || detailLieu || quickEditLieu || activeLieuPanel !== 'browse'
+    || detailFestival || quickEditFestival || activeFestivalPanel !== 'browse'
+    || detailProject || quickEditProject || activeProjectPanel !== 'browse'
+    || editingNote || editingTodo || editingSticky || activeToolsPanel !== 'browse'
+  )
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined
+
+    const previousOverflow = document.body.style.overflow
+    const previousTouchAction = document.body.style.touchAction
+
+    if (hasOverlayOpen) {
+      document.body.style.overflow = 'hidden'
+      document.body.style.touchAction = 'none'
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.body.style.touchAction = previousTouchAction
+    }
+  }, [hasOverlayOpen])
 
   const mobileCollectifs = useMemo(() => {
     const q = collectifSearchQuery.toLowerCase()
@@ -1261,6 +1465,20 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
       })
   }, [projects, projectSearchQuery, projectFilter, projectSortConfig])
 
+  const toolsQuery = toolsSearchQuery.toLowerCase()
+  const mobileNotes = useMemo(
+    () => notes.filter(note => note.archive !== 'true').filter(note => !toolsQuery || (note.titre || '').toLowerCase().includes(toolsQuery) || (note.contenu || '').toLowerCase().includes(toolsQuery)),
+    [notes, toolsQuery]
+  )
+  const mobileTodos = useMemo(
+    () => todos.filter(todo => todo.archive !== 'true').filter(todo => !toolsQuery || (todo.texte || '').toLowerCase().includes(toolsQuery)),
+    [todos, toolsQuery]
+  )
+  const mobileStickies = useMemo(
+    () => stickies.filter(sticky => sticky.archive !== 'true').filter(sticky => !toolsQuery || (sticky.text || '').toLowerCase().includes(toolsQuery)),
+    [stickies, toolsQuery]
+  )
+
   const collectifsActiveCount = collectifs.filter(collectif => collectif.archive !== 'true').length
   const collectifsInstagramCount = collectifs.filter(collectif => collectif.archive !== 'true' && String(collectif.instagram || '').trim()).length
   const collectifsPhotoCount = collectifs.filter(collectif => collectif.archive !== 'true' && String(collectif.photo || '').trim()).length
@@ -1273,6 +1491,10 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   const projectsActiveCount = projects.filter(project => project.archive !== 'true').length
   const projectsUrgentCount = projects.filter(project => project.archive !== 'true' && (project.priorite || '').toLowerCase().includes('haut')).length
   const projectsDoneCount = projects.filter(project => project.archive !== 'true' && (project.statut || '').toLowerCase().includes('fait')).length
+  const notesActiveCount = notes.filter(note => note.archive !== 'true').length
+  const todosActiveCount = todos.filter(todo => todo.archive !== 'true').length
+  const todosDoneCount = todos.filter(todo => todo.archive !== 'true' && todo.complete === 'true').length
+  const stickiesActiveCount = stickies.filter(sticky => sticky.archive !== 'true').length
 
   const collectifSortOptions = [
     { key: 'name', label: 'Nom' },
@@ -1302,6 +1524,11 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
     { key: 'deadline', label: 'Échéance' },
     { key: 'linked', label: 'Lien' },
   ]
+
+  const toggleTodoComplete = async (todo) => {
+    const updated = todos.map(t => String(t.id) === String(todo.id) ? { ...t, complete: t.complete === 'true' ? '' : 'true' } : t)
+    await saveTodos(updated, `${todo.complete === 'true' ? 'Réouverture' : 'Validation'} todo mobile : ${todo.texte || 'Todo'}`)
+  }
 
   const openCollectifDetail = (collectif) => {
     setActiveCollectifPanel('browse')
@@ -1923,6 +2150,104 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
           <MobileTabButton active={activeProjectPanel === 'filters'} onClick={() => toggleProjectPanel('filters')}>Filtres</MobileTabButton>
           <MobileTabButton active={activeProjectPanel === 'sort'} onClick={() => toggleProjectPanel('sort')}>Tri</MobileTabButton>
           <MobileTabButton active={activeProjectPanel === 'stats'} onClick={() => toggleProjectPanel('stats')}>Stats</MobileTabButton>
+        </div>
+      </div>
+    )
+  }
+
+  if (activeSection === 'tools') {
+    return (
+      <div style={mobilePageStyle}>
+        <div style={mobileHeaderStyle}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+            <div>
+              <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000080' }}>Super Bernard 3000</div>
+              <div style={{ fontSize: '12px', color: '#333' }}>Mode mobile outils</div>
+            </div>
+            <MobileButton onClick={onRefresh} style={{ minHeight: '34px', padding: '6px 10px' }}>↻</MobileButton>
+          </div>
+
+          <input value={toolsSearchQuery} onChange={e => setToolsSearchQuery(e.target.value)} placeholder="Rechercher une note, un todo, un sticky..." style={{ minHeight: '44px', border: '2px solid', borderColor: '#808080 #ffffff #ffffff #808080', background: '#fff', padding: '10px 12px', fontSize: '15px', fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' }} />
+
+          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+            {sectionTabs.map(tab => (
+              <MobileButton key={tab.id} onClick={() => setActiveSection(tab.id)} primary={activeSection === tab.id} style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}>{tab.label}</MobileButton>
+            ))}
+          </div>
+        </div>
+
+        <div style={mobileContentStyle}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+            <MobileSummaryCard label="Notes" value={notesActiveCount} />
+            <MobileSummaryCard label="Todos" value={todosActiveCount} />
+            <MobileSummaryCard label="Stickies" value={stickiesActiveCount} />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+            <MobileButton onClick={() => setEditingNote({})}>+ Note</MobileButton>
+            <MobileButton onClick={() => setEditingTodo({})}>+ Todo</MobileButton>
+            <MobileButton onClick={() => setEditingSticky({})}>+ Sticky</MobileButton>
+          </div>
+
+          <div style={mobileCardStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Notes</div>
+            {mobileNotes.length === 0 ? <div style={{ fontSize: '13px', color: '#666' }}>Aucune note trouvée.</div> : mobileNotes.slice(0, 12).map(note => (
+              <div key={note.id} style={{ background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px', display: 'grid', gap: '6px' }}>
+                <div style={{ fontWeight: 'bold' }}>{note.titre || 'Sans titre'}</div>
+                <div style={{ fontSize: '12px', color: '#555', whiteSpace: 'pre-wrap' }}>{(note.contenu || '').slice(0, 180) || '—'}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <MobileButton onClick={() => setEditingNote(note)}>Modifier</MobileButton>
+                  <MobileButton onClick={() => setToolsSearchQuery(note.titre || '')}>Filtrer</MobileButton>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={mobileCardStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Todos</div>
+            {mobileTodos.length === 0 ? <div style={{ fontSize: '13px', color: '#666' }}>Aucun todo trouvé.</div> : mobileTodos.slice(0, 12).map(todo => (
+              <div key={todo.id} style={{ background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px', display: 'grid', gap: '6px' }}>
+                <div style={{ fontWeight: 'bold', textDecoration: todo.complete === 'true' ? 'line-through' : 'none' }}>{todo.texte || 'Sans texte'}</div>
+                <div style={{ fontSize: '12px', color: '#555' }}>{todo.complete === 'true' ? 'Fait' : 'À faire'}{todo.date_creation ? ` · ${todo.date_creation}` : ''}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <MobileButton onClick={() => toggleTodoComplete(todo)}>{todo.complete === 'true' ? 'Réouvrir' : 'Valider'}</MobileButton>
+                  <MobileButton onClick={() => setEditingTodo(todo)}>Modifier</MobileButton>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={mobileCardStyle}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#000080' }}>Stickies</div>
+            {mobileStickies.length === 0 ? <div style={{ fontSize: '13px', color: '#666' }}>Aucun sticky trouvé.</div> : mobileStickies.slice(0, 12).map(sticky => (
+              <div key={sticky.id} style={{ background: '#fff8a6', border: '2px solid', borderColor: '#fff7cf #9f8c1a #9f8c1a #fff7cf', padding: '10px', display: 'grid', gap: '6px' }}>
+                <div style={{ fontSize: '13px', whiteSpace: 'pre-wrap' }}>{sticky.text || '—'}</div>
+                <MobileButton onClick={() => setEditingSticky(sticky)}>Modifier</MobileButton>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {editingNote && <MobileNoteEditSheet note={editingNote} notes={notes} onSave={saveNotes} onClose={() => setEditingNote(null)} />}
+        {editingTodo && <MobileTodoEditSheet todo={editingTodo} todos={todos} onSave={saveTodos} onClose={() => setEditingTodo(null)} />}
+        {editingSticky && <MobileStickyEditSheet sticky={editingSticky} stickies={stickies} onSave={saveStickies} onClose={() => setEditingSticky(null)} />}
+
+        {activeToolsPanel === 'stats' && (
+          <MobileBottomSheet title="Statistiques outils" onClose={() => setActiveToolsPanel('browse')}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <MobileSummaryCard label="Notes" value={notesActiveCount} />
+              <MobileSummaryCard label="Todos" value={todosActiveCount} />
+              <MobileSummaryCard label="Todos faits" value={todosDoneCount} accent="#0a5f00" />
+              <MobileSummaryCard label="Stickies" value={stickiesActiveCount} />
+            </div>
+          </MobileBottomSheet>
+        )}
+
+        <div style={mobileBottomNavStyle}>
+          <MobileTabButton active={activeToolsPanel === 'browse'} onClick={() => setActiveToolsPanel('browse')}>Liste</MobileTabButton>
+          <MobileTabButton active={false} onClick={() => setEditingNote({})}>Note</MobileTabButton>
+          <MobileTabButton active={false} onClick={() => setEditingTodo({})}>Todo</MobileTabButton>
+          <MobileTabButton active={activeToolsPanel === 'stats'} onClick={() => setActiveToolsPanel(activeToolsPanel === 'stats' ? 'browse' : 'stats')}>Stats</MobileTabButton>
         </div>
       </div>
     )
