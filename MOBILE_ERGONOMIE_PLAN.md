@@ -9,9 +9,9 @@
 - [x] Quand on valide un artiste, conserver la position de scroll et ne pas remonter en haut de page
 
 ## Phase 2 — Architecture propre
-- [ ] Découper `MobileArtistApp.jsx`
-- [ ] Créer un `MobileShell`
-- [ ] Isoler chaque section mobile dans son composant
+- [x] Découper `MobileArtistApp.jsx`
+- [x] Créer un `MobileShell`
+- [x] Isoler chaque section mobile dans son composant
 - [~] Factoriser les composants d overlay / détail / quick edit
 
 ## Phase 3 — Artistes
@@ -47,3 +47,20 @@
 - phase 1 : conserver la position de scroll lors de la validation d un artiste
 - phase 2 point 1 : extraction des primitives mobiles communes hors de `MobileArtistApp.jsx`
 - phase 2 point 2 : mutualisation du header, des stats et de la navigation basse
+- phase 2 point 3 : extraction des fonctions utilitaires mobiles dans `MobileDataUtils.js`
+- phase 2 point 4 : extraction des panneaux artistes dans `MobileArtistPanels.jsx`
+- phase 2 point 5 : extraction de la section artistes dans `MobileArtistSection.jsx`
+- phase 2 point 6 : création de `MobileShell.jsx` et branchement des vues mobiles principales dessus
+- phase 2 point 7 : extraction de la section outils dans `MobileToolsSection.jsx`
+- phase 2 point 8 : extraction du placeholder mobile dans `MobilePlaceholderSection.jsx` et suppression de la double enveloppe shell
+- phase 2 point 9 : extraction de l écran placeholder des sections non spécialisées dans `MobilePlaceholderScreen.jsx`
+- phase 2 point 10 : extraction des éditeurs outils dans `MobileToolsEditors.jsx`
+- phase 2 point 11 : extraction de la section projets dans `MobileProjectSection.jsx`
+- phase 2 point 12 : extraction des panneaux projets dans `MobileProjectPanels.jsx`
+- phase 2 point 13 : extraction de la section festivals dans `MobileFestivalSection.jsx`
+- phase 2 point 14 : extraction des panneaux festivals dans `MobileFestivalPanels.jsx`
+- phase 2 point 15 : extraction de la section lieux dans `MobileLieuSection.jsx`
+- phase 2 point 16 : extraction des panneaux lieux dans `MobileLieuPanels.jsx`
+- phase 2 point 17 : extraction de la section collectifs dans `MobileCollectifSection.jsx`
+- phase 2 point 18 : extraction des panneaux collectifs dans `MobileCollectifPanels.jsx`
+- phase 2 point 19 : suppression de la branche placeholder morte dans `MobileArtistApp.jsx` maintenant que toutes les sections principales sont spécialisées
