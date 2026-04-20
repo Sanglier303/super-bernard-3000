@@ -1,4 +1,20 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  mobilePageStyle,
+  mobileHeaderStyle,
+  mobileSectionSelectStyle,
+  mobileContentStyle,
+  mobileCardStyle,
+  mobileBottomNavStyle,
+  MobileSummaryCard,
+  MobileButton,
+  MobileField,
+  MobileBottomSheet,
+  MobileTabButton,
+  MobileSectionHeader,
+  MobileStatsGrid,
+  MobileStandardBottomNav,
+} from './MobilePrimitives'
 
 function isArtistValidated(artist) {
   const raw = String(artist?.validation_sanglier || '').trim().toLowerCase()
@@ -137,143 +153,6 @@ function getProjectSortValue(project, key) {
 
 function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-}
-
-const mobilePageStyle = {
-  minHeight: '100vh',
-  background: '#008080',
-  display: 'flex',
-  flexDirection: 'column',
-  overflowX: 'hidden',
-}
-
-const mobileHeaderStyle = {
-  position: 'sticky',
-  top: 0,
-  zIndex: 20,
-  background: '#c0c0c0',
-  borderBottom: '2px solid #808080',
-  padding: 'calc(12px + env(safe-area-inset-top, 0px)) 12px 12px 12px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '10px',
-}
-
-const mobileContentStyle = {
-  flex: 1,
-  padding: '12px 12px calc(96px + env(safe-area-inset-bottom, 0px)) 12px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '12px',
-  overflowX: 'hidden',
-}
-
-const mobileCardStyle = {
-  background: '#c0c0c0',
-  border: '2px solid',
-  borderColor: '#fff #404040 #404040 #fff',
-  boxShadow: '1px 1px 0 #808080',
-  padding: '10px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '10px',
-}
-
-const mobileBottomNavStyle = {
-  position: 'fixed',
-  left: 0,
-  right: 0,
-  bottom: 0,
-  zIndex: 25,
-  background: '#c0c0c0',
-  borderTop: '2px solid #fff',
-  padding: '8px 8px calc(8px + env(safe-area-inset-bottom, 0px)) 8px',
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr 1fr 1fr',
-  gap: '8px',
-}
-
-function MobileSummaryCard({ label, value, accent = '#000080' }) {
-  return (
-    <div style={{ background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px' }}>
-      <div style={{ fontSize: '11px', color: '#555' }}>{label}</div>
-      <div style={{ fontSize: '18px', fontWeight: 'bold', color: accent, marginTop: '3px' }}>{value}</div>
-    </div>
-  )
-}
-
-function MobileButton({ children, onClick, type = 'button', primary = false, danger = false, style, disabled }) {
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        minHeight: '40px',
-        border: '2px solid',
-        borderColor: '#ffffff #404040 #404040 #ffffff',
-        background: danger ? '#a40000' : primary ? '#000080' : '#c0c0c0',
-        color: danger || primary ? '#fff' : '#000',
-        fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif',
-        fontSize: '13px',
-        fontWeight: 'bold',
-        padding: '8px 12px',
-        borderRadius: 0,
-        opacity: disabled ? 0.5 : 1,
-        ...style,
-      }}
-    >
-      {children}
-    </button>
-  )
-}
-
-function MobileField({ label, children }) {
-  return (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', color: '#222' }}>
-      <span style={{ fontWeight: 'bold' }}>{label}</span>
-      {children}
-    </label>
-  )
-}
-
-function MobileBottomSheet({ title, onClose, children }) {
-  return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 1800, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'flex-end' }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxHeight: '75vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#c0c0c0', borderTop: '2px solid #fff', boxShadow: '0 -2px 0 #404040', padding: '12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-          <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#000080' }}>{title}</div>
-          <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
-        </div>
-        {children}
-      </div>
-    </div>
-  )
-}
-
-function MobileTabButton({ active, children, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        minHeight: '48px',
-        border: '2px solid',
-        borderColor: active ? '#808080 #ffffff #ffffff #808080' : '#ffffff #404040 #404040 #ffffff',
-        background: active ? '#d4d0c8' : '#c0c0c0',
-        color: '#000',
-        fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif',
-        fontSize: '12px',
-        fontWeight: 'bold',
-        padding: '6px 8px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      {children}
-    </button>
-  )
 }
 
 function MobileQuickEditSheet({ artist, artists, onSave, onClose }) {
@@ -1209,6 +1088,7 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   const [editingNote, setEditingNote] = useState(null)
   const [editingTodo, setEditingTodo] = useState(null)
   const [editingSticky, setEditingSticky] = useState(null)
+  const scrollRestoreRef = useRef(null)
 
   const filteredArtists = useMemo(() => {
     const q = searchQuery.toLowerCase()
@@ -1246,6 +1126,10 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   const handleToggleValidation = async (artist) => {
     const validated = isArtistValidated(artist)
     const today = new Date().toISOString().slice(0, 10)
+    const scrollingElement = document.scrollingElement || document.documentElement || document.body
+    const currentScrollTop = typeof window !== 'undefined' ? (window.scrollY || scrollingElement?.scrollTop || 0) : 0
+    scrollRestoreRef.current = currentScrollTop
+
     const updated = artists.map(a =>
       String(a.id) === String(artist.id)
         ? {
@@ -1263,6 +1147,19 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
         date_validation: validated ? '' : today,
       })
     }
+
+    const restore = () => {
+      const target = scrollRestoreRef.current
+      if (typeof target !== 'number') return
+      const element = document.scrollingElement || document.documentElement || document.body
+      window.scrollTo(0, target)
+      if (element) element.scrollTop = target
+    }
+
+    requestAnimationFrame(() => {
+      restore()
+      requestAnimationFrame(restore)
+    })
   }
 
   const togglePanel = (panel) => {
@@ -1597,79 +1494,34 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   if (activeSection === 'collectifs') {
     return (
       <div style={mobilePageStyle}>
-        <div style={mobileHeaderStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-            <div>
-              <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000080' }}>Super Bernard 3000</div>
-              <div style={{ fontSize: '12px', color: '#333' }}>Mode mobile collectifs</div>
-            </div>
-            <MobileButton onClick={onRefresh} style={{ minHeight: '34px', padding: '6px 10px' }}>↻</MobileButton>
-          </div>
-
-          <input
-            value={collectifSearchQuery}
-            onChange={e => setCollectifSearchQuery(e.target.value)}
-            placeholder="Rechercher un collectif, style..."
-            style={{
-              minHeight: '44px',
-              border: '2px solid',
-              borderColor: '#808080 #ffffff #ffffff #808080',
-              background: '#fff',
-              padding: '10px 12px',
-              fontSize: '15px',
-              fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif',
-            }}
-          />
-
-          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
-            {sectionTabs.map(tab => (
-              <MobileButton
-                key={tab.id}
-                onClick={() => setActiveSection(tab.id)}
-                primary={activeSection === tab.id}
-                style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}
-              >
-                {tab.label}
-              </MobileButton>
-            ))}
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', alignItems: 'center' }}>
-            <div style={{ fontSize: '12px', color: '#333' }}>{mobileCollectifs.length} collectif(s) visible(s)</div>
-            <MobileButton onClick={() => setCollectifSortConfig(prev => ({ ...prev, direction: 'asc' }))} primary={collectifSortConfig.direction === 'asc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▲</MobileButton>
-            <MobileButton onClick={() => setCollectifSortConfig(prev => ({ ...prev, direction: 'desc' }))} primary={collectifSortConfig.direction === 'desc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▼</MobileButton>
-          </div>
-
-          <select value={collectifSortConfig.key} onChange={e => setCollectifSortConfig(prev => ({ ...prev, key: e.target.value }))} style={selectStyle}>
-            {collectifSortOptions.map(option => (
-              <option key={option.key} value={option.key}>{option.label}</option>
-            ))}
-          </select>
-
-          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
-            {[
-              { id: 'all', label: 'Tous' },
-              { id: 'instagram', label: 'Avec Instagram' },
-              { id: 'noinstagram', label: 'Sans Instagram' },
-            ].map(item => (
-              <MobileButton
-                key={item.id}
-                onClick={() => setCollectifFilter(item.id)}
-                primary={collectifFilter === item.id}
-                style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}
-              >
-                {item.label}
-              </MobileButton>
-            ))}
-          </div>
-        </div>
+        <MobileSectionHeader
+          title="Super Bernard 3000"
+          subtitle="Mode mobile collectifs"
+          onRefresh={onRefresh}
+          searchValue={collectifSearchQuery}
+          onSearchChange={setCollectifSearchQuery}
+          searchPlaceholder="Rechercher un collectif, style..."
+          activeSection={activeSection}
+          sectionTabs={sectionTabs}
+          onSectionChange={setActiveSection}
+          summaryText={`${mobileCollectifs.length} collectif(s) visible(s)`}
+          sortDirection={collectifSortConfig.direction}
+          onSortAsc={() => setCollectifSortConfig(prev => ({ ...prev, direction: 'asc' }))}
+          onSortDesc={() => setCollectifSortConfig(prev => ({ ...prev, direction: 'desc' }))}
+          sortKey={collectifSortConfig.key}
+          onSortKeyChange={(value) => setCollectifSortConfig(prev => ({ ...prev, key: value }))}
+          sortOptions={collectifSortOptions}
+        />
 
         <div style={mobileContentStyle}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-            <MobileSummaryCard label="Actifs" value={collectifsActiveCount} />
-            <MobileSummaryCard label="Instagram" value={collectifsInstagramCount} />
-            <MobileSummaryCard label="Photo" value={collectifsPhotoCount} />
-          </div>
+          <MobileStatsGrid
+            items={[
+              { label: 'Actifs', value: collectifsActiveCount },
+              { label: 'Instagram', value: collectifsInstagramCount },
+              { label: 'Photo', value: collectifsPhotoCount },
+            ]}
+            columns={3}
+          />
 
           {loading ? (
             <div style={{ ...mobileCardStyle, padding: '16px' }}>Chargement...</div>
@@ -1757,28 +1609,25 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
 
         {activeCollectifPanel === 'stats' && (
           <MobileBottomSheet title="Statistiques collectifs" onClose={() => setActiveCollectifPanel('browse')}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              {[
+            <MobileStatsGrid
+              items={[
                 { label: 'Actifs', value: collectifsActiveCount },
                 { label: 'Avec Instagram', value: collectifsInstagramCount },
                 { label: 'Avec photo', value: collectifsPhotoCount },
                 { label: 'Sans Instagram', value: collectifsActiveCount - collectifsInstagramCount },
-              ].map(item => (
-                <div key={item.label} style={{ background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '12px' }}>
-                  <div style={{ fontSize: '12px', color: '#333' }}>{item.label}</div>
-                  <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#000080', marginTop: '4px' }}>{item.value}</div>
-                </div>
-              ))}
-            </div>
+              ]}
+              columns={2}
+            />
           </MobileBottomSheet>
         )}
 
-        <div style={mobileBottomNavStyle}>
-          <MobileTabButton active={activeCollectifPanel === 'browse'} onClick={() => setActiveCollectifPanel('browse')}>Liste</MobileTabButton>
-          <MobileTabButton active={activeCollectifPanel === 'filters'} onClick={() => toggleCollectifPanel('filters')}>Filtres</MobileTabButton>
-          <MobileTabButton active={activeCollectifPanel === 'sort'} onClick={() => toggleCollectifPanel('sort')}>Tri</MobileTabButton>
-          <MobileTabButton active={activeCollectifPanel === 'stats'} onClick={() => toggleCollectifPanel('stats')}>Stats</MobileTabButton>
-        </div>
+        <MobileStandardBottomNav
+          activePanel={activeCollectifPanel}
+          onBrowse={() => setActiveCollectifPanel('browse')}
+          onFilters={() => toggleCollectifPanel('filters')}
+          onSort={() => toggleCollectifPanel('sort')}
+          onStats={() => toggleCollectifPanel('stats')}
+        />
       </div>
     )
   }
@@ -1786,50 +1635,34 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   if (activeSection === 'lieux') {
     return (
       <div style={mobilePageStyle}>
-        <div style={mobileHeaderStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-            <div>
-              <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000080' }}>Super Bernard 3000</div>
-              <div style={{ fontSize: '12px', color: '#333' }}>Mode mobile lieux</div>
-            </div>
-            <MobileButton onClick={onRefresh} style={{ minHeight: '34px', padding: '6px 10px' }}>↻</MobileButton>
-          </div>
-
-          <input value={lieuSearchQuery} onChange={e => setLieuSearchQuery(e.target.value)} placeholder="Rechercher un lieu, type, adresse..." style={{ minHeight: '44px', border: '2px solid', borderColor: '#808080 #ffffff #ffffff #808080', background: '#fff', padding: '10px 12px', fontSize: '15px', fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' }} />
-
-          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
-            {sectionTabs.map(tab => (
-              <MobileButton key={tab.id} onClick={() => setActiveSection(tab.id)} primary={activeSection === tab.id} style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}>{tab.label}</MobileButton>
-            ))}
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', alignItems: 'center' }}>
-            <div style={{ fontSize: '12px', color: '#333' }}>{mobileLieux.length} lieu(x) visible(s)</div>
-            <MobileButton onClick={() => setLieuSortConfig(prev => ({ ...prev, direction: 'asc' }))} primary={lieuSortConfig.direction === 'asc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▲</MobileButton>
-            <MobileButton onClick={() => setLieuSortConfig(prev => ({ ...prev, direction: 'desc' }))} primary={lieuSortConfig.direction === 'desc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▼</MobileButton>
-          </div>
-
-          <select value={lieuSortConfig.key} onChange={e => setLieuSortConfig(prev => ({ ...prev, key: e.target.value }))} style={selectStyle}>
-            {lieuSortOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}
-          </select>
-
-          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
-            {[
-              { id: 'all', label: 'Tous' },
-              { id: 'instagram', label: 'Avec Instagram' },
-              { id: 'noinstagram', label: 'Sans Instagram' },
-            ].map(item => (
-              <MobileButton key={item.id} onClick={() => setLieuFilter(item.id)} primary={lieuFilter === item.id} style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}>{item.label}</MobileButton>
-            ))}
-          </div>
-        </div>
+        <MobileSectionHeader
+          title="Super Bernard 3000"
+          subtitle="Mode mobile lieux"
+          onRefresh={onRefresh}
+          searchValue={lieuSearchQuery}
+          onSearchChange={setLieuSearchQuery}
+          searchPlaceholder="Rechercher un lieu, type, adresse..."
+          activeSection={activeSection}
+          sectionTabs={sectionTabs}
+          onSectionChange={setActiveSection}
+          summaryText={`${mobileLieux.length} lieu(x) visible(s)`}
+          sortDirection={lieuSortConfig.direction}
+          onSortAsc={() => setLieuSortConfig(prev => ({ ...prev, direction: 'asc' }))}
+          onSortDesc={() => setLieuSortConfig(prev => ({ ...prev, direction: 'desc' }))}
+          sortKey={lieuSortConfig.key}
+          onSortKeyChange={(value) => setLieuSortConfig(prev => ({ ...prev, key: value }))}
+          sortOptions={lieuSortOptions}
+        />
 
         <div style={mobileContentStyle}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-            <MobileSummaryCard label="Actifs" value={lieuxActiveCount} />
-            <MobileSummaryCard label="Instagram" value={lieuxInstagramCount} />
-            <MobileSummaryCard label="Photo" value={lieuxPhotoCount} />
-          </div>
+          <MobileStatsGrid
+            items={[
+              { label: 'Actifs', value: lieuxActiveCount },
+              { label: 'Instagram', value: lieuxInstagramCount },
+              { label: 'Photo', value: lieuxPhotoCount },
+            ]}
+            columns={3}
+          />
 
           {loading ? (
             <div style={{ ...mobileCardStyle, padding: '16px' }}>Chargement...</div>
@@ -1887,23 +1720,25 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
 
         {activeLieuPanel === 'stats' && (
           <MobileBottomSheet title="Statistiques lieux" onClose={() => setActiveLieuPanel('browse')}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              {[
+            <MobileStatsGrid
+              items={[
                 { label: 'Actifs', value: lieuxActiveCount },
                 { label: 'Avec Instagram', value: lieuxInstagramCount },
                 { label: 'Avec photo', value: lieuxPhotoCount },
                 { label: 'Sans Instagram', value: lieuxActiveCount - lieuxInstagramCount },
-              ].map(item => <MobileSummaryCard key={item.label} label={item.label} value={item.value} />)}
-            </div>
+              ]}
+              columns={2}
+            />
           </MobileBottomSheet>
         )}
 
-        <div style={mobileBottomNavStyle}>
-          <MobileTabButton active={activeLieuPanel === 'browse'} onClick={() => setActiveLieuPanel('browse')}>Liste</MobileTabButton>
-          <MobileTabButton active={activeLieuPanel === 'filters'} onClick={() => toggleLieuPanel('filters')}>Filtres</MobileTabButton>
-          <MobileTabButton active={activeLieuPanel === 'sort'} onClick={() => toggleLieuPanel('sort')}>Tri</MobileTabButton>
-          <MobileTabButton active={activeLieuPanel === 'stats'} onClick={() => toggleLieuPanel('stats')}>Stats</MobileTabButton>
-        </div>
+        <MobileStandardBottomNav
+          activePanel={activeLieuPanel}
+          onBrowse={() => setActiveLieuPanel('browse')}
+          onFilters={() => toggleLieuPanel('filters')}
+          onSort={() => toggleLieuPanel('sort')}
+          onStats={() => toggleLieuPanel('stats')}
+        />
       </div>
     )
   }
@@ -1911,50 +1746,34 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   if (activeSection === 'festivals') {
     return (
       <div style={mobilePageStyle}>
-        <div style={mobileHeaderStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-            <div>
-              <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000080' }}>Super Bernard 3000</div>
-              <div style={{ fontSize: '12px', color: '#333' }}>Mode mobile festivals</div>
-            </div>
-            <MobileButton onClick={onRefresh} style={{ minHeight: '34px', padding: '6px 10px' }}>↻</MobileButton>
-          </div>
-
-          <input value={festivalSearchQuery} onChange={e => setFestivalSearchQuery(e.target.value)} placeholder="Rechercher un festival, style, lieu..." style={{ minHeight: '44px', border: '2px solid', borderColor: '#808080 #ffffff #ffffff #808080', background: '#fff', padding: '10px 12px', fontSize: '15px', fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' }} />
-
-          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
-            {sectionTabs.map(tab => (
-              <MobileButton key={tab.id} onClick={() => setActiveSection(tab.id)} primary={activeSection === tab.id} style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}>{tab.label}</MobileButton>
-            ))}
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', alignItems: 'center' }}>
-            <div style={{ fontSize: '12px', color: '#333' }}>{mobileFestivals.length} festival(s) visible(s)</div>
-            <MobileButton onClick={() => setFestivalSortConfig(prev => ({ ...prev, direction: 'asc' }))} primary={festivalSortConfig.direction === 'asc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▲</MobileButton>
-            <MobileButton onClick={() => setFestivalSortConfig(prev => ({ ...prev, direction: 'desc' }))} primary={festivalSortConfig.direction === 'desc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▼</MobileButton>
-          </div>
-
-          <select value={festivalSortConfig.key} onChange={e => setFestivalSortConfig(prev => ({ ...prev, key: e.target.value }))} style={selectStyle}>
-            {festivalSortOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}
-          </select>
-
-          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
-            {[
-              { id: 'all', label: 'Tous' },
-              { id: 'instagram', label: 'Avec Instagram' },
-              { id: 'noinstagram', label: 'Sans Instagram' },
-            ].map(item => (
-              <MobileButton key={item.id} onClick={() => setFestivalFilter(item.id)} primary={festivalFilter === item.id} style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}>{item.label}</MobileButton>
-            ))}
-          </div>
-        </div>
+        <MobileSectionHeader
+          title="Super Bernard 3000"
+          subtitle="Mode mobile festivals"
+          onRefresh={onRefresh}
+          searchValue={festivalSearchQuery}
+          onSearchChange={setFestivalSearchQuery}
+          searchPlaceholder="Rechercher un festival, style, lieu..."
+          activeSection={activeSection}
+          sectionTabs={sectionTabs}
+          onSectionChange={setActiveSection}
+          summaryText={`${mobileFestivals.length} festival(s) visible(s)`}
+          sortDirection={festivalSortConfig.direction}
+          onSortAsc={() => setFestivalSortConfig(prev => ({ ...prev, direction: 'asc' }))}
+          onSortDesc={() => setFestivalSortConfig(prev => ({ ...prev, direction: 'desc' }))}
+          sortKey={festivalSortConfig.key}
+          onSortKeyChange={(value) => setFestivalSortConfig(prev => ({ ...prev, key: value }))}
+          sortOptions={festivalSortOptions}
+        />
 
         <div style={mobileContentStyle}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-            <MobileSummaryCard label="Actifs" value={festivalsActiveCount} />
-            <MobileSummaryCard label="Instagram" value={festivalsInstagramCount} />
-            <MobileSummaryCard label="Photo" value={festivalsPhotoCount} />
-          </div>
+          <MobileStatsGrid
+            items={[
+              { label: 'Actifs', value: festivalsActiveCount },
+              { label: 'Instagram', value: festivalsInstagramCount },
+              { label: 'Photo', value: festivalsPhotoCount },
+            ]}
+            columns={3}
+          />
 
           {loading ? (
             <div style={{ ...mobileCardStyle, padding: '16px' }}>Chargement...</div>
@@ -2012,23 +1831,25 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
 
         {activeFestivalPanel === 'stats' && (
           <MobileBottomSheet title="Statistiques festivals" onClose={() => setActiveFestivalPanel('browse')}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              {[
+            <MobileStatsGrid
+              items={[
                 { label: 'Actifs', value: festivalsActiveCount },
                 { label: 'Avec Instagram', value: festivalsInstagramCount },
                 { label: 'Avec photo', value: festivalsPhotoCount },
                 { label: 'Sans Instagram', value: festivalsActiveCount - festivalsInstagramCount },
-              ].map(item => <MobileSummaryCard key={item.label} label={item.label} value={item.value} />)}
-            </div>
+              ]}
+              columns={2}
+            />
           </MobileBottomSheet>
         )}
 
-        <div style={mobileBottomNavStyle}>
-          <MobileTabButton active={activeFestivalPanel === 'browse'} onClick={() => setActiveFestivalPanel('browse')}>Liste</MobileTabButton>
-          <MobileTabButton active={activeFestivalPanel === 'filters'} onClick={() => toggleFestivalPanel('filters')}>Filtres</MobileTabButton>
-          <MobileTabButton active={activeFestivalPanel === 'sort'} onClick={() => toggleFestivalPanel('sort')}>Tri</MobileTabButton>
-          <MobileTabButton active={activeFestivalPanel === 'stats'} onClick={() => toggleFestivalPanel('stats')}>Stats</MobileTabButton>
-        </div>
+        <MobileStandardBottomNav
+          activePanel={activeFestivalPanel}
+          onBrowse={() => setActiveFestivalPanel('browse')}
+          onFilters={() => toggleFestivalPanel('filters')}
+          onSort={() => toggleFestivalPanel('sort')}
+          onStats={() => toggleFestivalPanel('stats')}
+        />
       </div>
     )
   }
@@ -2036,51 +1857,34 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   if (activeSection === 'projects') {
     return (
       <div style={mobilePageStyle}>
-        <div style={mobileHeaderStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-            <div>
-              <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000080' }}>Super Bernard 3000</div>
-              <div style={{ fontSize: '12px', color: '#333' }}>Mode mobile projets</div>
-            </div>
-            <MobileButton onClick={onRefresh} style={{ minHeight: '34px', padding: '6px 10px' }}>↻</MobileButton>
-          </div>
-
-          <input value={projectSearchQuery} onChange={e => setProjectSearchQuery(e.target.value)} placeholder="Rechercher un projet, statut, priorité..." style={{ minHeight: '44px', border: '2px solid', borderColor: '#808080 #ffffff #ffffff #808080', background: '#fff', padding: '10px 12px', fontSize: '15px', fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' }} />
-
-          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
-            {sectionTabs.map(tab => (
-              <MobileButton key={tab.id} onClick={() => setActiveSection(tab.id)} primary={activeSection === tab.id} style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}>{tab.label}</MobileButton>
-            ))}
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', alignItems: 'center' }}>
-            <div style={{ fontSize: '12px', color: '#333' }}>{mobileProjects.length} projet(s) visible(s)</div>
-            <MobileButton onClick={() => setProjectSortConfig(prev => ({ ...prev, direction: 'asc' }))} primary={projectSortConfig.direction === 'asc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▲</MobileButton>
-            <MobileButton onClick={() => setProjectSortConfig(prev => ({ ...prev, direction: 'desc' }))} primary={projectSortConfig.direction === 'desc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▼</MobileButton>
-          </div>
-
-          <select value={projectSortConfig.key} onChange={e => setProjectSortConfig(prev => ({ ...prev, key: e.target.value }))} style={selectStyle}>
-            {projectSortOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}
-          </select>
-
-          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
-            {[
-              { id: 'all', label: 'Tous' },
-              { id: 'urgent', label: 'Priorité haute' },
-              { id: 'todo', label: 'À faire' },
-              { id: 'done', label: 'Faits' },
-            ].map(item => (
-              <MobileButton key={item.id} onClick={() => setProjectFilter(item.id)} primary={projectFilter === item.id} style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}>{item.label}</MobileButton>
-            ))}
-          </div>
-        </div>
+        <MobileSectionHeader
+          title="Super Bernard 3000"
+          subtitle="Mode mobile projets"
+          onRefresh={onRefresh}
+          searchValue={projectSearchQuery}
+          onSearchChange={setProjectSearchQuery}
+          searchPlaceholder="Rechercher un projet, statut, priorité..."
+          activeSection={activeSection}
+          sectionTabs={sectionTabs}
+          onSectionChange={setActiveSection}
+          summaryText={`${mobileProjects.length} projet(s) visible(s)`}
+          sortDirection={projectSortConfig.direction}
+          onSortAsc={() => setProjectSortConfig(prev => ({ ...prev, direction: 'asc' }))}
+          onSortDesc={() => setProjectSortConfig(prev => ({ ...prev, direction: 'desc' }))}
+          sortKey={projectSortConfig.key}
+          onSortKeyChange={(value) => setProjectSortConfig(prev => ({ ...prev, key: value }))}
+          sortOptions={projectSortOptions}
+        />
 
         <div style={mobileContentStyle}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-            <MobileSummaryCard label="Actifs" value={projectsActiveCount} />
-            <MobileSummaryCard label="Urgents" value={projectsUrgentCount} accent="#a40000" />
-            <MobileSummaryCard label="Faits" value={projectsDoneCount} accent="#0a5f00" />
-          </div>
+          <MobileStatsGrid
+            items={[
+              { label: 'Actifs', value: projectsActiveCount },
+              { label: 'Urgents', value: projectsUrgentCount, accent: '#a40000' },
+              { label: 'Faits', value: projectsDoneCount, accent: '#0a5f00' },
+            ]}
+            columns={3}
+          />
 
           {loading ? (
             <div style={{ ...mobileCardStyle, padding: '16px' }}>Chargement...</div>
@@ -2136,21 +1940,25 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
 
         {activeProjectPanel === 'stats' && (
           <MobileBottomSheet title="Statistiques projets" onClose={() => setActiveProjectPanel('browse')}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              <MobileSummaryCard label="Actifs" value={projectsActiveCount} />
-              <MobileSummaryCard label="Urgents" value={projectsUrgentCount} accent="#a40000" />
-              <MobileSummaryCard label="Faits" value={projectsDoneCount} accent="#0a5f00" />
-              <MobileSummaryCard label="Ouverts" value={projectsActiveCount - projectsDoneCount} />
-            </div>
+            <MobileStatsGrid
+              items={[
+                { label: 'Actifs', value: projectsActiveCount },
+                { label: 'Urgents', value: projectsUrgentCount, accent: '#a40000' },
+                { label: 'Faits', value: projectsDoneCount, accent: '#0a5f00' },
+                { label: 'Ouverts', value: projectsActiveCount - projectsDoneCount },
+              ]}
+              columns={2}
+            />
           </MobileBottomSheet>
         )}
 
-        <div style={mobileBottomNavStyle}>
-          <MobileTabButton active={activeProjectPanel === 'browse'} onClick={() => setActiveProjectPanel('browse')}>Liste</MobileTabButton>
-          <MobileTabButton active={activeProjectPanel === 'filters'} onClick={() => toggleProjectPanel('filters')}>Filtres</MobileTabButton>
-          <MobileTabButton active={activeProjectPanel === 'sort'} onClick={() => toggleProjectPanel('sort')}>Tri</MobileTabButton>
-          <MobileTabButton active={activeProjectPanel === 'stats'} onClick={() => toggleProjectPanel('stats')}>Stats</MobileTabButton>
-        </div>
+        <MobileStandardBottomNav
+          activePanel={activeProjectPanel}
+          onBrowse={() => setActiveProjectPanel('browse')}
+          onFilters={() => toggleProjectPanel('filters')}
+          onSort={() => toggleProjectPanel('sort')}
+          onStats={() => toggleProjectPanel('stats')}
+        />
       </div>
     )
   }
@@ -2158,30 +1966,27 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   if (activeSection === 'tools') {
     return (
       <div style={mobilePageStyle}>
-        <div style={mobileHeaderStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-            <div>
-              <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000080' }}>Super Bernard 3000</div>
-              <div style={{ fontSize: '12px', color: '#333' }}>Mode mobile outils</div>
-            </div>
-            <MobileButton onClick={onRefresh} style={{ minHeight: '34px', padding: '6px 10px' }}>↻</MobileButton>
-          </div>
-
-          <input value={toolsSearchQuery} onChange={e => setToolsSearchQuery(e.target.value)} placeholder="Rechercher une note, un todo, un sticky..." style={{ minHeight: '44px', border: '2px solid', borderColor: '#808080 #ffffff #ffffff #808080', background: '#fff', padding: '10px 12px', fontSize: '15px', fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' }} />
-
-          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
-            {sectionTabs.map(tab => (
-              <MobileButton key={tab.id} onClick={() => setActiveSection(tab.id)} primary={activeSection === tab.id} style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}>{tab.label}</MobileButton>
-            ))}
-          </div>
-        </div>
+        <MobileSectionHeader
+          title="Super Bernard 3000"
+          subtitle="Mode mobile outils"
+          onRefresh={onRefresh}
+          searchValue={toolsSearchQuery}
+          onSearchChange={setToolsSearchQuery}
+          searchPlaceholder="Rechercher une note, un todo, un sticky..."
+          activeSection={activeSection}
+          sectionTabs={sectionTabs}
+          onSectionChange={setActiveSection}
+        />
 
         <div style={mobileContentStyle}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-            <MobileSummaryCard label="Notes" value={notesActiveCount} />
-            <MobileSummaryCard label="Todos" value={todosActiveCount} />
-            <MobileSummaryCard label="Stickies" value={stickiesActiveCount} />
-          </div>
+          <MobileStatsGrid
+            items={[
+              { label: 'Notes', value: notesActiveCount },
+              { label: 'Todos', value: todosActiveCount },
+              { label: 'Stickies', value: stickiesActiveCount },
+            ]}
+            columns={3}
+          />
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
             <MobileButton onClick={() => setEditingNote({})}>+ Note</MobileButton>
@@ -2234,12 +2039,15 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
 
         {activeToolsPanel === 'stats' && (
           <MobileBottomSheet title="Statistiques outils" onClose={() => setActiveToolsPanel('browse')}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              <MobileSummaryCard label="Notes" value={notesActiveCount} />
-              <MobileSummaryCard label="Todos" value={todosActiveCount} />
-              <MobileSummaryCard label="Todos faits" value={todosDoneCount} accent="#0a5f00" />
-              <MobileSummaryCard label="Stickies" value={stickiesActiveCount} />
-            </div>
+            <MobileStatsGrid
+              items={[
+                { label: 'Notes', value: notesActiveCount },
+                { label: 'Todos', value: todosActiveCount },
+                { label: 'Todos faits', value: todosDoneCount, accent: '#0a5f00' },
+                { label: 'Stickies', value: stickiesActiveCount },
+              ]}
+              columns={2}
+            />
           </MobileBottomSheet>
         )}
 
@@ -2281,17 +2089,12 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
     return (
       <div style={{ minHeight: '100vh', background: '#008080' }}>
         <MobilePlaceholderSection title={current.title} count={current.count} description={current.description} />
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 60, zIndex: 24, background: '#c0c0c0', borderTop: '2px solid #fff', padding: '6px 8px', display: 'flex', gap: '6px', overflowX: 'auto' }}>
-          {sectionTabs.map(tab => (
-            <MobileButton
-              key={tab.id}
-              onClick={() => setActiveSection(tab.id)}
-              primary={activeSection === tab.id}
-              style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}
-            >
-              {tab.label}
-            </MobileButton>
-          ))}
+        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 60, zIndex: 24, background: '#c0c0c0', borderTop: '2px solid #fff', padding: '6px 8px' }}>
+          <select value={activeSection} onChange={e => setActiveSection(e.target.value)} style={mobileSectionSelectStyle}>
+            {sectionTabs.map(tab => (
+              <option key={tab.id} value={tab.id}>{tab.label}</option>
+            ))}
+          </select>
         </div>
         <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 25, background: '#c0c0c0', borderTop: '2px solid #fff', padding: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
           <MobileTabButton active={false} onClick={() => setActivePanel('browse')}>Liste</MobileTabButton>
@@ -2305,88 +2108,40 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
 
   return (
     <div style={mobilePageStyle}>
-      <div style={mobileHeaderStyle}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-          <div>
-            <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000080' }}>Super Bernard 3000</div>
-            <div style={{ fontSize: '12px', color: '#333' }}>Mode mobile artistes</div>
-          </div>
-          <MobileButton onClick={onRefresh} style={{ minHeight: '34px', padding: '6px 10px' }}>↻</MobileButton>
-        </div>
-
-        <input
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          placeholder="Rechercher un artiste, style, zone..."
-          style={{
-            minHeight: '44px',
-            border: '2px solid',
-            borderColor: '#808080 #ffffff #ffffff #808080',
-            background: '#fff',
-            padding: '10px 12px',
-            fontSize: '15px',
-            fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif',
-          }}
-        />
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          <select value={validationFilter} onChange={e => setValidationFilter(e.target.value)} style={selectStyle}>
-            <option value="all">Tous</option>
-            <option value="validated">Validés 🐗</option>
-            <option value="pending">À valider</option>
-          </select>
-          <select value={sortConfig.key} onChange={e => setSortConfig(prev => ({ ...prev, key: e.target.value }))} style={selectStyle}>
-            {sortOptions.map(option => (
-              <option key={option.key} value={option.key}>{option.label}</option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', alignItems: 'center' }}>
-          <div style={{ fontSize: '12px', color: '#333' }}>
-            {filteredArtists.length} visibles · {validatedCount}/{activeCount} validés 🐗
-          </div>
-          <MobileButton onClick={() => setSortConfig(prev => ({ ...prev, direction: 'asc' }))} primary={sortConfig.direction === 'asc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▲</MobileButton>
-          <MobileButton onClick={() => setSortConfig(prev => ({ ...prev, direction: 'desc' }))} primary={sortConfig.direction === 'desc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▼</MobileButton>
-        </div>
-
-        <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
-          {sectionTabs.map(tab => (
-            <MobileButton
-              key={tab.id}
-              onClick={() => setActiveSection(tab.id)}
-              primary={activeSection === tab.id}
-              style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}
-            >
-              {tab.label}
-            </MobileButton>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
-          {[
-            { id: 'all', label: 'Tous' },
-            { id: 'validated', label: 'Validés 🐗' },
-            { id: 'pending', label: 'À valider' },
-          ].map(item => (
-            <MobileButton
-              key={item.id}
-              onClick={() => setValidationFilter(item.id)}
-              primary={validationFilter === item.id}
-              style={{ minHeight: '34px', padding: '6px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}
-            >
-              {item.label}
-            </MobileButton>
-          ))}
-        </div>
-      </div>
+      <MobileSectionHeader
+        title="Super Bernard 3000"
+        subtitle="Mode mobile artistes"
+        onRefresh={onRefresh}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Rechercher un artiste, style, zone..."
+        activeSection={activeSection}
+        sectionTabs={sectionTabs}
+        onSectionChange={setActiveSection}
+        summaryText={`${filteredArtists.length} visibles · ${validatedCount}/${activeCount} validés 🐗`}
+        sortDirection={sortConfig.direction}
+        onSortAsc={() => setSortConfig(prev => ({ ...prev, direction: 'asc' }))}
+        onSortDesc={() => setSortConfig(prev => ({ ...prev, direction: 'desc' }))}
+        sortKey={sortConfig.key}
+        onSortKeyChange={(value) => setSortConfig(prev => ({ ...prev, key: value }))}
+        sortOptions={sortOptions}
+      >
+        <select value={validationFilter} onChange={e => setValidationFilter(e.target.value)} style={selectStyle}>
+          <option value="all">Tous</option>
+          <option value="validated">Validés 🐗</option>
+          <option value="pending">À valider</option>
+        </select>
+      </MobileSectionHeader>
 
       <div style={mobileContentStyle}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-          <MobileSummaryCard label="Actifs" value={activeCount} />
-          <MobileSummaryCard label="Validés 🐗" value={validatedCount} accent="#0a5f00" />
-          <MobileSummaryCard label="Avec liens" value={withLinksCount} />
-        </div>
+        <MobileStatsGrid
+          items={[
+            { label: 'Actifs', value: activeCount },
+            { label: 'Validés 🐗', value: validatedCount, accent: '#0a5f00' },
+            { label: 'Avec liens', value: withLinksCount },
+          ]}
+          columns={3}
+        />
 
         {loading ? (
           <div style={{ ...mobileCardStyle, padding: '16px' }}>Chargement...</div>
@@ -2486,30 +2241,27 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
 
       {activePanel === 'stats' && (
         <MobileBottomSheet title="Statistiques mobile" onClose={() => setActivePanel('browse')}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            {[
+          <MobileStatsGrid
+            items={[
               { label: 'Actifs', value: activeCount },
-              { label: 'Validés 🐗', value: validatedCount },
+              { label: 'Validés 🐗', value: validatedCount, accent: '#0a5f00' },
               { label: 'Avec photo', value: withPhotoCount },
               { label: 'Avec liens', value: withLinksCount },
               { label: 'Avec audio', value: withAudioCount },
               { label: 'À valider', value: activeCount - validatedCount },
-            ].map(item => (
-              <div key={item.label} style={{ background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '12px' }}>
-                <div style={{ fontSize: '12px', color: '#333' }}>{item.label}</div>
-                <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#000080', marginTop: '4px' }}>{item.value}</div>
-              </div>
-            ))}
-          </div>
+            ]}
+            columns={2}
+          />
         </MobileBottomSheet>
       )}
 
-      <div style={mobileBottomNavStyle}>
-        <MobileTabButton active={activePanel === 'browse'} onClick={() => setActivePanel('browse')}>Liste</MobileTabButton>
-        <MobileTabButton active={activePanel === 'filters'} onClick={() => togglePanel('filters')}>Filtres</MobileTabButton>
-        <MobileTabButton active={activePanel === 'sort'} onClick={() => togglePanel('sort')}>Tri</MobileTabButton>
-        <MobileTabButton active={activePanel === 'stats'} onClick={() => togglePanel('stats')}>Stats</MobileTabButton>
-      </div>
+      <MobileStandardBottomNav
+        activePanel={activePanel}
+        onBrowse={() => setActivePanel('browse')}
+        onFilters={() => togglePanel('filters')}
+        onSort={() => togglePanel('sort')}
+        onStats={() => togglePanel('stats')}
+      />
     </div>
   )
 }
