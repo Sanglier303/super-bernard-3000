@@ -1,5 +1,41 @@
 import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 
+const AUDIO_SOURCE_FIELDS = [
+  ['spotify', 'Spotify'],
+  ['soundcloud', 'SoundCloud'],
+  ['youtube', 'YouTube'],
+  ['bandcamp', 'Bandcamp'],
+]
+
+function cleanAudioUrl(url) {
+  return String(url || '').trim().replace(/[),;]+$/, '')
+}
+
+function extractAudioUrls(value) {
+  const text = String(value || '').trim()
+  if (!text) return []
+
+  const matches = text.match(/https?:\/\/[^\s<>"]+|www\.[^\s<>"]+/g)
+  if (matches?.length) {
+    return [...new Set(matches.map(cleanAudioUrl).filter(Boolean))]
+  }
+
+  const fallback = cleanAudioUrl(text)
+  return fallback ? [fallback] : []
+}
+
+function getArtistAudioTracks(artist) {
+  return AUDIO_SOURCE_FIELDS.flatMap(([field, source]) =>
+    extractAudioUrls(artist?.[field]).map((url, index, urls) => ({
+      url,
+      source,
+      sourceKey: field,
+      sourceIndex: index,
+      sourceCount: urls.length,
+    }))
+  )
+}
+
 const Desktop = lazy(() =>
   import('./components/win95/Desktop').then(module => ({ default: module.Desktop }))
 )
@@ -91,7 +127,7 @@ export default function App() {
   const [stickies, setStickies] = useState([])
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState(null)
-  const [currentTrack, setCurrentTrack] = useState(null) // { artist, url, source }
+  const [currentTrack, setCurrentTrack] = useState(null) // { artist, url, source, trackIndex, trackCount, sourceKey, sourceIndex, sourceCount }
   const [radioOpen, setRadioOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === 'undefined') return false
@@ -103,42 +139,60 @@ export default function App() {
     setTimeout(() => setToast(null), 3000)
   }, [])
 
-  const playTrack = useCallback((artist) => {
-    // Priority: Spotify > SoundCloud > YouTube > Bandcamp
-    const url = artist.spotify || artist.soundcloud || artist.youtube || artist.bandcamp;
-    if (!url) {
-      showToast("Aucun lien audio pour cet artiste");
-      return;
+  const playTrack = useCallback((artist, requestedTrackIndex = 0) => {
+    const tracks = getArtistAudioTracks(artist)
+    if (!tracks.length) {
+      showToast("Aucun lien audio pour cet artiste")
+      return
     }
 
-    let source = "Unknown";
-    if (url.includes("spotify")) source = "Spotify";
-    else if (url.includes("soundcloud")) source = "SoundCloud";
-    else if (url.includes("youtube") || url.includes("youtu.be")) source = "YouTube";
-    else if (url.includes("bandcamp")) source = "Bandcamp";
+    const safeIndex = Math.max(0, Math.min(requestedTrackIndex, tracks.length - 1))
+    const track = tracks[safeIndex]
 
-    setCurrentTrack({ artist, url, source });
-    setRadioOpen(true);
-  }, [showToast]);
+    setCurrentTrack({
+      artist,
+      url: track.url,
+      source: track.source,
+      sourceKey: track.sourceKey,
+      sourceIndex: track.sourceIndex,
+      sourceCount: track.sourceCount,
+      trackIndex: safeIndex,
+      trackCount: tracks.length,
+    })
+    setRadioOpen(true)
+  }, [showToast])
 
-  const playNext = useCallback(() => {
-    if (!currentTrack || !artists || artists.length === 0) return;
-    
-    const curId = String(currentTrack.artist.id);
-    const currentIndex = artists.findIndex(a => String(a.id) === curId);
-    
+  const playNextTrack = useCallback(() => {
+    if (!currentTrack) return
+
+    const nextTrackIndex = (currentTrack.trackIndex ?? 0) + 1
+    const tracks = getArtistAudioTracks(currentTrack.artist)
+    if (nextTrackIndex >= tracks.length) {
+      showToast("Pas d autre morceau pour cet artiste")
+      return
+    }
+
+    playTrack(currentTrack.artist, nextTrackIndex)
+  }, [currentTrack, playTrack, showToast])
+
+  const playNextArtist = useCallback(() => {
+    if (!currentTrack || !artists || artists.length === 0) return
+
+    const curId = String(currentTrack.artist.id)
+    const currentIndex = artists.findIndex(a => String(a.id) === curId)
+
     for (let i = 1; i <= artists.length; i++) {
-      const nextIndex = (currentIndex + i) % artists.length;
-      const artist = artists[nextIndex];
-      const hasTrack = !!(artist.spotify || artist.soundcloud || artist.youtube || artist.bandcamp);
-      
-      if (hasTrack) {
-        playTrack(artist);
-        return;
+      const nextIndex = (currentIndex + i) % artists.length
+      const artist = artists[nextIndex]
+      const tracks = getArtistAudioTracks(artist)
+
+      if (tracks.length) {
+        playTrack(artist, 0)
+        return
       }
     }
-    showToast("Fin de la liste de lecture ou aucun lien trouvé");
-  }, [currentTrack, artists, playTrack, showToast]);
+    showToast("Fin de la liste de lecture ou aucun lien trouvé")
+  }, [currentTrack, artists, playTrack, showToast])
 
   // ─── Data API ───
   const fetchGeneric = useCallback(async (type, setter) => {
@@ -273,7 +327,8 @@ export default function App() {
             loading={loading}
             currentTrack={currentTrack}
             playTrack={playTrack}
-            playNext={playNext}
+            playNextTrack={playNextTrack}
+            playNextArtist={playNextArtist}
             radioOpen={radioOpen}
             setRadioOpen={setRadioOpen}
             renderStatsContent={({ onClose }) => <StatsContent artists={artists} onClose={onClose} />}

@@ -7,7 +7,7 @@ const lcdFont = { fontFamily: '"Courier New", Courier, monospace', fontSize: '13
 const raised = { boxShadow: 'inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf' };
 const sunken = { boxShadow: 'inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf' };
 
-export function RadioWindow({ currentTrack, onNext, onClose }) {
+export function RadioWindow({ currentTrack, onNextTrack, onNextArtist, onClose }) {
   const [playing, setPlaying] = useState(true);
   const [volume, setVolume] = useState(0.8);
   const [played, setPlayed] = useState(0);
@@ -61,8 +61,11 @@ export function RadioWindow({ currentTrack, onNext, onClose }) {
     <div style={{ background: '#c0c0c0', height: '100%', display: 'flex', flexDirection: 'column', padding: '4px' }}>
       {/* Visualizer & Info Section (Winamp Look) */}
       <div style={{ background: '#000', border: '2px solid #808080', padding: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ color: '#00ff00', fontSize: '10px', fontWeight: 'bold' }}>WINAMP 3000 - {currentTrack.source}</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+          <div style={{ color: '#00ff00', fontSize: '10px', fontWeight: 'bold' }}>
+            WINAMP 3000 - {currentTrack.source}
+            {currentTrack.trackCount > 1 ? ` (${(currentTrack.trackIndex || 0) + 1}/${currentTrack.trackCount})` : ''}
+          </div>
           <div style={{ ...lcdFont, minWidth: '80px', textAlign: 'right' }}>
             {isEmbed ? 'LIVE EM' : formatTime(duration * played) + ' / ' + formatTime(duration)}
           </div>
@@ -99,7 +102,9 @@ export function RadioWindow({ currentTrack, onNext, onClose }) {
                  fontWeight: 'bold',
                  top: '10px'
                }}>
-                 {currentTrack.source} : {currentTrack.artist.nom_artiste || currentTrack.artist.nom} --- PLAYING IN BACKGROUND ---
+                 {currentTrack.source} : {currentTrack.artist.nom_artiste || currentTrack.artist.nom}
+                 {currentTrack.trackCount > 1 ? ` --- MORCEAU ${(currentTrack.trackIndex || 0) + 1}/${currentTrack.trackCount} --- ` : ' --- PLAYING IN BACKGROUND ---'}
+               
                </div>
                
                {/* Spectrum Visualizer */}
@@ -144,14 +149,25 @@ export function RadioWindow({ currentTrack, onNext, onClose }) {
           </button>
 
           <button 
-            onClick={onNext}
+            onClick={onNextTrack}
             style={{ 
-              ...raised, width: '40px', height: '30px', background: '#c0c0c0', 
-              fontSize: '16px', cursor: 'default', display: 'flex', alignItems: 'center', justifyContent: 'center'
+              ...raised, width: '58px', height: '30px', background: '#c0c0c0', 
+              fontSize: '10px', cursor: 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold'
             }}
-            title="Suivant (Prochain artiste avec audio)"
+            title="Morceau suivant pour cet artiste"
           >
-            ⏭
+            ♫ SUIV
+          </button>
+
+          <button 
+            onClick={onNextArtist}
+            style={{ 
+              ...raised, width: '58px', height: '30px', background: '#c0c0c0', 
+              fontSize: '10px', cursor: 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold'
+            }}
+            title="Artiste suivant avec audio"
+          >
+            👤 SUIV
           </button>
           
           <div style={{ flex: 1, height: '12px', background: '#444', border: '1px solid #fff', position: 'relative' }}>
@@ -180,6 +196,11 @@ export function RadioWindow({ currentTrack, onNext, onClose }) {
             Mode Intégré : Utilisez les contrôles dans l'écran LCD vert.
           </div>
         )}
+
+        <div style={{ ...sunken, background: '#efefef', padding: '4px 6px', fontSize: '9px', color: '#000', lineHeight: '1.3' }}>
+          <div><strong>Artiste :</strong> {currentTrack.artist.nom_artiste || currentTrack.artist.nom}</div>
+          <div><strong>Morceau :</strong> {(currentTrack.trackIndex || 0) + 1}{currentTrack.trackCount > 1 ? ` / ${currentTrack.trackCount}` : ''}</div>
+        </div>
 
         <div style={{ ...sunken, background: '#eee', padding: '4px', fontSize: '9px', color: '#666', marginTop: 'auto', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
            LOC: {currentTrack.url}

@@ -82,7 +82,7 @@ function WindowLoadingFallback({ label = 'Chargement...' }) {
 
 export function Desktop({ 
   artists, collectifs, lieux, festivals, projects, notes, todos, stickies, onRefresh, saveData, loading,
-  currentTrack, playTrack, playNext, radioOpen, setRadioOpen,
+  currentTrack, playTrack, playNextTrack, playNextArtist, radioOpen, setRadioOpen,
   renderStatsContent, 
   renderAboutContent,
   renderCategoryContent
@@ -790,7 +790,8 @@ export function Desktop({
             {win.id === "radio" && renderLazyWindow((
               <RadioWindow 
                 currentTrack={currentTrack} 
-                onNext={playNext}
+                onNextTrack={playNextTrack}
+                onNextArtist={playNextArtist}
                 onClose={() => {
                   closeWindow("radio");
                   setRadioOpen(false);
