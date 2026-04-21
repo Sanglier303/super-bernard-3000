@@ -88,3 +88,4 @@
 - phase 7 point 8 : lazy load des sections mobiles depuis `MobileArtistApp.jsx` et découpe plus fine des chunks (`mobile-core`, `mobile-artists`, `mobile-projects`, `mobile-network`, `mobile-tools`) dans `vite.config.js`
 - phase 7 point 9 : migration du découpage build vers `build.rolldownOptions.output.codeSplitting.groups` pour coller a Vite 8 / Rolldown et traiter le warning de chunking plus directement
 - phase 7 point 10 : découpe tardive du bureau `win95` par lazy load de fenêtres lourdes depuis `Desktop.jsx` pour réduire le gros bloc bureau restant
+- phase 7 point 11 : découpe plus fine du bureau dans `vite.config.js` (`desktop-core`, `desktop-artists`, `desktop-network`, `desktop-tools`) pour ne pas recompactar tout `win95` dans un seul chunk malgré le lazy load
