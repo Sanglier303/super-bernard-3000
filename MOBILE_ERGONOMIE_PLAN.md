@@ -97,3 +97,4 @@
 - phase 7 point 17 : extension de cette mutualisation à `TrashWindow.jsx` et `StickyManager.jsx` pour retirer encore des helpers dupliqués côté bureau
 - phase 7 point 18 : extension légère de cette mutualisation à `UniversalSearch.jsx` pour continuer à nettoyer le socle win95 partagé
 - phase 7 point 19 : extension légère de la mutualisation win95 à `TodoWindow.jsx` et `CalendarWindow.jsx` pour réduire encore les helpers recopiés côté bureau
+- phase 7 point 20 : extension légère de cette mutualisation à `ManualWindow.jsx` et `DesktopSettings.jsx` pour finir de nettoyer plusieurs petits blocs bureau restants

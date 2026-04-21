@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { WALLPAPERS } from "../../constants/wallpapers";
+import { winFont, Win95Button } from "./ArtistWindowCommon";
 
 export function DesktopSettings({ 
   icons, 
@@ -18,7 +19,7 @@ export function DesktopSettings({
   const [activeTab, setActiveTab] = useState("bg"); // 'bg' or 'icons'
 
   return (
-    <div style={{ background: "#c0c0c0", height: "100%", display: "flex", flexDirection: "column", fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' }}>
+    <div style={{ background: "#c0c0c0", height: "100%", display: "flex", flexDirection: "column", ...winFont }}>
       {/* Tabs */}
       <div style={{ display: "flex", padding: "6px 6px 0 6px", gap: "2px" }}>
         <div 
@@ -166,9 +167,9 @@ export function DesktopSettings({
 
       {/* Footer Buttons */}
       <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", padding: "12px" }}>
-        <button className="win95-btn win95-btn-primary" style={{ width: "80px" }} onClick={onClose}>OK</button>
-        <button className="win95-btn" style={{ width: "80px" }} onClick={onClose}>Annuler</button>
-        <button className="win95-btn" style={{ width: "80px" }} onClick={onClose}>Appliquer</button>
+        <Win95Button style={{ width: "80px", fontWeight: 'bold' }} onClick={onClose}>OK</Win95Button>
+        <Win95Button style={{ width: "80px" }} onClick={onClose}>Annuler</Win95Button>
+        <Win95Button style={{ width: "80px" }} onClick={onClose}>Appliquer</Win95Button>
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `

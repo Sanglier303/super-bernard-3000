@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { winFont, Win95Button } from './ArtistWindowCommon';
 
 const SECTIONS = [
   { id: 'welcome', label: 'Bienvenue', icon: '🏠' },
@@ -17,8 +18,6 @@ const SECTIONS = [
 
 export function ManualWindow({ onClose }) {
   const [activeTab, setActiveTab] = useState('welcome');
-
-  const winFont = { fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#c0c0c0', ...winFont, border: '1px solid #808080' }}>
@@ -234,7 +233,7 @@ export function ManualWindow({ onClose }) {
       {/* Footer / Credits */}
       <div style={{ padding: '8px', borderTop: '2px solid', borderColor: '#ffffff #808080 #808080 #ffffff', background: '#c0c0c0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: '10px', color: '#444' }}>Sommaire : {SECTIONS.find(s=>s.id===activeTab)?.label}</span>
-        <button className="win95-btn win95-btn-primary" onClick={onClose} style={{ width: '100px' }}>Fermer</button>
+        <Win95Button onClick={onClose} style={{ width: '100px', fontWeight: 'bold' }}>Fermer</Win95Button>
       </div>
     </div>
   );
