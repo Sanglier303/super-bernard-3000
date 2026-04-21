@@ -93,3 +93,4 @@
 - phase 7 point 13 : éclatement réel du bloc `ArtistSubWindows.jsx` en fichiers séparés (`ArtistDetailView`, `ArtistEditView`, `ArtistQuickEditView`, `ArtistWindowCommon`) et recâblage du lazy load bureau dessus
 - phase 7 point 14 : découpe de `DatabaseWindow.jsx` en sous-composants (`DatabaseArtistUtils`, `DatabaseSidebar`, `DatabaseArtistTable`) pour réduire le gros bloc artistes bureau restant
 - phase 7 point 15 : découpe de `ProjectManager.jsx` en sous-composants (`ProjectFormModal`, `ProjectStatusSidebar`, `ProjectTableView`, `ProjectKanbanView`, `ProjectManagerUtils`) pour alléger le bloc outils/projets bureau
+- phase 7 point 16 : mutualisation des helpers win95 (`Win95Button`, titlebar, styles de base) dans `ArtistWindowCommon.jsx` puis recâblage de `CollectifsWindow.jsx`, `LieuxWindow.jsx`, `FestivalsWindow.jsx`

@@ -1,38 +1,5 @@
 import React, { useState, useRef, useMemo } from "react";
-
-function Win95Button({ children, onClick, active, disabled, style, type = "button" }) {
-  const winFont = { fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', fontSize: '11px' };
-  const raised = { boxShadow: 'inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf' };
-  const sunken = { boxShadow: 'inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf' };
-  return (
-    <button type={type} onClick={onClick} disabled={disabled} style={{
-      ...winFont, ...(active ? sunken : raised), background: '#c0c0c0', border: 'none',
-      padding: '3px 8px', cursor: 'default', whiteSpace: 'nowrap',
-      color: disabled ? '#808080' : active ? '#000080' : '#000',
-      fontWeight: active ? 'bold' : 'normal', textShadow: disabled ? '1px 1px 0px #fff' : 'none', ...style
-    }}>{children}</button>
-  );
-}
-
-function TitleBar({ title, onClose }) {
-  const raised = { boxShadow: 'inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf' };
-  return (
-    <div className="win95-titlebar">
-      <div className="flex items-center gap-1 overflow-hidden">
-        <img src="/sanglier.png" style={{ width: 14, height: 14, objectFit: 'cover', borderRadius: '1px', flexShrink: 0 }} alt="logo" />
-        <span>{title}</span>
-      </div>
-      <div className="flex items-center gap-0.5">
-        {['_', '□', '×'].map((btn, i) => (
-          <button key={i} onClick={btn === '×' ? onClose : undefined} style={{
-            ...raised, background: '#c0c0c0', color: '#000', border: 'none', width: '16px', height: '14px',
-            fontSize: '9px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0
-          }}>{btn}</button>
-        ))}
-      </div>
-    </div>
-  );
-}
+import { raised, sunken, winFont, Win95Button, Win95TitleBar } from "./ArtistWindowCommon";
 
 const TYPE_LABELS = ['Club', 'Bar', 'Salle de concert', 'Espace culturel', 'Squat', 'Plein air', 'Autre'];
 
@@ -48,10 +15,6 @@ export function LieuxWindow({ lieux, loading, saveLieux, onRefresh }) {
   const searchInputRef = useRef(null);
   const [editingId, setEditingId] = useState(null);
   const [addEditOpen, setAddEditOpen] = useState(false);
-
-  const winFont = { fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', fontSize: '11px' };
-  const raised = { boxShadow: 'inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf' };
-  const sunken = { boxShadow: 'inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf' };
 
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase();
@@ -218,7 +181,7 @@ export function LieuxWindow({ lieux, loading, saveLieux, onRefresh }) {
       {addEditOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 110 }}>
           <div style={{ background: '#c0c0c0', ...raised, width: '420px', maxHeight: '90vh', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-            <TitleBar title={editingId ? "Modifier le lieu" : "Nouveau Lieu"} onClose={() => setAddEditOpen(false)} />
+            <Win95TitleBar title={editingId ? "Modifier le lieu" : "Nouveau Lieu"} onClose={() => setAddEditOpen(false)} />
             <form onSubmit={e => {
               e.preventDefault();
               const fd = new FormData(e.target);
