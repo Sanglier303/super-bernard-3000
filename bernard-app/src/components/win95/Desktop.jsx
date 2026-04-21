@@ -1,24 +1,27 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { Suspense, lazy, useState, useRef, useCallback, useEffect } from "react";
 import { DraggableResizableWindow } from "./DraggableWindow";
 import { StartMenu } from "./StartMenu";
 import { Mascot } from "./Mascot";
-import { DatabaseWindow } from "./DatabaseWindow";
-import { CollectifsWindow } from "./CollectifsWindow";
-import { LieuxWindow } from "./LieuxWindow";
-import { FestivalsWindow } from "./FestivalsWindow";
-import { ProjectManager } from "./ProjectManager";
-import { CalendarWindow } from "./CalendarWindow";
-import { NotePadWindow } from "./NotePadWindow";
-import { DesktopSettings } from "./DesktopSettings";
 import { StickyNotesManager } from "./StickyNotes";
-import { UniversalSearch } from "./UniversalSearch";
-import { StickyManager } from "./StickyManager";
-import { TodoWindow } from "./TodoWindow";
-import { TrashWindow } from "./TrashWindow";
-import { ManualWindow } from "./ManualWindow";
-import { ArtistDetailView, ArtistEditView, ArtistQuickEditView } from "./ArtistSubWindows";
-import { RadioWindow } from "./RadioWindow";
 import { WALLPAPERS } from "../../constants/wallpapers";
+
+const DatabaseWindow = lazy(() => import("./DatabaseWindow").then(module => ({ default: module.DatabaseWindow })));
+const CollectifsWindow = lazy(() => import("./CollectifsWindow").then(module => ({ default: module.CollectifsWindow })));
+const LieuxWindow = lazy(() => import("./LieuxWindow").then(module => ({ default: module.LieuxWindow })));
+const FestivalsWindow = lazy(() => import("./FestivalsWindow").then(module => ({ default: module.FestivalsWindow })));
+const ProjectManager = lazy(() => import("./ProjectManager").then(module => ({ default: module.ProjectManager })));
+const CalendarWindow = lazy(() => import("./CalendarWindow").then(module => ({ default: module.CalendarWindow })));
+const NotePadWindow = lazy(() => import("./NotePadWindow").then(module => ({ default: module.NotePadWindow })));
+const DesktopSettings = lazy(() => import("./DesktopSettings").then(module => ({ default: module.DesktopSettings })));
+const UniversalSearch = lazy(() => import("./UniversalSearch").then(module => ({ default: module.UniversalSearch })));
+const StickyManager = lazy(() => import("./StickyManager").then(module => ({ default: module.StickyManager })));
+const TodoWindow = lazy(() => import("./TodoWindow").then(module => ({ default: module.TodoWindow })));
+const TrashWindow = lazy(() => import("./TrashWindow").then(module => ({ default: module.TrashWindow })));
+const ManualWindow = lazy(() => import("./ManualWindow").then(module => ({ default: module.ManualWindow })));
+const ArtistDetailView = lazy(() => import("./ArtistSubWindows").then(module => ({ default: module.ArtistDetailView })));
+const ArtistEditView = lazy(() => import("./ArtistSubWindows").then(module => ({ default: module.ArtistEditView })));
+const ArtistQuickEditView = lazy(() => import("./ArtistSubWindows").then(module => ({ default: module.ArtistQuickEditView })));
+const RadioWindow = lazy(() => import("./RadioWindow").then(module => ({ default: module.RadioWindow })));
 
 const GRID_X = 80;
 const GRID_Y = 90;
@@ -67,6 +70,14 @@ function MiniPlayer({ currentTrack, onToggle, isPlaying }) {
       </div>
     </div>
   );
+}
+
+function WindowLoadingFallback({ label = 'Chargement...' }) {
+  return (
+    <div style={{ background: '#c0c0c0', height: '100%', padding: '12px', fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', fontSize: '11px' }}>
+      {label}
+    </div>
+  )
 }
 
 export function Desktop({ 
@@ -594,6 +605,12 @@ export function Desktop({
     };
   };
 
+  const renderLazyWindow = (node, label) => (
+    <Suspense fallback={<WindowLoadingFallback label={label} />}>
+      {node}
+    </Suspense>
+  )
+
   return (
     <div
       className="flex flex-col"
@@ -658,7 +675,7 @@ export function Desktop({
             icon={winIcon(win.id)}
             zIndex={getWindowZIndex(win.id)}
           >
-            {win.id === "artistes" && (
+            {win.id === "artistes" && renderLazyWindow((
               <DatabaseWindow 
                 artists={artists} 
                 loading={loading} 
@@ -668,11 +685,11 @@ export function Desktop({
                 closeWindow={closeWindow}
                 playTrack={playTrack}
               />
-            )}
-            {win.id === "collectifs" && <CollectifsWindow collectifs={collectifs} loading={loading} saveCollectifs={(data, action) => saveData('collectifs', data, action)} onRefresh={onRefresh} />}
-            {win.id === "lieux" && <LieuxWindow lieux={lieux} loading={loading} saveLieux={(data, action) => saveData('lieux', data, action)} onRefresh={onRefresh} />}
-            {win.id === "festivals" && <FestivalsWindow festivals={festivals} loading={loading} saveFestivals={(data, action) => saveData('festivals', data, action)} onRefresh={onRefresh} />}
-            {win.id === "projets" && (
+            ), 'Chargement base artistes...')}
+            {win.id === "collectifs" && renderLazyWindow(<CollectifsWindow collectifs={collectifs} loading={loading} saveCollectifs={(data, action) => saveData('collectifs', data, action)} onRefresh={onRefresh} />, 'Chargement collectifs...')}
+            {win.id === "lieux" && renderLazyWindow(<LieuxWindow lieux={lieux} loading={loading} saveLieux={(data, action) => saveData('lieux', data, action)} onRefresh={onRefresh} />, 'Chargement lieux...')}
+            {win.id === "festivals" && renderLazyWindow(<FestivalsWindow festivals={festivals} loading={loading} saveFestivals={(data, action) => saveData('festivals', data, action)} onRefresh={onRefresh} />, 'Chargement festivals...')}
+            {win.id === "projets" && renderLazyWindow((
               <ProjectManager 
                 projects={projects} 
                 artists={artists}
@@ -683,19 +700,19 @@ export function Desktop({
                 saveProjects={(data, action) => saveData('projets', data, action)} 
                 onRefresh={onRefresh} 
               />
-            )}
-            {win.id === "calendar" && <CalendarWindow projects={projects} />}
-            {win.id === "notepad" && <NotePadWindow notes={notes} onSave={(data, action) => saveData('notes', data, action)} />}
-            {win.id === "todo" && <TodoWindow todos={todos} saveTodos={(data, action) => saveData('todos', data, action)} loading={loading} />}
-            {win.id === "sticky_manager" && (
+            ), 'Chargement projets...')}
+            {win.id === "calendar" && renderLazyWindow(<CalendarWindow projects={projects} />, 'Chargement calendrier...')}
+            {win.id === "notepad" && renderLazyWindow(<NotePadWindow notes={notes} onSave={(data, action) => saveData('notes', data, action)} />, 'Chargement bloc-notes...')}
+            {win.id === "todo" && renderLazyWindow(<TodoWindow todos={todos} saveTodos={(data, action) => saveData('todos', data, action)} loading={loading} />, 'Chargement todo...')}
+            {win.id === "sticky_manager" && renderLazyWindow((
               <StickyManager 
                 notes={mergedStickies} 
                 onToggle={toggleStickyVisibility}
                 onDelete={deleteStickyPermanently}
                 onFocus={toggleStickyVisibility}
               />
-            )}
-            {win.id === "trash" && (
+            ), 'Chargement post-its...')}
+            {win.id === "trash" && renderLazyWindow((
               <TrashWindow 
                 projects={projects} 
                 notes={notes} 
@@ -712,8 +729,8 @@ export function Desktop({
                 saveLieux={(data, action) => saveData('lieux', data, action)}
                 saveFestivals={(data, action) => saveData('festivals', data, action)}
               />
-            )}
-            {win.id === "deskSettings" && (
+            ), 'Chargement corbeille...')}
+            {win.id === "deskSettings" && renderLazyWindow((
               <DesktopSettings 
                 icons={DESKTOP_ICONS} 
                 visibleIcons={visibleIcons} 
@@ -728,14 +745,14 @@ export function Desktop({
                 onMascotFrequencyChange={updateMascotFrequency}
                 onClose={() => closeWindow('deskSettings')} 
               />
-            )}
-            {win.id === "manual" && <ManualWindow onClose={() => closeWindow("manual")} />}
+            ), 'Chargement affichage...')}
+            {win.id === "manual" && renderLazyWindow(<ManualWindow onClose={() => closeWindow("manual")} />, 'Chargement manuel...')}
             {win.id === "stats" && renderStatsContent({ onClose: () => closeWindow("stats") })}
             {win.id === "about" && renderAboutContent({ onClose: () => closeWindow("about"), openWindow })}
             {win.id.startsWith("cat:") && renderCategoryContent(win.id.slice(4))}
 
             {/* ARTIST SUB-WINDOWS (PROPS & EDIT) */}
-            {win.id.startsWith("artist_props_") && (
+            {win.id.startsWith("artist_props_") && renderLazyWindow((
               <ArtistDetailView 
                 artist={win.props?.artist}
                 playTrack={playTrack}
@@ -768,9 +785,9 @@ export function Desktop({
                   openWindow(`artist_edit_${a.id}`, { artist: a, artistName: a.nom_artiste || a.nom, artistId: a.id });
                 }}
               />
-            )}
+            ), 'Chargement fiche artiste...')}
 
-            {win.id === "radio" && (
+            {win.id === "radio" && renderLazyWindow((
               <RadioWindow 
                 currentTrack={currentTrack} 
                 onNext={playNext}
@@ -779,9 +796,9 @@ export function Desktop({
                   setRadioOpen(false);
                 }} 
               />
-            )}
+            ), 'Chargement radio...')}
 
-            {win.id.startsWith("artist_edit_") && (
+            {win.id.startsWith("artist_edit_") && renderLazyWindow((
               <ArtistEditView 
                 artist={win.props?.artist}
                 artists={artists}
@@ -791,9 +808,9 @@ export function Desktop({
                 }}
                 onCancel={() => closeWindow(win.id)}
               />
-            )}
+            ), 'Chargement edition artiste...')}
 
-            {win.id.startsWith("artist_quickedit_") && (
+            {win.id.startsWith("artist_quickedit_") && renderLazyWindow((
               <ArtistQuickEditView
                 artist={win.props?.artist}
                 artists={artists}
@@ -803,7 +820,7 @@ export function Desktop({
                 }}
                 onCancel={() => closeWindow(win.id)}
               />
-            )}
+            ), 'Chargement edition rapide...')}
           </DraggableResizableWindow>
         ))}
 
