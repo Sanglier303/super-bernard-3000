@@ -178,16 +178,19 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh, openW
   const mainStyles = useMemo(() => getMainStyles(artists), [artists])
 
   useEffect(() => {
+    if (loading) return
     if (pendingScrollRestoreRef.current === null) return
     const restoreTo = pendingScrollRestoreRef.current
     const frame = window.requestAnimationFrame(() => {
-      if (listScrollRef.current) {
-        listScrollRef.current.scrollTop = restoreTo
-      }
-      pendingScrollRestoreRef.current = null
+      window.requestAnimationFrame(() => {
+        if (listScrollRef.current) {
+          listScrollRef.current.scrollTop = restoreTo
+        }
+        pendingScrollRestoreRef.current = null
+      })
     })
     return () => window.cancelAnimationFrame(frame)
-  }, [artists])
+  }, [artists, loading])
   const uniqueZones = new Set(artists.map(a => a.zone).filter(Boolean)).size
   const validatedCount = artists.filter(isArtistValidated).length
 

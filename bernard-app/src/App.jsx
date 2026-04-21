@@ -198,7 +198,6 @@ export default function App() {
   }, [isMobile])
 
   const saveData = async (type, updatedData, actionLabel) => {
-    setLoading(true)
     try {
       const clean = updatedData.map(item => {
         // Keep 'id', remove volatile '_id'
@@ -213,13 +212,23 @@ export default function App() {
       })
       const data = await res.json()
       if (data.status === 'ok') {
+        if (type === 'artistes') setArtists(clean)
+        else if (type === 'collectifs') setCollectifs(clean)
+        else if (type === 'lieux') setLieux(clean)
+        else if (type === 'festivals') setFestivals(clean)
+        else if (type === 'projets') setProjects(clean)
+        else if (type === 'notes') setNotes(clean)
+        else if (type === 'todos') setTodos(clean)
+        else if (type === 'stickies') setStickies(clean)
+
         showToast(`✅ Sauvegardé`)
-        await loadAll()
       } else {
         showToast('Erreur serveur.')
       }
     } catch {
       showToast('Erreur réseau.')
+    } finally {
+      setLoading(false)
     }
   }
 
