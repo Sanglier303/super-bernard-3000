@@ -94,3 +94,4 @@
 - phase 7 point 14 : découpe de `DatabaseWindow.jsx` en sous-composants (`DatabaseArtistUtils`, `DatabaseSidebar`, `DatabaseArtistTable`) pour réduire le gros bloc artistes bureau restant
 - phase 7 point 15 : découpe de `ProjectManager.jsx` en sous-composants (`ProjectFormModal`, `ProjectStatusSidebar`, `ProjectTableView`, `ProjectKanbanView`, `ProjectManagerUtils`) pour alléger le bloc outils/projets bureau
 - phase 7 point 16 : mutualisation des helpers win95 (`Win95Button`, titlebar, styles de base) dans `ArtistWindowCommon.jsx` puis recâblage de `CollectifsWindow.jsx`, `LieuxWindow.jsx`, `FestivalsWindow.jsx`
+- phase 7 point 17 : extension de cette mutualisation à `TrashWindow.jsx` et `StickyManager.jsx` pour retirer encore des helpers dupliqués côté bureau

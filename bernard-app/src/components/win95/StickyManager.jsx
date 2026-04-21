@@ -1,8 +1,5 @@
 import React from "react";
-
-const winFont = { fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', fontSize: '11px' };
-const sunken = { boxShadow: 'inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf' };
-const raised = { boxShadow: 'inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf' };
+import { raised, sunken, winFont, Win95Button } from "./ArtistWindowCommon";
 
 export function StickyManager({ notes, onToggle, onDelete, onFocus }) {
   return (
@@ -32,18 +29,18 @@ export function StickyManager({ notes, onToggle, onDelete, onFocus }) {
                   />
                 </td>
                 <td style={{ padding: '4px', textAlign: 'center', display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                  <button 
+                  <Win95Button 
                     onClick={() => { onToggle(n.id, true); onFocus(n.id); }}
-                    style={{ ...raised, padding: '1px 6px', ...winFont, background: '#c0c0c0' }}
+                    style={{ padding: '1px 6px', background: '#c0c0c0' }}
                   >
                     Aller à
-                  </button>
-                  <button 
+                  </Win95Button>
+                  <Win95Button 
                     onClick={() => onDelete(n.id)}
-                    style={{ ...raised, padding: '1px 6px', ...winFont, background: '#c0c0c0', color: '#800000' }}
+                    style={{ padding: '1px 6px', background: '#c0c0c0', color: '#800000' }}
                   >
                     Suppr.
-                  </button>
+                  </Win95Button>
                 </td>
               </tr>
             ))}

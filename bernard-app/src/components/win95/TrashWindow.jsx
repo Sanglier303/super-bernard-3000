@@ -1,41 +1,11 @@
 import React, { useState, useMemo } from "react";
-
-function Win95Button({ children, onClick, active, disabled, style, type = "button" }) {
-  const winFont = { fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', fontSize: '11px' };
-  const raised = { boxShadow: 'inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf' };
-  const sunken = { boxShadow: 'inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf' };
-
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        ...winFont,
-        ...(active ? sunken : raised),
-        background: '#c0c0c0',
-        border: 'none',
-        padding: '3px 8px',
-        cursor: 'default',
-        whiteSpace: 'nowrap',
-        color: disabled ? '#808080' : '#000',
-        ...style
-      }}
-    >
-      {children}
-    </button>
-  );
-}
+import { raised, sunken, winFont, Win95Button } from "./ArtistWindowCommon";
 
 export function TrashWindow({ 
   projects, notes, todos, artists, collectifs, lieux, festivals,
   saveProjects, saveNotes, saveTodos, saveArtists, saveCollectifs, saveLieux, saveFestivals
 }) {
   const [selectedItem, setSelectedItem] = useState(null);
-
-  const winFont = { fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', fontSize: '11px' };
-  const sunken = { boxShadow: 'inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf' };
-  const raised = { boxShadow: 'inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf' };
 
   const archivedItems = useMemo(() => {
     const items = [];
