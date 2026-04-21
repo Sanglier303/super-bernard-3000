@@ -5,23 +5,20 @@ export default defineConfig({
   plugins: [react()],
   build: {
     chunkSizeWarningLimit: 700,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('react-player')) return 'media'
-            if (id.includes('react-dom') || id.includes('/react/')) return 'react-vendor'
-            return 'vendor'
-          }
-
-          if (id.includes('/src/components/mobile/')) {
-            if (id.includes('MobileArtist')) return 'mobile-artists'
-            if (id.includes('MobileProject')) return 'mobile-projects'
-            if (id.includes('MobileCollectif') || id.includes('MobileLieu') || id.includes('MobileFestival')) return 'mobile-network'
-            if (id.includes('MobileTools')) return 'mobile-tools'
-            return 'mobile-core'
-          }
-          if (id.includes('/src/components/win95/')) return 'desktop'
+        codeSplitting: {
+          groups: [
+            { test: /node_modules\/react-player/, name: 'media' },
+            { test: /node_modules\/(react-dom|react)\//, name: 'react-vendor' },
+            { test: /\/src\/components\/mobile\/(MobileArtistSection|MobileArtistPanels)\.jsx$/, name: 'mobile-artists' },
+            { test: /\/src\/components\/mobile\/(MobileProjectSection|MobileProjectPanels)\.jsx$/, name: 'mobile-projects' },
+            { test: /\/src\/components\/mobile\/(MobileCollectifSection|MobileCollectifPanels|MobileLieuSection|MobileLieuPanels|MobileFestivalSection|MobileFestivalPanels)\.jsx$/, name: 'mobile-network' },
+            { test: /\/src\/components\/mobile\/(MobileToolsSection|MobileToolsEditors)\.jsx$/, name: 'mobile-tools' },
+            { test: /\/src\/components\/mobile\/(MobileArtistApp|MobilePrimitives|MobileDataUtils|MobileShell)\.jsx$|\/src\/components\/mobile\/MobileDataUtils\.js$/, name: 'mobile-core' },
+            { test: /\/src\/components\/win95\//, name: 'desktop' },
+            { test: /node_modules\//, name: 'vendor' },
+          ],
         },
       },
     },
