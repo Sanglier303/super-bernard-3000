@@ -1,32 +1,5 @@
 import React, { useState, useMemo } from "react";
-
-function Win95Button({ children, onClick, active, disabled, style, type = "button" }) {
-  const winFont = { fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', fontSize: '11px' };
-  const raised = { boxShadow: 'inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf' };
-  const sunken = { boxShadow: 'inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf' };
-
-  return (
-    <button
-      type={type}
-      onClick={disabled ? undefined : onClick}
-      disabled={disabled}
-      style={{
-        ...winFont,
-        ...(active ? sunken : raised),
-        background: '#c0c0c0',
-        border: 'none',
-        padding: '2px 6px',
-        cursor: 'default',
-        whiteSpace: 'nowrap',
-        color: disabled ? '#808080' : active ? '#000080' : '#000',
-        fontWeight: active ? 'bold' : 'normal',
-        ...style
-      }}
-    >
-      {children}
-    </button>
-  )
-}
+import { Win95Button } from "./ArtistWindowCommon";
 
 export function CalendarWindow({ projects = [] }) {
   const [viewDate, setViewDate] = useState(new Date());

@@ -96,3 +96,4 @@
 - phase 7 point 16 : mutualisation des helpers win95 (`Win95Button`, titlebar, styles de base) dans `ArtistWindowCommon.jsx` puis recâblage de `CollectifsWindow.jsx`, `LieuxWindow.jsx`, `FestivalsWindow.jsx`
 - phase 7 point 17 : extension de cette mutualisation à `TrashWindow.jsx` et `StickyManager.jsx` pour retirer encore des helpers dupliqués côté bureau
 - phase 7 point 18 : extension légère de cette mutualisation à `UniversalSearch.jsx` pour continuer à nettoyer le socle win95 partagé
+- phase 7 point 19 : extension légère de la mutualisation win95 à `TodoWindow.jsx` et `CalendarWindow.jsx` pour réduire encore les helpers recopiés côté bureau

@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-
-const winFont = { fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', fontSize: '11px' };
-const sunken = { boxShadow: 'inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf' };
+import { sunken, winFont, Win95Button } from "./ArtistWindowCommon";
 
 export function TodoWindow({ todos, saveTodos, loading }) {
   const [inputValue, setInputValue] = useState("");
@@ -45,7 +43,7 @@ export function TodoWindow({ todos, saveTodos, loading }) {
           placeholder="Nouvelle tâche..."
           style={{ ...sunken, flex: 1, padding: '2px 4px', ...winFont, border: 'none', background: '#fff', outline: 'none' }}
         />
-        <button type="submit" style={{ ...sunken, background: '#c0c0c0', ...winFont, padding: '2px 8px', border: '1px solid #808080' }}>Ajouter</button>
+        <Win95Button type="submit" style={{ padding: '2px 8px', border: '1px solid #808080' }}>Ajouter</Win95Button>
       </form>
 
       <div style={{ flex: 1, overflowY: 'auto', ...sunken, background: '#fff', padding: '2px' }}>
