@@ -14,7 +14,13 @@ export default defineConfig({
             return 'vendor'
           }
 
-          if (id.includes('/src/components/mobile/')) return 'mobile'
+          if (id.includes('/src/components/mobile/')) {
+            if (id.includes('MobileArtist')) return 'mobile-artists'
+            if (id.includes('MobileProject')) return 'mobile-projects'
+            if (id.includes('MobileCollectif') || id.includes('MobileLieu') || id.includes('MobileFestival')) return 'mobile-network'
+            if (id.includes('MobileTools')) return 'mobile-tools'
+            return 'mobile-core'
+          }
           if (id.includes('/src/components/win95/')) return 'desktop'
         },
       },

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import {
   isArtistValidated,
   getArtistLinkCount,
@@ -11,13 +11,25 @@ import {
   getProjectFlags,
   getProjectSortValue,
 } from './MobileDataUtils'
-import { MobileArtistSection } from './MobileArtistSection'
-import { MobileCollectifSection } from './MobileCollectifSection'
-import { MobileFestivalSection } from './MobileFestivalSection'
-import { MobileLieuSection } from './MobileLieuSection'
-import { MobileProjectSection } from './MobileProjectSection'
-import { MobileToolsSection } from './MobileToolsSection'
-import { MobileNoteEditSheet, MobileTodoEditSheet, MobileStickyEditSheet } from './MobileToolsEditors'
+const MobileArtistSection = lazy(() => import('./MobileArtistSection').then(module => ({ default: module.MobileArtistSection })))
+const MobileCollectifSection = lazy(() => import('./MobileCollectifSection').then(module => ({ default: module.MobileCollectifSection })))
+const MobileFestivalSection = lazy(() => import('./MobileFestivalSection').then(module => ({ default: module.MobileFestivalSection })))
+const MobileLieuSection = lazy(() => import('./MobileLieuSection').then(module => ({ default: module.MobileLieuSection })))
+const MobileProjectSection = lazy(() => import('./MobileProjectSection').then(module => ({ default: module.MobileProjectSection })))
+const MobileToolsSection = lazy(() => import('./MobileToolsSection').then(module => ({ default: module.MobileToolsSection })))
+const MobileNoteEditSheet = lazy(() => import('./MobileToolsEditors').then(module => ({ default: module.MobileNoteEditSheet })))
+const MobileTodoEditSheet = lazy(() => import('./MobileToolsEditors').then(module => ({ default: module.MobileTodoEditSheet })))
+const MobileStickyEditSheet = lazy(() => import('./MobileToolsEditors').then(module => ({ default: module.MobileStickyEditSheet })))
+
+function MobileSectionFallback({ label = 'Chargement mobile...' }) {
+  return (
+    <div style={{ minHeight: '100vh', background: '#008080', padding: '12px', display: 'flex', alignItems: 'flex-start' }}>
+      <div style={{ width: '100%', background: '#c0c0c0', border: '2px solid', borderColor: '#fff #404040 #404040 #fff', boxShadow: '1px 1px 0 #808080', padding: '12px', fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' }}>
+        {label}
+      </div>
+    </div>
+  )
+}
 
 export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs, saveLieux, saveFestivals, saveProjects, saveNotes, saveTodos, saveStickies, onRefresh, collectifs = [], lieux = [], festivals = [], projects = [], notes = [], todos = [], stickies = [] }) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -444,8 +456,14 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
     setActiveProjectPanel(prev => prev === panel ? 'browse' : panel)
   }
 
+  const renderMobileSection = (node) => (
+    <Suspense fallback={<MobileSectionFallback />}>
+      {node}
+    </Suspense>
+  )
+
   if (activeSection === 'collectifs') {
-    return (
+    return renderMobileSection(
       <MobileCollectifSection
         loading={loading}
         onRefresh={onRefresh}
@@ -479,7 +497,7 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   }
 
   if (activeSection === 'lieux') {
-    return (
+    return renderMobileSection(
       <MobileLieuSection
         loading={loading}
         onRefresh={onRefresh}
@@ -513,7 +531,7 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   }
 
   if (activeSection === 'festivals') {
-    return (
+    return renderMobileSection(
       <MobileFestivalSection
         loading={loading}
         onRefresh={onRefresh}
@@ -547,7 +565,7 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   }
 
   if (activeSection === 'projects') {
-    return (
+    return renderMobileSection(
       <MobileProjectSection
         loading={loading}
         onRefresh={onRefresh}
@@ -583,7 +601,7 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   }
 
   if (activeSection === 'tools') {
-    return (
+    return renderMobileSection(
       <MobileToolsSection
         onRefresh={onRefresh}
         activeSection={activeSection}
@@ -624,7 +642,7 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
     )
   }
 
-  return (
+  return renderMobileSection(
     <MobileArtistSection
       artists={artists}
       filteredArtists={filteredArtists}
