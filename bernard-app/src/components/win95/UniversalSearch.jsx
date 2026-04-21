@@ -1,8 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-
-const winFont = { fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif', fontSize: '11px' };
-const raised = { boxShadow: 'inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf' };
-const sunken = { boxShadow: 'inset 1px 1px #0a0a0a, inset -1px -1px #ffffff, inset 2px 2px #808080, inset -2px -2px #dfdfdf' };
+import { raised, sunken, winFont } from "./ArtistWindowCommon";
 
 export function UniversalSearch({ artists, collectifs, lieux, festivals, projects, notes, onClose, onOpenWindow }) {
   const [query, setQuery] = useState("");
