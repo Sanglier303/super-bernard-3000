@@ -256,35 +256,37 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh, openW
           </div>
         )}
 
-        {contextMenuPos && contextArtist && (
-          <div
-            style={{
-              position: 'fixed',
-              top: contextMenuPos.y,
-              left: contextMenuPos.x,
-              background: '#c0c0c0',
-              padding: '2px',
-              ...raised,
-              display: 'flex',
-              flexDirection: 'column',
-              minWidth: '210px',
-              zIndex: 210,
-            }}
-            onMouseDown={e => e.stopPropagation()}
-          >
-            <div style={{ ...winFont, fontSize: '10px', padding: '4px 10px', color: '#000080', fontWeight: 'bold', borderBottom: '1px solid #808080' }}>
-              {contextArtist.nom_artiste || contextArtist.nom}
-            </div>
-            <div className="win95-menu-item" style={{ fontSize: '11px', padding: '4px 12px' }} onClick={openQuickEdit}>⚡ Édition rapide liens / photo</div>
-            <div className="win95-menu-item" style={{ fontSize: '11px', padding: '4px 12px' }} onClick={openFullEdit}>✍️ Modifier la fiche complète</div>
-            <div className="win95-menu-item" style={{ fontSize: '11px', padding: '4px 12px' }} onClick={openProperties}>🔎 Ouvrir la fiche artiste</div>
-            <div style={{ borderBottom: '1px solid #808080', borderTop: '1px solid #fff', margin: '2px 0' }} />
-            <div className="win95-menu-item" style={{ fontSize: '11px', padding: '4px 12px' }} onClick={handleContextToggleValidation}>
-              {isArtistValidated(contextArtist) ? '↺ Retirer validation 🐗' : '🐗 Marquer validé'}
-            </div>
-          </div>
-        )}
       </div>
+
+      {contextMenuPos && contextArtist && (
+        <div
+          style={{
+            position: 'fixed',
+            top: contextMenuPos.y,
+            left: contextMenuPos.x,
+            background: '#c0c0c0',
+            padding: '2px',
+            ...raised,
+            display: 'flex',
+            flexDirection: 'column',
+            minWidth: '210px',
+            zIndex: 210,
+          }}
+          onMouseDown={e => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
+        >
+          <div style={{ ...winFont, fontSize: '10px', padding: '4px 10px', color: '#000080', fontWeight: 'bold', borderBottom: '1px solid #808080' }}>
+            {contextArtist.nom_artiste || contextArtist.nom}
+          </div>
+          <div className="win95-menu-item" style={{ fontSize: '11px', padding: '4px 12px' }} onClick={openQuickEdit}>⚡ Édition rapide liens / photo</div>
+          <div className="win95-menu-item" style={{ fontSize: '11px', padding: '4px 12px' }} onClick={openFullEdit}>✍️ Modifier la fiche complète</div>
+          <div className="win95-menu-item" style={{ fontSize: '11px', padding: '4px 12px' }} onClick={openProperties}>🔎 Ouvrir la fiche artiste</div>
+          <div style={{ borderBottom: '1px solid #808080', borderTop: '1px solid #fff', margin: '2px 0' }} />
+          <div className="win95-menu-item" style={{ fontSize: '11px', padding: '4px 12px' }} onClick={handleContextToggleValidation}>
+            {isArtistValidated(contextArtist) ? '↺ Retirer validation 🐗' : '🐗 Marquer validé'}
+          </div>
+        </div>
+      )}
 
       {/* Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 6px', borderBottom: '2px solid', borderColor: '#808080 #dfdfdf #dfdfdf #808080' }}>

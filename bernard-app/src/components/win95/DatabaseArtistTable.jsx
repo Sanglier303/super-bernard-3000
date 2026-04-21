@@ -69,7 +69,7 @@ export function DatabaseArtistTable({
                     <img src={artist.photo_or_logo_link || artist.photo || artist.image_url || "/sanglier.png"} style={{ width: compactMode ? 14 : 48, height: compactMode ? 14 : 48, objectFit: 'cover', flexShrink: 0, background: '#ccc', border: compactMode ? 'none' : '1px solid #808080' }} alt="" />
                   )}
                   {!showAvatars && <span style={{ fontSize: compactMode ? '10px' : '12px' }}>▶</span>}
-                  <span style={{ fontSize: compactMode ? '11px' : '13px' }}>{validated ? '🐗 ' : ''}{artist.nom_artiste || artist.nom || ''}</span>
+                  <span style={{ fontSize: compactMode ? '11px' : '13px' }}>{artist.nom_artiste || artist.nom || ''}</span>
                 </div>
                 <div style={{ ...winFont, padding: compactMode ? '0px 6px' : '10px 8px', borderRight: '1px dotted #ccc', fontSize: compactMode ? '10px' : '12px', color: isSelected ? '#ddd' : '#555', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center' }}>
                   {artist.zone || ''}
