@@ -92,6 +92,13 @@ export function MobileButton({ children, onClick, type = 'button', primary = fal
         padding: '8px 12px',
         borderRadius: 0,
         opacity: disabled ? 0.5 : 1,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        lineHeight: 1.15,
+        whiteSpace: 'normal',
+        wordBreak: 'break-word',
         ...style,
       }}
     >
@@ -113,9 +120,9 @@ export function MobileBottomSheet({ title, onClose, children }) {
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 1800, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'flex-end' }}>
       <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxHeight: '75vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: '#c0c0c0', borderTop: '2px solid #fff', boxShadow: '0 -2px 0 #404040', padding: '12px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-          <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#000080' }}>{title}</div>
-          <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+          <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#000080', flex: '1 1 180px', minWidth: 0 }}>{title}</div>
+          <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px', flex: '0 0 auto' }}>Fermer</MobileButton>
         </div>
         {children}
       </div>
@@ -192,12 +199,12 @@ export function MobileSectionHeader({
 
   return (
     <div style={mobileHeaderStyle}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-        <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ flex: '1 1 180px', minWidth: 0 }}>
           <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#000080' }}>{title}</div>
           <div style={{ fontSize: '12px', color: '#333' }}>{subtitle}</div>
         </div>
-        <MobileButton onClick={onRefresh} style={{ minHeight: '34px', padding: '6px 10px' }}>↻</MobileButton>
+        <MobileButton onClick={onRefresh} style={{ minHeight: '34px', padding: '6px 10px', flex: '0 0 auto' }}>↻</MobileButton>
       </div>
 
       <input value={searchValue} onChange={e => onSearchChange(e.target.value)} placeholder={searchPlaceholder} style={searchInputStyle} />
@@ -207,10 +214,12 @@ export function MobileSectionHeader({
       </select>
 
       {typeof summaryText === 'string' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', alignItems: 'center' }}>
-          <div style={{ fontSize: '12px', color: '#333' }}>{summaryText}</div>
-          <MobileButton onClick={onSortAsc} primary={sortDirection === 'asc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▲</MobileButton>
-          <MobileButton onClick={onSortDesc} primary={sortDirection === 'desc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▼</MobileButton>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+          <div style={{ fontSize: '12px', color: '#333', flex: '1 1 180px', minWidth: 0 }}>{summaryText}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(52px, 1fr))', gap: '8px', flex: '0 0 auto' }}>
+            <MobileButton onClick={onSortAsc} primary={sortDirection === 'asc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▲</MobileButton>
+            <MobileButton onClick={onSortDesc} primary={sortDirection === 'desc'} style={{ minHeight: '34px', padding: '6px 10px' }}>▼</MobileButton>
+          </div>
         </div>
       )}
 
