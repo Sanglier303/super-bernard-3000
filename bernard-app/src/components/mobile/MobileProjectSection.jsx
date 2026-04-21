@@ -26,7 +26,7 @@ function MobileProjectCard({ project, onOpenDetail, onOpenQuickEdit }) {
     <div style={{ ...mobileCardStyle, gap: '10px' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
-          <div style={{ fontSize: '17px', fontWeight: 'bold', lineHeight: 1.1 }}>{project.nom || 'Projet'}</div>
+          <div style={{ fontSize: '17px', fontWeight: 'bold', lineHeight: 1.1, minWidth: 0, flex: 1 }}>{project.nom || 'Projet'}</div>
           <div style={{ ...badgeStyle, flexShrink: 0, background: isDone ? '#dff0d8' : isUrgent ? '#f8d7da' : isDoing ? '#fff3cd' : '#efefef', borderColor: isDone ? '#5b8a3c' : isUrgent ? '#a40000' : isDoing ? '#b58900' : '#808080', color: isUrgent ? '#7a0000' : '#333' }}>
             {isDone ? 'Fait' : isUrgent ? 'Urgent' : isDoing ? 'En cours' : isTodo ? 'À faire' : (project.statut || 'À faire')}
           </div>
@@ -44,7 +44,7 @@ function MobileProjectCard({ project, onOpenDetail, onOpenQuickEdit }) {
           </div>
         )}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '6px' }}>
         <MobileButton onClick={() => onOpenDetail(project)} style={{ minHeight: '34px', padding: '6px 8px', fontSize: '12px' }}>Voir</MobileButton>
         <MobileButton primary onClick={() => onOpenQuickEdit(project)} style={{ minHeight: '34px', padding: '6px 8px', fontSize: '12px' }}>Modifier</MobileButton>
       </div>
@@ -114,7 +114,7 @@ export function MobileProjectSection({
           columns={3}
         />
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '6px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(88px, 1fr))', gap: '6px' }}>
           <MobileButton primary={projectFilter === 'urgent'} onClick={() => onProjectFilterChange(projectFilter === 'urgent' ? 'all' : 'urgent')} style={{ minHeight: '32px', padding: '5px 6px', fontSize: '11px' }}>Urgents</MobileButton>
           <MobileButton primary={projectFilter === 'doing'} onClick={() => onProjectFilterChange(projectFilter === 'doing' ? 'all' : 'doing')} style={{ minHeight: '32px', padding: '5px 6px', fontSize: '11px' }}>En cours</MobileButton>
           <MobileButton primary={projectFilter === 'todo'} onClick={() => onProjectFilterChange(projectFilter === 'todo' ? 'all' : 'todo')} style={{ minHeight: '32px', padding: '5px 6px', fontSize: '11px' }}>À faire</MobileButton>
@@ -157,7 +157,7 @@ export function MobileProjectSection({
             {projectSortOptions.map(option => (
               <MobileButton key={option.key} primary={projectSortConfig.key === option.key} onClick={() => { onProjectSortConfigChange(prev => ({ ...prev, key: option.key })); onSetActiveProjectPanel('browse') }}>{option.label}{projectSortConfig.key === option.key ? ` ${projectSortConfig.direction === 'asc' ? '▲' : '▼'}` : ''}</MobileButton>
             ))}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', marginTop: '4px' }}>
               <MobileButton primary={projectSortConfig.direction === 'asc'} onClick={() => onProjectSortConfigChange(prev => ({ ...prev, direction: 'asc' }))}>Croissant ▲</MobileButton>
               <MobileButton primary={projectSortConfig.direction === 'desc'} onClick={() => onProjectSortConfigChange(prev => ({ ...prev, direction: 'desc' }))}>Décroissant ▼</MobileButton>
             </div>

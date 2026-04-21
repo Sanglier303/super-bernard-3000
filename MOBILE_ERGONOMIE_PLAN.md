@@ -84,3 +84,4 @@
 - phase 7 point 4 : assouplissement des grilles d actions et de résumés dans les panneaux mobile (`artist`, `project`, `collectif`, `lieu`, `festival`) avec `auto-fit` au lieu de grilles rigides
 - phase 7 point 5 : correction du retour du panneau stats outils et assouplissement des grilles `notes` / `todos` / `stickies` dans `MobileToolsSection.jsx`
 - phase 7 point 6 : durcissement des primitives mobiles communes (`MobileButton`, `MobileBottomSheet`, `MobileSectionHeader`) pour mieux tenir sur écrans étroits et titres plus longs
+- phase 7 point 7 : assouplissement des cartes et rangées d actions dans les sections (`artist`, `project`, `collectif`, `lieu`, `festival`) pour éviter les blocs trop serrés en largeur réduite

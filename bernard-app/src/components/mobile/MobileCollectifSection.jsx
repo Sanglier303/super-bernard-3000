@@ -17,7 +17,7 @@ function MobileCollectifCard({ collectif, onOpenDetail, onOpenQuickEdit }) {
 
   return (
     <div style={{ ...mobileCardStyle, gap: '10px' }}>
-      <div style={{ display: 'flex', gap: '10px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '10px' }}>
         <img src={collectif.photo || '/sanglier.png'} alt="" style={{ width: '68px', height: '68px', objectFit: 'cover', background: '#ddd', border: '2px solid #808080', flexShrink: 0 }} />
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
@@ -35,7 +35,7 @@ function MobileCollectifCard({ collectif, onOpenDetail, onOpenQuickEdit }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '6px' }}>
         <MobileButton onClick={() => onOpenDetail(collectif)} style={{ minHeight: '34px', padding: '6px 8px', fontSize: '12px' }}>Voir</MobileButton>
         <MobileButton primary onClick={() => onOpenQuickEdit(collectif)} style={{ minHeight: '34px', padding: '6px 8px', fontSize: '12px' }}>Modifier</MobileButton>
       </div>
@@ -137,7 +137,7 @@ export function MobileCollectifSection({
             {collectifSortOptions.map(option => (
               <MobileButton key={option.key} primary={collectifSortConfig.key === option.key} onClick={() => { onCollectifSortConfigChange(prev => ({ ...prev, key: option.key })); onSetActiveCollectifPanel('browse') }}>{option.label}{collectifSortConfig.key === option.key ? ` ${collectifSortConfig.direction === 'asc' ? '▲' : '▼'}` : ''}</MobileButton>
             ))}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', marginTop: '4px' }}>
               <MobileButton primary={collectifSortConfig.direction === 'asc'} onClick={() => onCollectifSortConfigChange(prev => ({ ...prev, direction: 'asc' }))}>Croissant ▲</MobileButton>
               <MobileButton primary={collectifSortConfig.direction === 'desc'} onClick={() => onCollectifSortConfigChange(prev => ({ ...prev, direction: 'desc' }))}>Décroissant ▼</MobileButton>
             </div>

@@ -17,7 +17,7 @@ function MobileLieuCard({ lieu, onOpenDetail, onOpenQuickEdit }) {
 
   return (
     <div style={{ ...mobileCardStyle, gap: '10px' }}>
-      <div style={{ display: 'flex', gap: '10px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '10px' }}>
         <img src={lieu.photo || '/sanglier.png'} alt="" style={{ width: '68px', height: '68px', objectFit: 'cover', background: '#ddd', border: '2px solid #808080', flexShrink: 0 }} />
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
@@ -35,7 +35,7 @@ function MobileLieuCard({ lieu, onOpenDetail, onOpenQuickEdit }) {
           </div>
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '6px' }}>
         <MobileButton onClick={() => onOpenDetail(lieu)} style={{ minHeight: '34px', padding: '6px 8px', fontSize: '12px' }}>Voir</MobileButton>
         <MobileButton primary onClick={() => onOpenQuickEdit(lieu)} style={{ minHeight: '34px', padding: '6px 8px', fontSize: '12px' }}>Modifier</MobileButton>
       </div>
@@ -137,7 +137,7 @@ export function MobileLieuSection({
             {lieuSortOptions.map(option => (
               <MobileButton key={option.key} primary={lieuSortConfig.key === option.key} onClick={() => { onLieuSortConfigChange(prev => ({ ...prev, key: option.key })); onSetActiveLieuPanel('browse') }}>{option.label}{lieuSortConfig.key === option.key ? ` ${lieuSortConfig.direction === 'asc' ? '▲' : '▼'}` : ''}</MobileButton>
             ))}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', marginTop: '4px' }}>
               <MobileButton primary={lieuSortConfig.direction === 'asc'} onClick={() => onLieuSortConfigChange(prev => ({ ...prev, direction: 'asc' }))}>Croissant ▲</MobileButton>
               <MobileButton primary={lieuSortConfig.direction === 'desc'} onClick={() => onLieuSortConfigChange(prev => ({ ...prev, direction: 'desc' }))}>Décroissant ▼</MobileButton>
             </div>

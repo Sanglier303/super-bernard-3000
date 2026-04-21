@@ -25,7 +25,7 @@ function MobileArtistCard({ artist, onOpenDetail, onOpenQuickEdit, onToggleValid
 
   return (
     <div style={{ ...mobileCardStyle, gap: '10px' }}>
-      <div style={{ display: 'flex', gap: '10px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '10px' }}>
         <img
           src={artist.photo_or_logo_link || artist.photo || artist.image_url || '/sanglier.png'}
           alt=""
@@ -45,11 +45,11 @@ function MobileArtistCard({ artist, onOpenDetail, onOpenQuickEdit, onToggleValid
       </div>
 
       <div style={{ display: 'grid', gap: '6px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '6px' }}>
           <MobileButton onClick={() => onOpenDetail(artist)} style={compactButtonStyle}>Voir</MobileButton>
           <MobileButton primary onClick={() => onOpenQuickEdit(artist)} style={compactButtonStyle}>Modifier</MobileButton>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '6px' }}>
           <MobileButton onClick={() => onToggleValidation(artist)} style={ghostActionStyle}>{validated ? 'Dévalider' : 'Valider'}</MobileButton>
           <MobileButton onClick={() => primaryAudio ? window.open(primaryAudio, '_blank', 'noopener,noreferrer') : null} disabled={!primaryAudio} style={ghostActionStyle}>Audio</MobileButton>
         </div>
@@ -208,7 +208,7 @@ export function MobileArtistSection({
                 {option.label}{sortConfig.key === option.key ? ` ${sortConfig.direction === 'asc' ? '▲' : '▼'}` : ''}
               </MobileButton>
             ))}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', marginTop: '4px' }}>
               <MobileButton primary={sortConfig.direction === 'asc'} onClick={() => onSortConfigChange(prev => ({ ...prev, direction: 'asc' }))}>Croissant ▲</MobileButton>
               <MobileButton primary={sortConfig.direction === 'desc'} onClick={() => onSortConfigChange(prev => ({ ...prev, direction: 'desc' }))}>Décroissant ▼</MobileButton>
             </div>
