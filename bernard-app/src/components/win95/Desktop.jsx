@@ -18,9 +18,9 @@ const StickyManager = lazy(() => import("./StickyManager").then(module => ({ def
 const TodoWindow = lazy(() => import("./TodoWindow").then(module => ({ default: module.TodoWindow })));
 const TrashWindow = lazy(() => import("./TrashWindow").then(module => ({ default: module.TrashWindow })));
 const ManualWindow = lazy(() => import("./ManualWindow").then(module => ({ default: module.ManualWindow })));
-const ArtistDetailView = lazy(() => import("./ArtistSubWindows").then(module => ({ default: module.ArtistDetailView })));
-const ArtistEditView = lazy(() => import("./ArtistSubWindows").then(module => ({ default: module.ArtistEditView })));
-const ArtistQuickEditView = lazy(() => import("./ArtistSubWindows").then(module => ({ default: module.ArtistQuickEditView })));
+const ArtistDetailView = lazy(() => import("./ArtistDetailView").then(module => ({ default: module.ArtistDetailView })));
+const ArtistEditView = lazy(() => import("./ArtistEditView").then(module => ({ default: module.ArtistEditView })));
+const ArtistQuickEditView = lazy(() => import("./ArtistQuickEditView").then(module => ({ default: module.ArtistQuickEditView })));
 const RadioWindow = lazy(() => import("./RadioWindow").then(module => ({ default: module.RadioWindow })));
 
 const GRID_X = 80;
