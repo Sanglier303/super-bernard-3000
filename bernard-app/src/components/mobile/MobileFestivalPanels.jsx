@@ -18,6 +18,11 @@ export function MobileFestivalDetail({ festival, onClose, onQuickEdit }) {
         <MobileButton onClick={onClose} style={{ minHeight: '34px', padding: '6px 10px' }}>Fermer</MobileButton>
       </div>
       <div style={{ padding: '12px 12px 84px 12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
+          <MobileButton onClick={() => festival.instagram ? window.open(festival.instagram, '_blank', 'noopener,noreferrer') : null} disabled={!festival.instagram}>Instagram</MobileButton>
+          <MobileButton primary onClick={() => onQuickEdit(festival)}>⚡ Modifier</MobileButton>
+        </div>
+
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
           <img src={festival.photo || '/sanglier.png'} alt="" style={{ width: '92px', height: '92px', objectFit: 'cover', border: '2px solid #808080', background: '#ddd', flexShrink: 0 }} />
           <div style={{ minWidth: 0 }}>
@@ -26,7 +31,7 @@ export function MobileFestivalDetail({ festival, onClose, onQuickEdit }) {
             <div style={{ marginTop: '4px', fontSize: '13px', color: '#444' }}>{festival.lieu || '—'}</div>
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
           {quickFacts.map(item => <MobileSummaryCard key={item.label} label={item.label} value={item.value} />)}
         </div>
         <div style={{ display: 'grid', gap: '8px', background: '#efefef', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px' }}>
@@ -36,11 +41,13 @@ export function MobileFestivalDetail({ festival, onClose, onQuickEdit }) {
           <div><b>Durée :</b> {festival.duree || '—'}</div>
           <div><b>Instagram :</b> {festival.instagram || '—'}</div>
         </div>
+        <div style={{ background: '#eef3ff', border: '2px solid', borderColor: '#fff #5d78a6 #5d78a6 #fff', padding: '10px', fontSize: '13px' }}>
+          <b>Repère diffusion</b>
+          <div style={{ marginTop: '4px' }}>{festival.periode ? `Période repérée : ${festival.periode}.` : 'Période encore absente.'} {festival.instagram ? 'Le festival a une présence Instagram exploitable.' : 'Pas de présence Instagram visible dans la base.'}</div>
+        </div>
         {festival.notes && <div style={{ background: '#fff', border: '2px solid', borderColor: '#808080 #fff #fff #808080', padding: '10px', whiteSpace: 'pre-wrap', fontSize: '13px' }}><b>Notes</b><div style={{ marginTop: '6px' }}>{festival.notes}</div></div>}
         {festival.note_perso && <div style={{ background: '#fff7ff', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px', whiteSpace: 'pre-wrap', fontSize: '13px' }}><b>Note perso</b><div style={{ marginTop: '6px' }}>{festival.note_perso}</div></div>}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          <MobileButton onClick={() => festival.instagram ? window.open(festival.instagram, '_blank', 'noopener,noreferrer') : null} disabled={!festival.instagram}>Instagram</MobileButton>
-          <MobileButton primary onClick={() => onQuickEdit(festival)}>⚡ Modifier</MobileButton>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
           <MobileButton onClick={onClose}>Retour</MobileButton>
         </div>
       </div>
@@ -97,7 +104,7 @@ export function MobileFestivalQuickEditSheet({ festival, festivals, onSave, onCl
             <MobileField label="Notes"><textarea name="notes" defaultValue={festival.notes || ''} style={{ ...inputStyle, minHeight: '90px', resize: 'vertical' }} /></MobileField>
             <MobileField label="Note perso"><textarea name="note_perso" defaultValue={festival.note_perso || ''} style={{ ...inputStyle, minHeight: '90px', resize: 'vertical' }} /></MobileField>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingBottom: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', paddingBottom: '8px' }}>
             <MobileButton type="button" onClick={onClose}>Annuler</MobileButton>
             <MobileButton type="submit" primary>Enregistrer</MobileButton>
           </div>

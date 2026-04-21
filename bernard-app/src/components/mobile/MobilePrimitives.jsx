@@ -61,8 +61,8 @@ export const mobileBottomNavStyle = {
   borderTop: '2px solid #fff',
   padding: '8px 8px calc(8px + env(safe-area-inset-bottom, 0px)) 8px',
   display: 'grid',
-  gridTemplateColumns: '1fr 1fr 1fr 1fr',
-  gap: '8px',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(72px, 1fr))',
+  gap: '6px',
 }
 
 export function MobileSummaryCard({ label, value, accent = '#000080' }) {
@@ -129,18 +129,20 @@ export function MobileTabButton({ active, children, onClick }) {
       type="button"
       onClick={onClick}
       style={{
-        minHeight: '48px',
+        minHeight: '44px',
         border: '2px solid',
         borderColor: active ? '#808080 #ffffff #ffffff #808080' : '#ffffff #404040 #404040 #ffffff',
         background: active ? '#d4d0c8' : '#c0c0c0',
         color: '#000',
         fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif',
-        fontSize: '12px',
+        fontSize: '11px',
         fontWeight: 'bold',
-        padding: '6px 8px',
+        padding: '6px 6px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        textAlign: 'center',
+        lineHeight: 1.15,
       }}
     >
       {children}
@@ -223,9 +225,11 @@ export function MobileSectionHeader({
   )
 }
 
-export function MobileStatsGrid({ items, columns = 2 }) {
+export function MobileStatsGrid({ items, columns = 2, minWidth = 84 }) {
+  const targetMinWidth = columns >= 3 ? Math.max(76, minWidth - 8) : minWidth
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gap: '8px' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${targetMinWidth}px, 1fr))`, gap: '8px' }}>
       {items.map(item => (
         <MobileSummaryCard key={item.label} label={item.label} value={item.value} accent={item.accent || '#000080'} />
       ))}

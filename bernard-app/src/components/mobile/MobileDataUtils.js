@@ -116,7 +116,26 @@ export function getFestivalSortValue(festival, key) {
   }
 }
 
+export function getProjectFlags(project) {
+  const priority = String(project?.priorite || '').trim().toLowerCase()
+  const status = String(project?.statut || '').trim().toLowerCase()
+
+  const isUrgent = priority.includes('haute') || priority.includes('urgent') || priority.includes('high')
+  const isDone = status.includes('fait') || status.includes('done') || status.includes('term') || status.includes('clos')
+  const isDoing = !isDone && (status.includes('cours') || status.includes('progress') || status.includes('travail'))
+  const isTodo = !isDone && !isDoing
+
+  return {
+    isUrgent,
+    isDone,
+    isDoing,
+    isTodo,
+  }
+}
+
 export function getProjectSortValue(project, key) {
+  const flags = getProjectFlags(project)
+
   switch (key) {
     case 'name':
       return project?.nom || ''
@@ -128,6 +147,8 @@ export function getProjectSortValue(project, key) {
       return project?.echeance || ''
     case 'linked':
       return project?.linked_type || ''
+    case 'urgency':
+      return flags.isUrgent ? 3 : flags.isDoing ? 2 : flags.isTodo ? 1 : 0
     default:
       return project?.nom || ''
   }

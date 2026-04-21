@@ -20,35 +20,39 @@ function MobileArtistCard({ artist, onOpenDetail, onOpenQuickEdit, onToggleValid
   const validated = isArtistValidated(artist)
   const linkCount = getArtistLinkCount(artist)
   const primaryAudio = getPrimaryAudioUrl(artist)
+  const compactButtonStyle = { minHeight: '34px', padding: '6px 8px', fontSize: '12px' }
+  const ghostActionStyle = { minHeight: '28px', padding: '4px 6px', fontSize: '11px' }
 
   return (
-    <div style={mobileCardStyle}>
+    <div style={{ ...mobileCardStyle, gap: '10px' }}>
       <div style={{ display: 'flex', gap: '10px' }}>
         <img
           src={artist.photo_or_logo_link || artist.photo || artist.image_url || '/sanglier.png'}
           alt=""
-          style={{ width: '72px', height: '72px', objectFit: 'cover', background: '#ddd', border: '2px solid #808080', flexShrink: 0 }}
+          style={{ width: '64px', height: '64px', objectFit: 'cover', background: '#ddd', border: '2px solid #808080', flexShrink: 0 }}
         />
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-            <div style={{ fontSize: '17px', fontWeight: 'bold', lineHeight: 1.1 }}>{artist.nom_artiste || artist.nom}</div>
-            {validated && <span style={{ fontSize: '14px', color: '#0a5f00', fontWeight: 'bold' }}>🐗</span>}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+            <div style={{ fontSize: '16px', fontWeight: 'bold', lineHeight: 1.1, minWidth: 0 }}>{artist.nom_artiste || artist.nom}</div>
+            <div style={{ fontSize: '12px', fontWeight: 'bold', color: validated ? '#0a5f00' : '#666', flexShrink: 0 }}>{validated ? '🐗' : '○'}</div>
           </div>
-          <div style={{ marginTop: '4px', fontSize: '13px', color: '#333' }}>{artist.style || '—'}</div>
-          <div style={{ marginTop: '4px', fontSize: '12px', color: '#444' }}>{artist.zone || '—'} · {artist.type_performance || '—'}</div>
-          <div style={{ marginTop: '6px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{artist.statut_localite || '—'}</span>
-            <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{linkCount} lien{linkCount > 1 ? 's' : ''}</span>
-            {validated && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#dff0d8', border: '1px solid #5b8a3c' }}>Validé</span>}
+          <div style={{ marginTop: '4px', fontSize: '12px', color: '#333' }}>{artist.style || '—'}</div>
+          <div style={{ marginTop: '3px', fontSize: '11px', color: '#555' }}>{artist.zone || '—'} · {artist.type_performance || '—'}</div>
+          <div style={{ marginTop: '5px', fontSize: '11px', color: '#444' }}>
+            {artist.statut_localite || '—'} · {linkCount} lien{linkCount > 1 ? 's' : ''}{primaryAudio ? ' · audio' : ''}
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-        <MobileButton onClick={() => onOpenDetail(artist)}>Voir</MobileButton>
-        <MobileButton primary onClick={() => onOpenQuickEdit(artist)}>⚡ Modifier</MobileButton>
-        <MobileButton onClick={() => onToggleValidation(artist)}>{validated ? '↺ Retirer 🐗' : '🐗 Valider'}</MobileButton>
-        <MobileButton onClick={() => primaryAudio ? window.open(primaryAudio, '_blank', 'noopener,noreferrer') : null} disabled={!primaryAudio}>▷ Audio</MobileButton>
+      <div style={{ display: 'grid', gap: '6px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+          <MobileButton onClick={() => onOpenDetail(artist)} style={compactButtonStyle}>Voir</MobileButton>
+          <MobileButton primary onClick={() => onOpenQuickEdit(artist)} style={compactButtonStyle}>Modifier</MobileButton>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+          <MobileButton onClick={() => onToggleValidation(artist)} style={ghostActionStyle}>{validated ? 'Dévalider' : 'Valider'}</MobileButton>
+          <MobileButton onClick={() => primaryAudio ? window.open(primaryAudio, '_blank', 'noopener,noreferrer') : null} disabled={!primaryAudio} style={ghostActionStyle}>Audio</MobileButton>
+        </div>
       </div>
     </div>
   )

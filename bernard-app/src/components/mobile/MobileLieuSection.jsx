@@ -12,23 +12,32 @@ import { MobileLieuDetail, MobileLieuQuickEditSheet } from './MobileLieuPanels'
 import { MobileShell } from './MobileShell'
 
 function MobileLieuCard({ lieu, onOpenDetail, onOpenQuickEdit }) {
+  const hasInstagram = !!String(lieu.instagram || '').trim()
+  const hasPhoto = !!String(lieu.photo || '').trim()
+
   return (
-    <div style={mobileCardStyle}>
+    <div style={{ ...mobileCardStyle, gap: '10px' }}>
       <div style={{ display: 'flex', gap: '10px' }}>
-        <img src={lieu.photo || '/sanglier.png'} alt="" style={{ width: '72px', height: '72px', objectFit: 'cover', background: '#ddd', border: '2px solid #808080', flexShrink: 0 }} />
+        <img src={lieu.photo || '/sanglier.png'} alt="" style={{ width: '68px', height: '68px', objectFit: 'cover', background: '#ddd', border: '2px solid #808080', flexShrink: 0 }} />
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ fontSize: '17px', fontWeight: 'bold', lineHeight: 1.1 }}>{lieu.nom || 'Lieu'}</div>
-          <div style={{ marginTop: '4px', fontSize: '13px', color: '#333' }}>{lieu.type || '—'}</div>
-          <div style={{ marginTop: '4px', fontSize: '12px', color: '#444' }}>{lieu.adresse || '—'}</div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+            <div style={{ fontSize: '17px', fontWeight: 'bold', lineHeight: 1.1 }}>{lieu.nom || 'Lieu'}</div>
+            <div style={{ fontSize: '11px', padding: '2px 6px', background: hasInstagram ? '#eef7ee' : '#f3f3f3', border: '1px solid', borderColor: hasInstagram ? '#5b8a3c' : '#808080', flexShrink: 0 }}>
+              {hasInstagram ? 'Réseau ok' : 'À sourcer'}
+            </div>
+          </div>
+          <div style={{ marginTop: '4px', fontSize: '12px', color: '#333' }}>{lieu.type || '—'}</div>
+          <div style={{ marginTop: '3px', fontSize: '11px', color: '#555' }}>{lieu.capacite ? `Capacité ${lieu.capacite}` : 'Capacité inconnue'}</div>
+          <div style={{ marginTop: '3px', fontSize: '11px', color: '#555' }}>{lieu.adresse || '—'}</div>
           <div style={{ marginTop: '6px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            {lieu.capacite && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{lieu.capacite}</span>}
-            <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{lieu.instagram ? 'Instagram ok' : 'Sans Instagram'}</span>
+            <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{hasInstagram ? 'Instagram' : 'Sans Instagram'}</span>
+            <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{hasPhoto ? 'Visuel ok' : 'Sans visuel'}</span>
           </div>
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-        <MobileButton onClick={() => onOpenDetail(lieu)}>Voir</MobileButton>
-        <MobileButton primary onClick={() => onOpenQuickEdit(lieu)}>⚡ Modifier</MobileButton>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+        <MobileButton onClick={() => onOpenDetail(lieu)} style={{ minHeight: '34px', padding: '6px 8px', fontSize: '12px' }}>Voir</MobileButton>
+        <MobileButton primary onClick={() => onOpenQuickEdit(lieu)} style={{ minHeight: '34px', padding: '6px 8px', fontSize: '12px' }}>Modifier</MobileButton>
       </div>
     </div>
   )
@@ -75,7 +84,7 @@ export function MobileLieuSection({
         activeSection={activeSection}
         sectionTabs={sectionTabs}
         onSectionChange={onSectionChange}
-        summaryText={`${mobileLieux.length} lieu(x) visible(s)`}
+        summaryText={`${mobileLieux.length} visible(s) · ${lieuxInstagramCount} avec réseau · ${lieuxPhotoCount} avec visuel`}
         sortDirection={lieuSortConfig.direction}
         onSortAsc={() => onLieuSortConfigChange(prev => ({ ...prev, direction: 'asc' }))}
         onSortDesc={() => onLieuSortConfigChange(prev => ({ ...prev, direction: 'desc' }))}
@@ -87,9 +96,9 @@ export function MobileLieuSection({
       <div style={mobileContentStyle}>
         <MobileStatsGrid
           items={[
-            { label: 'Actifs', value: lieuxActiveCount },
-            { label: 'Instagram', value: lieuxInstagramCount },
-            { label: 'Photo', value: lieuxPhotoCount },
+            { label: 'Repérés', value: lieuxActiveCount },
+            { label: 'Réseau', value: lieuxInstagramCount, accent: '#0a5f00' },
+            { label: 'Visuel', value: lieuxPhotoCount },
           ]}
           columns={3}
         />

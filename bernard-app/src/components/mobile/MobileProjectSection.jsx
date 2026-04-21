@@ -8,24 +8,45 @@ import {
   MobileStatsGrid,
   MobileStandardBottomNav,
 } from './MobilePrimitives'
+import { getProjectFlags } from './MobileDataUtils'
 import { MobileProjectDetail, MobileProjectQuickEditSheet } from './MobileProjectPanels'
 import { MobileShell } from './MobileShell'
 
 function MobileProjectCard({ project, onOpenDetail, onOpenQuickEdit }) {
+  const { isUrgent, isDone, isDoing, isTodo } = getProjectFlags(project)
+
+  const badgeStyle = {
+    fontSize: '11px',
+    padding: '2px 6px',
+    border: '1px solid #808080',
+    background: '#efefef',
+  }
+
   return (
-    <div style={mobileCardStyle}>
+    <div style={{ ...mobileCardStyle, gap: '10px' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div style={{ fontSize: '17px', fontWeight: 'bold', lineHeight: 1.1 }}>{project.nom || 'Projet'}</div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          {project.statut && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{project.statut}</span>}
-          {project.priorite && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{project.priorite}</span>}
-          {project.echeance && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{project.echeance}</span>}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+          <div style={{ fontSize: '17px', fontWeight: 'bold', lineHeight: 1.1 }}>{project.nom || 'Projet'}</div>
+          <div style={{ ...badgeStyle, flexShrink: 0, background: isDone ? '#dff0d8' : isUrgent ? '#f8d7da' : isDoing ? '#fff3cd' : '#efefef', borderColor: isDone ? '#5b8a3c' : isUrgent ? '#a40000' : isDoing ? '#b58900' : '#808080', color: isUrgent ? '#7a0000' : '#333' }}>
+            {isDone ? 'Fait' : isUrgent ? 'Urgent' : isDoing ? 'En cours' : isTodo ? 'À faire' : (project.statut || 'À faire')}
+          </div>
         </div>
-        {project.linked_type && <div style={{ fontSize: '12px', color: '#444' }}>Lié : {project.linked_type}{project.linked_id ? ` #${project.linked_id}` : ''}</div>}
+
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          {project.priorite && <span style={{ ...badgeStyle, background: isUrgent ? '#f8d7da' : '#efefef', borderColor: isUrgent ? '#a40000' : '#808080' }}>{project.priorite}</span>}
+          {project.echeance && <span style={{ ...badgeStyle, background: '#fff' }}>⏱ {project.echeance}</span>}
+          {project.linked_type && <span style={{ ...badgeStyle, background: '#eef3ff', borderColor: '#5d78a6' }}>↪ {project.linked_type}{project.linked_id ? ` #${project.linked_id}` : ''}</span>}
+        </div>
+
+        {project.notes && (
+          <div style={{ fontSize: '12px', color: '#444', lineHeight: 1.3 }}>
+            {(project.notes || '').slice(0, 110)}{(project.notes || '').length > 110 ? '…' : ''}
+          </div>
+        )}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-        <MobileButton onClick={() => onOpenDetail(project)}>Voir</MobileButton>
-        <MobileButton primary onClick={() => onOpenQuickEdit(project)}>⚡ Modifier</MobileButton>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+        <MobileButton onClick={() => onOpenDetail(project)} style={{ minHeight: '34px', padding: '6px 8px', fontSize: '12px' }}>Voir</MobileButton>
+        <MobileButton primary onClick={() => onOpenQuickEdit(project)} style={{ minHeight: '34px', padding: '6px 8px', fontSize: '12px' }}>Modifier</MobileButton>
       </div>
     </div>
   )
@@ -45,6 +66,8 @@ export function MobileProjectSection({
   projectSortOptions,
   projectsActiveCount,
   projectsUrgentCount,
+  projectsDoingCount,
+  projectsTodoCount,
   projectsDoneCount,
   detailProject,
   onOpenProjectDetail,
@@ -72,7 +95,7 @@ export function MobileProjectSection({
         activeSection={activeSection}
         sectionTabs={sectionTabs}
         onSectionChange={onSectionChange}
-        summaryText={`${mobileProjects.length} projet(s) visible(s)`}
+        summaryText={`${mobileProjects.length} visible(s) · ${projectsUrgentCount} urgents · ${projectsDoingCount} en cours · ${projectsTodoCount} à faire`}
         sortDirection={projectSortConfig.direction}
         onSortAsc={() => onProjectSortConfigChange(prev => ({ ...prev, direction: 'asc' }))}
         onSortDesc={() => onProjectSortConfigChange(prev => ({ ...prev, direction: 'desc' }))}
@@ -84,12 +107,19 @@ export function MobileProjectSection({
       <div style={mobileContentStyle}>
         <MobileStatsGrid
           items={[
-            { label: 'Actifs', value: projectsActiveCount },
             { label: 'Urgents', value: projectsUrgentCount, accent: '#a40000' },
-            { label: 'Faits', value: projectsDoneCount, accent: '#0a5f00' },
+            { label: 'En cours', value: projectsDoingCount, accent: '#b58900' },
+            { label: 'À faire', value: projectsTodoCount },
           ]}
           columns={3}
         />
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '6px' }}>
+          <MobileButton primary={projectFilter === 'urgent'} onClick={() => onProjectFilterChange(projectFilter === 'urgent' ? 'all' : 'urgent')} style={{ minHeight: '32px', padding: '5px 6px', fontSize: '11px' }}>Urgents</MobileButton>
+          <MobileButton primary={projectFilter === 'doing'} onClick={() => onProjectFilterChange(projectFilter === 'doing' ? 'all' : 'doing')} style={{ minHeight: '32px', padding: '5px 6px', fontSize: '11px' }}>En cours</MobileButton>
+          <MobileButton primary={projectFilter === 'todo'} onClick={() => onProjectFilterChange(projectFilter === 'todo' ? 'all' : 'todo')} style={{ minHeight: '32px', padding: '5px 6px', fontSize: '11px' }}>À faire</MobileButton>
+          <MobileButton primary={projectFilter === 'done'} onClick={() => onProjectFilterChange(projectFilter === 'done' ? 'all' : 'done')} style={{ minHeight: '32px', padding: '5px 6px', fontSize: '11px' }}>Faits</MobileButton>
+        </div>
 
         {loading ? (
           <div style={{ ...mobileCardStyle, padding: '16px' }}>Chargement...</div>
@@ -113,6 +143,7 @@ export function MobileProjectSection({
           <div style={{ display: 'grid', gap: '8px' }}>
             <MobileButton primary={projectFilter === 'all'} onClick={() => { onProjectFilterChange('all'); onSetActiveProjectPanel('browse') }}>Tous les projets</MobileButton>
             <MobileButton primary={projectFilter === 'urgent'} onClick={() => { onProjectFilterChange('urgent'); onSetActiveProjectPanel('browse') }}>Priorité haute</MobileButton>
+            <MobileButton primary={projectFilter === 'doing'} onClick={() => { onProjectFilterChange('doing'); onSetActiveProjectPanel('browse') }}>En cours</MobileButton>
             <MobileButton primary={projectFilter === 'todo'} onClick={() => { onProjectFilterChange('todo'); onSetActiveProjectPanel('browse') }}>À faire</MobileButton>
             <MobileButton primary={projectFilter === 'done'} onClick={() => { onProjectFilterChange('done'); onSetActiveProjectPanel('browse') }}>Faits</MobileButton>
             <MobileButton onClick={() => { onProjectSearchChange(''); onProjectFilterChange('all'); onSetActiveProjectPanel('browse') }}>Réinitialiser</MobileButton>
@@ -140,8 +171,9 @@ export function MobileProjectSection({
             items={[
               { label: 'Actifs', value: projectsActiveCount },
               { label: 'Urgents', value: projectsUrgentCount, accent: '#a40000' },
+              { label: 'En cours', value: projectsDoingCount, accent: '#b58900' },
+              { label: 'À faire', value: projectsTodoCount },
               { label: 'Faits', value: projectsDoneCount, accent: '#0a5f00' },
-              { label: 'Ouverts', value: projectsActiveCount - projectsDoneCount },
             ]}
             columns={2}
           />

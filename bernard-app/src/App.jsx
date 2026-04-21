@@ -1,5 +1,8 @@
 import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
-import { Desktop } from './components/win95/Desktop'
+
+const Desktop = lazy(() =>
+  import('./components/win95/Desktop').then(module => ({ default: module.Desktop }))
+)
 
 const MobileArtistApp = lazy(() =>
   import('./components/mobile/MobileArtistApp').then(module => ({ default: module.MobileArtistApp }))
@@ -246,53 +249,55 @@ export default function App() {
           />
         </Suspense>
       ) : (
-        <Desktop 
-          artists={artists}
-          collectifs={collectifs}
-          lieux={lieux}
-          festivals={festivals}
-          projects={projects}
-          notes={notes}
-          todos={todos}
-          stickies={stickies}
-          onRefresh={loadAll}
-          saveData={saveData}
-          loading={loading}
-          currentTrack={currentTrack}
-          playTrack={playTrack}
-          playNext={playNext}
-          radioOpen={radioOpen}
-          setRadioOpen={setRadioOpen}
-          renderStatsContent={({ onClose }) => <StatsContent artists={artists} onClose={onClose} />}
-          renderCategoryContent={(categoryId) => <CategoryContent category={categoryId} artists={artists} />}
-          renderAboutContent={({ onClose, openWindow }) => (
-            <div style={{ background: "#c0c0c0", padding: "16px", fontSize: "11px", height: "100%", overflow: "auto", fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' }}>
-              <div className="flex items-start gap-3 mb-4">
-                <div style={{ fontSize: "48px" }}>🎵</div>
-                <div>
-                  <div style={{ fontWeight: "bold", fontSize: "14px" }}>Super Bernard 3000</div>
-                  <div style={{ fontSize: "10px", opacity: 0.7 }}>Version 4.0.0 (build 20260405)</div>
-                  <div style={{ fontSize: "10px", opacity: 0.7 }}>© 1995–2026 Base de Données Musique</div>
+        <Suspense fallback={<div style={{ minHeight: '100vh', background: '#008080', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' }}>Chargement bureau...</div>}>
+          <Desktop 
+            artists={artists}
+            collectifs={collectifs}
+            lieux={lieux}
+            festivals={festivals}
+            projects={projects}
+            notes={notes}
+            todos={todos}
+            stickies={stickies}
+            onRefresh={loadAll}
+            saveData={saveData}
+            loading={loading}
+            currentTrack={currentTrack}
+            playTrack={playTrack}
+            playNext={playNext}
+            radioOpen={radioOpen}
+            setRadioOpen={setRadioOpen}
+            renderStatsContent={({ onClose }) => <StatsContent artists={artists} onClose={onClose} />}
+            renderCategoryContent={(categoryId) => <CategoryContent category={categoryId} artists={artists} />}
+            renderAboutContent={({ onClose, openWindow }) => (
+              <div style={{ background: "#c0c0c0", padding: "16px", fontSize: "11px", height: "100%", overflow: "auto", fontFamily: '"Tahoma", "MS Sans Serif", Arial, sans-serif' }}>
+                <div className="flex items-start gap-3 mb-4">
+                  <div style={{ fontSize: "48px" }}>🎵</div>
+                  <div>
+                    <div style={{ fontWeight: "bold", fontSize: "14px" }}>Super Bernard 3000</div>
+                    <div style={{ fontSize: "10px", opacity: 0.7 }}>Version 4.0.0 (build 20260405)</div>
+                    <div style={{ fontSize: "10px", opacity: 0.7 }}>© 1995–2026 Base de Données Musique</div>
+                  </div>
+                </div>
+                <div className="win95-sunken" style={{ background: "white", padding: "8px", fontSize: "10px", lineHeight: "1.5", marginBottom: "12px" }}>
+                  <p>Logiciel d'archivage ultime.</p>
+                  <br />
+                  <p>Ce programme documente les DJs, producteurs et artistes live basés dans la région.</p>
+                </div>
+                <div style={{ display: "flex", justifyContent: "center", gap: "8px" }}>
+                  <button 
+                    className="win95-btn" 
+                    onClick={() => openWindow('manual')}
+                    id="btn-open-manual"
+                  >
+                    📖 Manuel
+                  </button>
+                  <button className="win95-btn win95-btn-primary" onClick={onClose}>OK</button>
                 </div>
               </div>
-              <div className="win95-sunken" style={{ background: "white", padding: "8px", fontSize: "10px", lineHeight: "1.5", marginBottom: "12px" }}>
-                <p>Logiciel d'archivage ultime.</p>
-                <br />
-                <p>Ce programme documente les DJs, producteurs et artistes live basés dans la région.</p>
-              </div>
-              <div style={{ display: "flex", justifyContent: "center", gap: "8px" }}>
-                <button 
-                  className="win95-btn" 
-                  onClick={() => openWindow('manual')}
-                  id="btn-open-manual"
-                >
-                  📖 Manuel
-                </button>
-                <button className="win95-btn win95-btn-primary" onClick={onClose}>OK</button>
-              </div>
-            </div>
-          )}
-        />
+            )}
+          />
+        </Suspense>
       )}
 
       {/* TOAST SYSTEM ALERTS */}

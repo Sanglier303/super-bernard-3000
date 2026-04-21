@@ -12,24 +12,32 @@ import { MobileCollectifDetail, MobileCollectifQuickEditSheet } from './MobileCo
 import { MobileShell } from './MobileShell'
 
 function MobileCollectifCard({ collectif, onOpenDetail, onOpenQuickEdit }) {
+  const hasInstagram = !!String(collectif.instagram || '').trim()
+  const hasPhoto = !!String(collectif.photo || '').trim()
+
   return (
-    <div style={mobileCardStyle}>
+    <div style={{ ...mobileCardStyle, gap: '10px' }}>
       <div style={{ display: 'flex', gap: '10px' }}>
-        <img src={collectif.photo || '/sanglier.png'} alt="" style={{ width: '72px', height: '72px', objectFit: 'cover', background: '#ddd', border: '2px solid #808080', flexShrink: 0 }} />
+        <img src={collectif.photo || '/sanglier.png'} alt="" style={{ width: '68px', height: '68px', objectFit: 'cover', background: '#ddd', border: '2px solid #808080', flexShrink: 0 }} />
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ fontSize: '17px', fontWeight: 'bold', lineHeight: 1.1 }}>{collectif.nom || 'Collectif'}</div>
-          <div style={{ marginTop: '4px', fontSize: '13px', color: '#333' }}>{collectif.style || '—'}</div>
-          <div style={{ marginTop: '4px', fontSize: '12px', color: '#444' }}>Création : {collectif.date_creation || '—'}</div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+            <div style={{ fontSize: '17px', fontWeight: 'bold', lineHeight: 1.1 }}>{collectif.nom || 'Collectif'}</div>
+            <div style={{ fontSize: '11px', padding: '2px 6px', background: hasInstagram ? '#eef7ee' : '#f3f3f3', border: '1px solid', borderColor: hasInstagram ? '#5b8a3c' : '#808080', flexShrink: 0 }}>
+              {hasInstagram ? 'Réseau ok' : 'À sourcer'}
+            </div>
+          </div>
+          <div style={{ marginTop: '4px', fontSize: '12px', color: '#333' }}>{collectif.style || '—'}</div>
+          <div style={{ marginTop: '3px', fontSize: '11px', color: '#555' }}>Création : {collectif.date_creation || '—'}</div>
           <div style={{ marginTop: '6px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{collectif.instagram ? 'Instagram ok' : 'Sans Instagram'}</span>
-            {collectif.photo && <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>Photo ok</span>}
+            <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{hasInstagram ? 'Instagram' : 'Sans Instagram'}</span>
+            <span style={{ fontSize: '11px', padding: '2px 6px', background: '#efefef', border: '1px solid #808080' }}>{hasPhoto ? 'Visuel ok' : 'Sans visuel'}</span>
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-        <MobileButton onClick={() => onOpenDetail(collectif)}>Voir</MobileButton>
-        <MobileButton primary onClick={() => onOpenQuickEdit(collectif)}>⚡ Modifier</MobileButton>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+        <MobileButton onClick={() => onOpenDetail(collectif)} style={{ minHeight: '34px', padding: '6px 8px', fontSize: '12px' }}>Voir</MobileButton>
+        <MobileButton primary onClick={() => onOpenQuickEdit(collectif)} style={{ minHeight: '34px', padding: '6px 8px', fontSize: '12px' }}>Modifier</MobileButton>
       </div>
     </div>
   )
@@ -76,7 +84,7 @@ export function MobileCollectifSection({
         activeSection={activeSection}
         sectionTabs={sectionTabs}
         onSectionChange={onSectionChange}
-        summaryText={`${mobileCollectifs.length} collectif(s) visible(s)`}
+        summaryText={`${mobileCollectifs.length} visible(s) · ${collectifsInstagramCount} avec réseau · ${collectifsPhotoCount} avec visuel`}
         sortDirection={collectifSortConfig.direction}
         onSortAsc={() => onCollectifSortConfigChange(prev => ({ ...prev, direction: 'asc' }))}
         onSortDesc={() => onCollectifSortConfigChange(prev => ({ ...prev, direction: 'desc' }))}
@@ -88,9 +96,9 @@ export function MobileCollectifSection({
       <div style={mobileContentStyle}>
         <MobileStatsGrid
           items={[
-            { label: 'Actifs', value: collectifsActiveCount },
-            { label: 'Instagram', value: collectifsInstagramCount },
-            { label: 'Photo', value: collectifsPhotoCount },
+            { label: 'Repérés', value: collectifsActiveCount },
+            { label: 'Réseau', value: collectifsInstagramCount, accent: '#0a5f00' },
+            { label: 'Visuel', value: collectifsPhotoCount },
           ]}
           columns={3}
         />

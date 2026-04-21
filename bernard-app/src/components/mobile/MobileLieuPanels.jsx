@@ -19,6 +19,11 @@ export function MobileLieuDetail({ lieu, onClose, onQuickEdit }) {
       </div>
 
       <div style={{ padding: '12px 12px 84px 12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
+          <MobileButton onClick={() => lieu.instagram ? window.open(lieu.instagram, '_blank', 'noopener,noreferrer') : null} disabled={!lieu.instagram}>Instagram</MobileButton>
+          <MobileButton primary onClick={() => onQuickEdit(lieu)}>⚡ Modifier</MobileButton>
+        </div>
+
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
           <img src={lieu.photo || '/sanglier.png'} alt="" style={{ width: '92px', height: '92px', objectFit: 'cover', border: '2px solid #808080', background: '#ddd', flexShrink: 0 }} />
           <div style={{ minWidth: 0 }}>
@@ -28,7 +33,7 @@ export function MobileLieuDetail({ lieu, onClose, onQuickEdit }) {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
           {quickFacts.map(item => <MobileSummaryCard key={item.label} label={item.label} value={item.value} />)}
         </div>
 
@@ -39,12 +44,15 @@ export function MobileLieuDetail({ lieu, onClose, onQuickEdit }) {
           <div><b>Instagram :</b> {lieu.instagram || '—'}</div>
         </div>
 
+        <div style={{ background: '#eef3ff', border: '2px solid', borderColor: '#fff #5d78a6 #5d78a6 #fff', padding: '10px', fontSize: '13px' }}>
+          <b>Repère exploitation</b>
+          <div style={{ marginTop: '4px' }}>{lieu.capacite ? `Capacité renseignée : ${lieu.capacite}.` : 'Capacité encore absente.'} {lieu.instagram ? 'Le lieu a un point de contact Instagram.' : 'Pas de point de contact Instagram visible.'}</div>
+        </div>
+
         {lieu.notes && <div style={{ background: '#fff', border: '2px solid', borderColor: '#808080 #fff #fff #808080', padding: '10px', whiteSpace: 'pre-wrap', fontSize: '13px' }}><b>Notes</b><div style={{ marginTop: '6px' }}>{lieu.notes}</div></div>}
         {lieu.note_perso && <div style={{ background: '#fff7ff', border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '10px', whiteSpace: 'pre-wrap', fontSize: '13px' }}><b>Note perso</b><div style={{ marginTop: '6px' }}>{lieu.note_perso}</div></div>}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          <MobileButton onClick={() => lieu.instagram ? window.open(lieu.instagram, '_blank', 'noopener,noreferrer') : null} disabled={!lieu.instagram}>Instagram</MobileButton>
-          <MobileButton primary onClick={() => onQuickEdit(lieu)}>⚡ Modifier</MobileButton>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
           <MobileButton onClick={onClose}>Retour</MobileButton>
         </div>
       </div>
@@ -100,7 +108,7 @@ export function MobileLieuQuickEditSheet({ lieu, lieux, onSave, onClose }) {
             <MobileField label="Notes"><textarea name="notes" defaultValue={lieu.notes || ''} style={{ ...inputStyle, minHeight: '90px', resize: 'vertical' }} /></MobileField>
             <MobileField label="Note perso"><textarea name="note_perso" defaultValue={lieu.note_perso || ''} style={{ ...inputStyle, minHeight: '90px', resize: 'vertical' }} /></MobileField>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingBottom: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', paddingBottom: '8px' }}>
             <MobileButton type="button" onClick={onClose}>Annuler</MobileButton>
             <MobileButton type="submit" primary>Enregistrer</MobileButton>
           </div>

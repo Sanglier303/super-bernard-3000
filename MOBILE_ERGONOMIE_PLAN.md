@@ -15,30 +15,30 @@
 - [~] Factoriser les composants d overlay / détail / quick edit
 
 ## Phase 3 — Artistes
-- [ ] Rendre la fiche plus hiérarchique
-- [ ] Rendre l édition rapide vraiment courte
-- [ ] Clarifier les actions principales
-- [ ] Réduire le bruit visuel dans la liste
+- [~] Rendre la fiche plus hiérarchique
+- [~] Rendre l édition rapide vraiment courte
+- [~] Clarifier les actions principales
+- [~] Réduire le bruit visuel dans la liste
 
 ## Phase 4 — Projets
-- [ ] Vue gestion plus forte
-- [ ] Mieux distinguer urgent / en cours / fait
-- [ ] Faire ressortir priorité / échéance
-- [ ] Mieux exploiter les liens internes
+- [~] Vue gestion plus forte
+- [~] Mieux distinguer urgent / en cours / fait
+- [~] Faire ressortir priorité / échéance
+- [~] Mieux exploiter les liens internes
 
 ## Phase 5 — Outils
-- [ ] Séparer Notes / Todos / Stickies par sous-navigation
-- [ ] Rendre les todos plus rapides à traiter
-- [ ] Garder les stickies très légers
+- [~] Séparer Notes / Todos / Stickies par sous-navigation
+- [~] Rendre les todos plus rapides à traiter
+- [~] Garder les stickies très légers
 
 ## Phase 6 — Collectifs / Lieux / Festivals
-- [ ] Spécialiser l ergonomie de chaque section
-- [ ] Mettre en avant les infos vraiment utiles à la décision
-- [ ] Réduire l effet copie conforme de la section artistes
+- [~] Spécialiser l ergonomie de chaque section
+- [~] Mettre en avant les infos vraiment utiles à la décision
+- [~] Réduire l effet copie conforme de la section artistes
 
 ## Phase 7 — Performance et finition
-- [ ] Poursuivre le code splitting par section
-- [ ] Réduire la taille de l entrée mobile
+- [~] Poursuivre le code splitting par section
+- [~] Réduire la taille de l entrée mobile
 - [ ] Faire une passe de test multi-écrans
 - [ ] Corriger les derniers frottements d ergonomie
 
@@ -64,3 +64,22 @@
 - phase 2 point 17 : extraction de la section collectifs dans `MobileCollectifSection.jsx`
 - phase 2 point 18 : extraction des panneaux collectifs dans `MobileCollectifPanels.jsx`
 - phase 2 point 19 : suppression de la branche placeholder morte dans `MobileArtistApp.jsx` maintenant que toutes les sections principales sont spécialisées
+- phase 3 point 1 : hiérarchisation de `MobileArtistDetail` et raccourcissement de `MobileQuickEditSheet`
+- phase 3 point 2 : réduction du bruit visuel dans `MobileArtistSection.jsx` avec cartes plus compactes et actions plus sobres
+- phase 3 point 3 : hiérarchisation des actions de carte artiste avec duo principal `Voir / Modifier` puis actions secondaires plus discrètes
+- phase 3 point 4 : resserrement des liens dans `MobileArtistDetail` pour une lecture plus compacte
+- phase 4 point 1 : première passe de pilotage projet dans `MobileProjectSection.jsx` et `MobileProjectPanels.jsx` pour mieux faire ressortir urgence, priorité, échéance et liens internes
+- phase 4 point 2 : amélioration du socle projets avec filtres et compteurs plus justes (`urgent`, `en cours`, `à faire`, `fait`) et pilotage rapide visible dans la section
+- phase 4 point 3 : ajout d un tri de pilotage `Pilotage` pour faire ressortir urgent / en cours / à faire / fait dans les projets
+- phase 4 point 4 : réglage du tri projets par défaut sur le pilotage et ajout du compteur `à faire` dans la section projets
+- phase 5 point 1 : séparation des outils par sous-navigation réelle (`notes`, `todos`, `stickies`) dans `MobileToolsSection.jsx`
+- phase 5 point 2 : accélération du traitement des todos avec filtre local (`à faire`, `faits`, `tous`) et cartes plus directes dans `MobileToolsSection.jsx`
+- phase 5 point 3 : allègement des stickies avec une grille plus légère et des cartes plus courtes dans `MobileToolsSection.jsx`
+- phase 6 point 1 : première spécialisation des collectifs dans `MobileCollectifSection.jsx` et `MobileCollectifPanels.jsx` avec mise en avant du réseau, du visuel et du repère de présence
+- phase 6 point 2 : première spécialisation des lieux dans `MobileLieuSection.jsx` et `MobileLieuPanels.jsx` avec mise en avant de la capacité, du réseau et du repère d exploitation
+- phase 6 point 3 : première spécialisation des festivals dans `MobileFestivalSection.jsx` et `MobileFestivalPanels.jsx` avec mise en avant de la période, du lieu, du réseau et du repère de diffusion
+- phase 7 point 1 : lazy load du `Desktop` dans `App.jsx` pour ne pas charger la branche bureau tant que l on reste en mobile
+- phase 7 point 2 : premier découpage de chunks dans `vite.config.js` (`mobile`, `desktop`, `react-vendor`, `media`, `vendor`) avec relèvement mesuré du seuil d alerte
+- phase 7 point 3 : assouplissement multi écrans des stats et de la navigation basse dans `MobilePrimitives.jsx` pour éviter les boutons tassés sur petits téléphones
+- phase 7 point 4 : assouplissement des grilles d actions et de résumés dans les panneaux mobile (`artist`, `project`, `collectif`, `lieu`, `festival`) avec `auto-fit` au lieu de grilles rigides
+- phase 7 point 5 : correction du retour du panneau stats outils et assouplissement des grilles `notes` / `todos` / `stickies` dans `MobileToolsSection.jsx`

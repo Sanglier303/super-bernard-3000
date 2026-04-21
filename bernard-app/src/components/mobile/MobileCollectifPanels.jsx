@@ -19,6 +19,11 @@ export function MobileCollectifDetail({ collectif, onClose, onQuickEdit }) {
       </div>
 
       <div style={{ padding: '12px 12px 84px 12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
+          <MobileButton onClick={() => collectif.instagram ? window.open(collectif.instagram, '_blank', 'noopener,noreferrer') : null} disabled={!collectif.instagram}>Instagram</MobileButton>
+          <MobileButton primary onClick={() => onQuickEdit(collectif)}>⚡ Modifier</MobileButton>
+        </div>
+
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
           <img src={collectif.photo || '/sanglier.png'} alt="" style={{ width: '92px', height: '92px', objectFit: 'cover', border: '2px solid #808080', background: '#ddd', flexShrink: 0 }} />
           <div style={{ minWidth: 0 }}>
@@ -28,7 +33,7 @@ export function MobileCollectifDetail({ collectif, onClose, onQuickEdit }) {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
           {quickFacts.map(item => <MobileSummaryCard key={item.label} label={item.label} value={item.value} />)}
         </div>
 
@@ -38,6 +43,11 @@ export function MobileCollectifDetail({ collectif, onClose, onQuickEdit }) {
           <div><b>Instagram :</b> {collectif.instagram || '—'}</div>
         </div>
 
+        <div style={{ background: '#eef3ff', border: '2px solid', borderColor: '#fff #5d78a6 #5d78a6 #fff', padding: '10px', fontSize: '13px' }}>
+          <b>Repère réseau</b>
+          <div style={{ marginTop: '4px' }}>{collectif.instagram ? 'Le collectif a déjà une présence Instagram exploitable.' : 'Le collectif n a pas encore de présence Instagram visible dans la base.'}</div>
+        </div>
+
         {collectif.notes && (
           <div style={{ background: '#fff', border: '2px solid', borderColor: '#808080 #fff #fff #808080', padding: '10px', whiteSpace: 'pre-wrap', fontSize: '13px' }}>
             <b>Notes</b>
@@ -45,9 +55,7 @@ export function MobileCollectifDetail({ collectif, onClose, onQuickEdit }) {
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingBottom: '12px' }}>
-          <MobileButton onClick={() => collectif.instagram ? window.open(collectif.instagram, '_blank', 'noopener,noreferrer') : null} disabled={!collectif.instagram}>Instagram</MobileButton>
-          <MobileButton primary onClick={() => onQuickEdit(collectif)}>⚡ Modifier</MobileButton>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', paddingBottom: '12px' }}>
           <MobileButton onClick={onClose}>Retour</MobileButton>
         </div>
       </div>
@@ -120,7 +128,7 @@ export function MobileCollectifQuickEditSheet({ collectif, collectifs, onSave, o
             <MobileField label="Notes"><textarea name="notes" defaultValue={collectif.notes || ''} style={{ ...inputStyle, minHeight: '110px', resize: 'vertical' }} /></MobileField>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px', paddingBottom: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', marginTop: '4px', paddingBottom: '8px' }}>
             <MobileButton type="button" onClick={onClose}>Annuler</MobileButton>
             <MobileButton type="submit" primary>Enregistrer</MobileButton>
           </div>

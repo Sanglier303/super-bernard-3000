@@ -8,6 +8,7 @@ import {
   getCollectifSortValue,
   getLieuSortValue,
   getFestivalSortValue,
+  getProjectFlags,
   getProjectSortValue,
 } from './MobileDataUtils'
 import { MobileArtistSection } from './MobileArtistSection'
@@ -48,10 +49,10 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   const [detailProject, setDetailProject] = useState(null)
   const [quickEditProject, setQuickEditProject] = useState(null)
   const [projectFilter, setProjectFilter] = useState('all')
-  const [projectSortConfig, setProjectSortConfig] = useState({ key: 'name', direction: 'asc' })
+  const [projectSortConfig, setProjectSortConfig] = useState({ key: 'urgency', direction: 'desc' })
   const [activeProjectPanel, setActiveProjectPanel] = useState('browse')
   const [toolsSearchQuery, setToolsSearchQuery] = useState('')
-  const [activeToolsPanel, setActiveToolsPanel] = useState('browse')
+  const [activeToolsPanel, setActiveToolsPanel] = useState('notes')
   const [editingNote, setEditingNote] = useState(null)
   const [editingTodo, setEditingTodo] = useState(null)
   const [editingSticky, setEditingSticky] = useState(null)
@@ -173,7 +174,7 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
     setDetailProject(null)
     setQuickEditProject(null)
     setActiveProjectPanel('browse')
-    setActiveToolsPanel('browse')
+    setActiveToolsPanel('notes')
     setEditingNote(null)
     setEditingTodo(null)
     setEditingSticky(null)
@@ -185,7 +186,7 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
     || detailLieu || quickEditLieu || activeLieuPanel !== 'browse'
     || detailFestival || quickEditFestival || activeFestivalPanel !== 'browse'
     || detailProject || quickEditProject || activeProjectPanel !== 'browse'
-    || editingNote || editingTodo || editingSticky || activeToolsPanel !== 'browse'
+    || editingNote || editingTodo || editingSticky || activeToolsPanel === 'stats'
   )
 
   useEffect(() => {
@@ -291,10 +292,12 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
         const status = (project.statut || '').toLowerCase()
         const priority = (project.priorite || '').toLowerCase()
         const matchSearch = !q || name.includes(q) || status.includes(q) || priority.includes(q)
+        const flags = getProjectFlags(project)
         const matchFilter = projectFilter === 'all'
-          || (projectFilter === 'urgent' && (project.priorite || '').toLowerCase().includes('haut'))
-          || (projectFilter === 'todo' && (project.statut || '').toLowerCase().includes('todo'))
-          || (projectFilter === 'done' && (project.statut || '').toLowerCase().includes('fait'))
+          || (projectFilter === 'urgent' && flags.isUrgent)
+          || (projectFilter === 'doing' && flags.isDoing)
+          || (projectFilter === 'todo' && flags.isTodo)
+          || (projectFilter === 'done' && flags.isDone)
         return matchSearch && matchFilter
       })
       .sort((a, b) => {
@@ -331,9 +334,12 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
   const festivalsActiveCount = festivals.filter(festival => festival.archive !== 'true').length
   const festivalsInstagramCount = festivals.filter(festival => festival.archive !== 'true' && String(festival.instagram || '').trim()).length
   const festivalsPhotoCount = festivals.filter(festival => festival.archive !== 'true' && String(festival.photo || '').trim()).length
-  const projectsActiveCount = projects.filter(project => project.archive !== 'true').length
-  const projectsUrgentCount = projects.filter(project => project.archive !== 'true' && (project.priorite || '').toLowerCase().includes('haut')).length
-  const projectsDoneCount = projects.filter(project => project.archive !== 'true' && (project.statut || '').toLowerCase().includes('fait')).length
+  const activeProjects = projects.filter(project => project.archive !== 'true')
+  const projectsActiveCount = activeProjects.length
+  const projectsUrgentCount = activeProjects.filter(project => getProjectFlags(project).isUrgent).length
+  const projectsDoingCount = activeProjects.filter(project => getProjectFlags(project).isDoing).length
+  const projectsTodoCount = activeProjects.filter(project => getProjectFlags(project).isTodo).length
+  const projectsDoneCount = activeProjects.filter(project => getProjectFlags(project).isDone).length
   const notesActiveCount = notes.filter(note => note.archive !== 'true').length
   const todosActiveCount = todos.filter(todo => todo.archive !== 'true').length
   const todosDoneCount = todos.filter(todo => todo.archive !== 'true' && todo.complete === 'true').length
@@ -361,6 +367,7 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
     { key: 'photo', label: 'Photo' },
   ]
   const projectSortOptions = [
+    { key: 'urgency', label: 'Pilotage' },
     { key: 'name', label: 'Nom' },
     { key: 'status', label: 'Statut' },
     { key: 'priority', label: 'Priorité' },
@@ -555,6 +562,8 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
         projectSortOptions={projectSortOptions}
         projectsActiveCount={projectsActiveCount}
         projectsUrgentCount={projectsUrgentCount}
+        projectsDoingCount={projectsDoingCount}
+        projectsTodoCount={projectsTodoCount}
         projectsDoneCount={projectsDoneCount}
         detailProject={detailProject}
         onOpenProjectDetail={openProjectDetail}
@@ -589,9 +598,9 @@ export function MobileArtistApp({ artists, loading, saveArtists, saveCollectifs,
         mobileNotes={mobileNotes}
         mobileTodos={mobileTodos}
         mobileStickies={mobileStickies}
-        onCreateNote={() => setEditingNote({})}
-        onCreateTodo={() => setEditingTodo({})}
-        onCreateSticky={() => setEditingSticky({})}
+        onCreateNote={() => { setActiveToolsPanel('notes'); setEditingNote({}) }}
+        onCreateTodo={() => { setActiveToolsPanel('todos'); setEditingTodo({}) }}
+        onCreateSticky={() => { setActiveToolsPanel('stickies'); setEditingSticky({}) }}
         onEditNote={setEditingNote}
         onEditTodo={setEditingTodo}
         onEditSticky={setEditingSticky}
