@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { raised, sunken, winFont, Win95Button } from "./ArtistWindowCommon";
-import { PROJECT_STATUSES } from "./ProjectManagerUtils";
+import { getProjectLinkedId, PROJECT_STATUSES } from "./ProjectManagerUtils";
 
 function TitleBar({ title, onClose }) {
   return (
@@ -27,7 +27,7 @@ function TitleBar({ title, onClose }) {
 
 export function ProjectFormModal({ project, onSave, onCancel, artists, collectifs, lieux, festivals }) {
   const [type, setType] = useState(project?.linked_type || '');
-  const [linkedId, setLinkedId] = useState(project?.linkedid || '');
+  const [linkedId, setLinkedId] = useState(getProjectLinkedId(project));
 
   const entities = useMemo(() => {
     if (type === 'Artiste') return artists || [];
@@ -42,7 +42,7 @@ export function ProjectFormModal({ project, onSave, onCancel, artists, collectif
     const fd = new FormData(e.target);
     const data = Object.fromEntries(fd.entries());
     data.linked_type = type;
-    data.linkedid = linkedId;
+    data.linked_id = linkedId;
     onSave(data);
   };
 

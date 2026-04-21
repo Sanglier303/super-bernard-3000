@@ -1,5 +1,9 @@
 export const PROJECT_STATUSES = ["À faire", "En cours", "En attente", "Terminé"];
 
+export function getProjectLinkedId(project) {
+  return project?.linked_id || project?.linkedid || '';
+}
+
 export function getEntityName(type, id, artists, collectifs, lieux, festivals) {
   if (!type || !id) return '';
   if (type === 'Artiste') return artists?.find(a => String(a.id) === String(id))?.nom_artiste || 'Inconnu';

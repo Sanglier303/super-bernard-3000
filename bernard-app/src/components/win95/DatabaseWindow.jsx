@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { isArtistValidated, raised, sunken, winFont, Win95Button } from "./ArtistWindowCommon";
 import { compareSortValues, getArtistSortValue, getMainStyles } from "./DatabaseArtistUtils";
 import { DatabaseSidebar } from "./DatabaseSidebar";
@@ -22,6 +22,8 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh, openW
   const [showAvatars, setShowAvatars] = useState(true)
   
   const searchInputRef = useRef(null)
+  const listScrollRef = useRef(null)
+  const pendingScrollRestoreRef = useRef(null)
 
   const handleAdd = () => {
     openWindow('artist_edit_new', { artist: null, artistName: 'Nouv. Entité' });
@@ -48,6 +50,7 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh, openW
     const isValidated = isArtistValidated(selectedArtist)
     const today = new Date().toISOString().slice(0, 10)
     let nextSelected = null
+    pendingScrollRestoreRef.current = listScrollRef.current?.scrollTop ?? 0
     const updated = artists.map(a => {
       if (String(a.id) !== String(selectedArtist.id)) return a
       nextSelected = {
@@ -100,6 +103,7 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh, openW
     const name = contextArtist.nom_artiste || contextArtist.nom || 'Artiste'
     const isValidated = isArtistValidated(contextArtist)
     const today = new Date().toISOString().slice(0, 10)
+    pendingScrollRestoreRef.current = listScrollRef.current?.scrollTop ?? 0
     const updated = artists.map(a =>
       String(a.id) === String(contextArtist.id)
         ? {
@@ -172,6 +176,18 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh, openW
   }, [artists, searchQuery, activeStyle, validationFilter, sortConfig])
 
   const mainStyles = useMemo(() => getMainStyles(artists), [artists])
+
+  useEffect(() => {
+    if (pendingScrollRestoreRef.current === null) return
+    const restoreTo = pendingScrollRestoreRef.current
+    const frame = window.requestAnimationFrame(() => {
+      if (listScrollRef.current) {
+        listScrollRef.current.scrollTop = restoreTo
+      }
+      pendingScrollRestoreRef.current = null
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [artists])
   const uniqueZones = new Set(artists.map(a => a.zone).filter(Boolean)).size
   const validatedCount = artists.filter(isArtistValidated).length
 
@@ -346,6 +362,7 @@ export function DatabaseWindow({ artists, loading, saveArtists, onRefresh, openW
           setContextArtist={setContextArtist}
           setContextMenuPos={setContextMenuPos}
           playTrack={playTrack}
+          listScrollRef={listScrollRef}
         />
       </div>
 

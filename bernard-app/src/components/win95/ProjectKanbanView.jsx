@@ -1,5 +1,6 @@
 import React from "react";
 import { raised, sunken, winFont } from "./ArtistWindowCommon";
+import { getProjectLinkedId } from "./ProjectManagerUtils";
 
 export function ProjectKanbanView({
   statuses,
@@ -61,9 +62,9 @@ export function ProjectKanbanView({
               >
                 <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>{p.nom}</div>
                 <div style={{ fontSize: '9px', opacity: 0.8 }}>{p.priorite}</div>
-                {p.linked_type && (
+                {p.linked_type && getProjectLinkedId(p) && (
                   <div style={{ fontSize: '9px', marginTop: '2px', color: String(selectedProjectId) === String(p.id) ? '#ccf' : '#000080' }}>
-                    🔗 {getEntityName(p.linked_type, p.linkedid)}
+                    🔗 {getEntityName(p.linked_type, getProjectLinkedId(p))}
                   </div>
                 )}
               </div>

@@ -4,7 +4,7 @@ import { ProjectFormModal } from "./ProjectFormModal";
 import { ProjectStatusSidebar } from "./ProjectStatusSidebar";
 import { ProjectTableView } from "./ProjectTableView";
 import { ProjectKanbanView } from "./ProjectKanbanView";
-import { PROJECT_STATUSES, getEntityName as getProjectEntityName } from "./ProjectManagerUtils";
+import { PROJECT_STATUSES, getEntityName as getProjectEntityName, getProjectLinkedId } from "./ProjectManagerUtils";
 
 export function ProjectManager({ projects, artists, collectifs, lieux, festivals, loading, saveProjects, onRefresh }) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -23,6 +23,7 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
 
   const filteredProjects = useMemo(() => {
     const q = (searchQuery || '').toLowerCase();
+    const activeStatusNormalized = (activeStatus || '').toLowerCase();
     return (projects || []).filter(p => {
       // Archive filter
       if (p.archive === "true") return false;
@@ -30,7 +31,7 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
       const n = (p.nom || '').toLowerCase();
       const s = (p.statut || '').toLowerCase();
       const matchSearch = !q || n.includes(q);
-      const matchStatus = !activeStatus || s === activeStatus;
+      const matchStatus = !activeStatusNormalized || s === activeStatusNormalized;
       return matchSearch && matchStatus;
     });
   }, [projects, searchQuery, activeStatus])
@@ -138,6 +139,15 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
 
   const getEntityName = (type, id) => getProjectEntityName(type, id, artists, collectifs, lieux, festivals);
 
+  const normalizeProject = (project) => {
+    if (!project) return project;
+    const linked_id = getProjectLinkedId(project);
+    return {
+      ...project,
+      linked_id,
+    };
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#c0c0c0' }}>
       {/* Toolbar */}
@@ -202,18 +212,24 @@ export function ProjectManager({ projects, artists, collectifs, lieux, festivals
       {/* Add/Edit Modal */}
       {addEditOpen && (
         <ProjectFormModal
-          project={editingProjectId ? projects.find(p => p.id === editingProjectId) : null}
+          project={editingProjectId ? projects.find(p => String(p.id) === String(editingProjectId)) : null}
           artists={artists}
           collectifs={collectifs}
           lieux={lieux}
           festivals={festivals}
           onSave={(data) => {
              let updated
+             let savedProjectId
              if (editingProjectId) {
-               updated = projects.map(p => p.id === editingProjectId ? { ...p, ...data } : p)
+               savedProjectId = editingProjectId
+               updated = projects.map(p => String(p.id) === String(editingProjectId) ? normalizeProject({ ...p, ...data }) : normalizeProject(p))
              } else {
-               updated = [...projects, { id: crypto.randomUUID?.() || Date.now().toString(), ...data }]
+               savedProjectId = crypto.randomUUID?.() || Date.now().toString()
+               updated = [...projects.map(normalizeProject), normalizeProject({ id: savedProjectId, ...data })]
+               setSearchQuery('')
+               setActiveStatus(null)
              }
+             setSelectedProjectId(savedProjectId)
              setAddEditOpen(false)
              saveProjects(updated, editingProjectId ? `Édition : ${data.nom}` : `Nouveau : ${data.nom}`)
           }}

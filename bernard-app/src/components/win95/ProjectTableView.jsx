@@ -1,4 +1,5 @@
 import React from "react";
+import { getProjectLinkedId } from "./ProjectManagerUtils";
 
 export function ProjectTableView({
   loading,
@@ -40,9 +41,9 @@ export function ProjectTableView({
               <td style={{ padding: '4px' }}>{p.statut}</td>
               <td style={{ padding: '4px' }}>{p.priorite}</td>
               <td style={{ padding: '4px' }}>
-                {p.linked_type && p.linkedid ? (
+                {p.linked_type && getProjectLinkedId(p) ? (
                   <span title={`Lié à: ${p.linked_type}`} style={{ color: String(selectedProjectId) === String(p.id) ? '#fff' : '#000080' }}>
-                    🔗 {getEntityName(p.linked_type, p.linkedid)}
+                    🔗 {getEntityName(p.linked_type, getProjectLinkedId(p))}
                   </span>
                 ) : '—'}
               </td>

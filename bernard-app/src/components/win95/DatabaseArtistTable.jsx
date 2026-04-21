@@ -15,6 +15,7 @@ export function DatabaseArtistTable({
   setContextArtist,
   setContextMenuPos,
   playTrack,
+  listScrollRef,
 }) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, padding: 2 }}>
@@ -34,7 +35,7 @@ export function DatabaseArtistTable({
             </div>
           ))}
         </div>
-        <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div ref={listScrollRef} style={{ flex: 1, overflowY: 'auto' }}>
           {loading ? (
             <div style={{ ...winFont, padding: '20px', textAlign: 'center', color: '#000080' }}>Chargement...</div>
           ) : filteredArtists.length === 0 ? (
