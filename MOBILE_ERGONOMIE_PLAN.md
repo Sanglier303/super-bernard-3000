@@ -91,3 +91,4 @@
 - phase 7 point 11 : découpe plus fine du bureau dans `vite.config.js` (`desktop-core`, `desktop-artists`, `desktop-network`, `desktop-tools`) pour ne pas recompactar tout `win95` dans un seul chunk malgré le lazy load
 - phase 7 point 12 : ajout de priorités et de tailles cibles (`minSize`, `maxSize`) dans `rolldownOptions.output.codeSplitting` pour pousser une découpe plus réelle au lieu de simples groupes nommés
 - phase 7 point 13 : éclatement réel du bloc `ArtistSubWindows.jsx` en fichiers séparés (`ArtistDetailView`, `ArtistEditView`, `ArtistQuickEditView`, `ArtistWindowCommon`) et recâblage du lazy load bureau dessus
+- phase 7 point 14 : découpe de `DatabaseWindow.jsx` en sous-composants (`DatabaseArtistUtils`, `DatabaseSidebar`, `DatabaseArtistTable`) pour réduire le gros bloc artistes bureau restant

@@ -19,7 +19,7 @@ export default defineConfig({
             { test: /\/src\/components\/mobile\/(MobileToolsSection|MobileToolsEditors)\.jsx$/, name: 'mobile-tools', priority: 44 },
             { test: /\/src\/components\/mobile\/(MobileArtistApp|MobilePrimitives|MobileDataUtils|MobileShell)\.jsx$|\/src\/components\/mobile\/MobileDataUtils\.js$/, name: 'mobile-core', priority: 42 },
             { test: /\/src\/components\/win95\/(Desktop|DraggableWindow|StartMenu|Mascot|StickyNotes)\.jsx$|\/src\/constants\/wallpapers\.js$/, name: 'desktop-core', priority: 40 },
-            { test: /\/src\/components\/win95\/(DatabaseWindow|ArtistSubWindows|ArtistDetailView|ArtistEditView|ArtistQuickEditView|ArtistWindowCommon)\.jsx$/, name: 'desktop-artists', priority: 38 },
+            { test: /\/src\/components\/win95\/(DatabaseWindow|DatabaseArtistUtils|DatabaseSidebar|DatabaseArtistTable|ArtistSubWindows|ArtistDetailView|ArtistEditView|ArtistQuickEditView|ArtistWindowCommon)\.jsx$/, name: 'desktop-artists', priority: 38 },
             { test: /\/src\/components\/win95\/(CollectifsWindow|LieuxWindow|FestivalsWindow)\.jsx$/, name: 'desktop-network', priority: 36 },
             { test: /\/src\/components\/win95\/(ProjectManager|CalendarWindow|NotePadWindow|DesktopSettings|UniversalSearch|StickyManager|TodoWindow|TrashWindow|ManualWindow|RadioWindow)\.jsx$/, name: 'desktop-tools', priority: 34 },
             { test: /node_modules\//, name: 'vendor', priority: 10 },
