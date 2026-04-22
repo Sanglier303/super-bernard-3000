@@ -11,6 +11,49 @@ function cleanAudioUrl(url) {
   return String(url || '').trim().replace(/[),;]+$/, '')
 }
 
+function parseUrl(url) {
+  try {
+    return new URL(url)
+  } catch {
+    try {
+      return new URL(`https://${url}`)
+    } catch {
+      return null
+    }
+  }
+}
+
+function normalizeAudioUrl(url, sourceKey) {
+  const cleaned = cleanAudioUrl(url)
+  if (!cleaned || sourceKey !== 'soundcloud') return cleaned
+
+  const parsed = parseUrl(cleaned)
+  if (!parsed) return cleaned
+
+  const host = parsed.hostname.replace(/^www\./, '')
+  if (host !== 'soundcloud.com' && host !== 'm.soundcloud.com') return cleaned
+
+  const parts = parsed.pathname.split('/').filter(Boolean)
+  if (parts.length === 1) {
+    parsed.pathname = `/${parts[0]}/tracks`
+    return parsed.toString()
+  }
+
+  return cleaned
+}
+
+function getSoundCloudMode(url) {
+  const parsed = parseUrl(url)
+  if (!parsed) return 'single'
+
+  const host = parsed.hostname.replace(/^www\./, '')
+  if (host !== 'soundcloud.com' && host !== 'm.soundcloud.com') return 'single'
+
+  const parts = parsed.pathname.split('/').filter(Boolean)
+  if (parts.length >= 2 && parts[1] === 'tracks') return 'profile-tracks'
+  return 'single'
+}
+
 function extractAudioUrls(value) {
   const text = String(value || '').trim()
   if (!text) return []
@@ -26,13 +69,18 @@ function extractAudioUrls(value) {
 
 function getArtistAudioTracks(artist) {
   return AUDIO_SOURCE_FIELDS.flatMap(([field, source]) =>
-    extractAudioUrls(artist?.[field]).map((url, index, urls) => ({
-      url,
-      source,
-      sourceKey: field,
-      sourceIndex: index,
-      sourceCount: urls.length,
-    }))
+    extractAudioUrls(artist?.[field]).map((rawUrl, index, urls) => {
+      const url = normalizeAudioUrl(rawUrl, field)
+      const mode = field === 'soundcloud' ? getSoundCloudMode(url) : 'single'
+      return {
+        url,
+        source,
+        sourceKey: field,
+        sourceIndex: index,
+        sourceCount: urls.length,
+        mode,
+      }
+    })
   )
 }
 
@@ -156,6 +204,7 @@ export default function App() {
       sourceKey: track.sourceKey,
       sourceIndex: track.sourceIndex,
       sourceCount: track.sourceCount,
+      mode: track.mode,
       trackIndex: safeIndex,
       trackCount: tracks.length,
     })
@@ -167,6 +216,11 @@ export default function App() {
 
     const nextTrackIndex = (currentTrack.trackIndex ?? 0) + 1
     const tracks = getArtistAudioTracks(currentTrack.artist)
+    if (currentTrack.mode === 'profile-tracks') {
+      showToast("Pour SoundCloud, la suite se pilote dans le widget intégré")
+      return
+    }
+
     if (nextTrackIndex >= tracks.length) {
       showToast("Pas d autre morceau pour cet artiste")
       return

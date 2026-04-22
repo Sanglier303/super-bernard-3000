@@ -64,7 +64,11 @@ export function RadioWindow({ currentTrack, onNextTrack, onNextArtist, onClose }
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
           <div style={{ color: '#00ff00', fontSize: '10px', fontWeight: 'bold' }}>
             WINAMP 3000 - {currentTrack.source}
-            {currentTrack.trackCount > 1 ? ` (${(currentTrack.trackIndex || 0) + 1}/${currentTrack.trackCount})` : ''}
+            {currentTrack.mode === 'profile-tracks'
+              ? ' (PROFIL /TRACKS)'
+              : currentTrack.trackCount > 1
+                ? ` (${(currentTrack.trackIndex || 0) + 1}/${currentTrack.trackCount})`
+                : ''}
           </div>
           <div style={{ ...lcdFont, minWidth: '80px', textAlign: 'right' }}>
             {isEmbed ? 'LIVE EM' : formatTime(duration * played) + ' / ' + formatTime(duration)}
@@ -103,7 +107,11 @@ export function RadioWindow({ currentTrack, onNextTrack, onNextArtist, onClose }
                  top: '10px'
                }}>
                  {currentTrack.source} : {currentTrack.artist.nom_artiste || currentTrack.artist.nom}
-                 {currentTrack.trackCount > 1 ? ` --- MORCEAU ${(currentTrack.trackIndex || 0) + 1}/${currentTrack.trackCount} --- ` : ' --- PLAYING IN BACKGROUND ---'}
+                 {currentTrack.mode === 'profile-tracks'
+                   ? ' --- SOUNDCLOUD TRACKS --- '
+                   : currentTrack.trackCount > 1
+                     ? ` --- MORCEAU ${(currentTrack.trackIndex || 0) + 1}/${currentTrack.trackCount} --- `
+                     : ' --- PLAYING IN BACKGROUND ---'}
                
                </div>
                
@@ -150,11 +158,13 @@ export function RadioWindow({ currentTrack, onNextTrack, onNextArtist, onClose }
 
           <button 
             onClick={onNextTrack}
+            disabled={currentTrack.mode === 'profile-tracks'}
             style={{ 
               ...raised, width: '58px', height: '30px', background: '#c0c0c0', 
-              fontSize: '10px', cursor: 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold'
+              fontSize: '10px', cursor: currentTrack.mode === 'profile-tracks' ? 'not-allowed' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold',
+              opacity: currentTrack.mode === 'profile-tracks' ? 0.5 : 1
             }}
-            title="Morceau suivant pour cet artiste"
+            title={currentTrack.mode === 'profile-tracks' ? "Sur un profil SoundCloud /tracks, utilisez les contrôles du widget" : "Morceau suivant pour cet artiste"}
           >
             ♫ SUIV
           </button>
@@ -199,7 +209,12 @@ export function RadioWindow({ currentTrack, onNextTrack, onNextArtist, onClose }
 
         <div style={{ ...sunken, background: '#efefef', padding: '4px 6px', fontSize: '9px', color: '#000', lineHeight: '1.3' }}>
           <div><strong>Artiste :</strong> {currentTrack.artist.nom_artiste || currentTrack.artist.nom}</div>
-          <div><strong>Morceau :</strong> {(currentTrack.trackIndex || 0) + 1}{currentTrack.trackCount > 1 ? ` / ${currentTrack.trackCount}` : ''}</div>
+          <div>
+            <strong>{currentTrack.mode === 'profile-tracks' ? 'Mode :' : 'Morceau :'}</strong>{' '}
+            {currentTrack.mode === 'profile-tracks'
+              ? 'Profil SoundCloud /tracks'
+              : `${(currentTrack.trackIndex || 0) + 1}${currentTrack.trackCount > 1 ? ` / ${currentTrack.trackCount}` : ''}`}
+          </div>
         </div>
 
         <div style={{ ...sunken, background: '#eee', padding: '4px', fontSize: '9px', color: '#666', marginTop: 'auto', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
