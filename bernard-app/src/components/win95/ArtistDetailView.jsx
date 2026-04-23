@@ -55,9 +55,7 @@ function InfoChip({ label, value, color = '#000', strong = false }) {
   return (
     <div style={{ ...sunken, background: '#efefef', padding: '4px 6px', minWidth: 0 }}>
       <div style={{ ...winFont, fontSize: '9px', color: '#666' }}>{label}</div>
-      <div style={{ ...winFont, color, fontWeight: strong ? 'bold' : 'normal', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-        {value || '—'}
-      </div>
+      <div style={{ ...winFont, color, fontWeight: strong ? 'bold' : 'normal' }}>{value || '—'}</div>
     </div>
   );
 }
@@ -92,8 +90,10 @@ export function ArtistDetailView({ artist, onClose, onEdit, playTrack, onToggleV
   const validationDate = formatValidationDate(artist.date_validation);
   const miniPlayer = getMiniPlayerUrl(artist);
   const artistName = artist.nom_artiste || artist.nom;
+  const styleText = [artist.style, artist.type_performance].filter(Boolean).join(' · ') || '—';
   const statusText = artist.statut_localite || 'Statut inconnu';
-  const locationText = [artist.zone, artist.commune_precise ? `(${artist.commune_precise})` : ''].filter(Boolean).join(' ');
+  const locationText = [artist.zone, artist.commune_precise ? `(${artist.commune_precise})` : ''].filter(Boolean).join(' ') || '—';
+  const validationText = validated ? `🐗 Validé${validationDate ? ` le ${validationDate}` : ''}` : 'À valider';
 
   return (
     <div style={{ padding: '12px', background: '#c0c0c0', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -105,65 +105,65 @@ export function ArtistDetailView({ artist, onClose, onEdit, playTrack, onToggleV
         </div>
 
         <div style={{ border: '2px solid', borderColor: '#fff #808080 #808080 #fff', padding: '12px', background: '#c0c0c0', marginTop: '-2px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: hasAudio ? '104px minmax(0, 1fr) 248px' : '104px minmax(0, 1fr)', gap: '12px', alignItems: 'start', marginBottom: '14px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <img
-                src={artist.photo_or_logo_link || artist.photo || "/sanglier.png"}
-                style={{ width: 96, height: 96, objectFit: 'cover', ...raised, background: '#fff' }}
-                alt={artistName}
-              />
-              <div style={{ ...sunken, background: '#efefef', padding: '4px 6px' }}>
-                <div style={{ ...winFont, fontSize: '9px', color: '#666' }}>Validation</div>
-                <div style={{ ...winFont, color: validated ? '#0a5f00' : '#666', fontWeight: 'bold' }}>
-                  {validated ? `🐗 Validé${validationDate ? ` le ${validationDate}` : ''}` : 'À valider'}
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
+            <div style={{ flex: '1 1 360px', minWidth: 0, ...sunken, background: '#efefef', padding: '10px' }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                <div style={{ width: 104, flexShrink: 0 }}>
+                  <img
+                    src={artist.photo_or_logo_link || artist.photo || "/sanglier.png"}
+                    style={{ width: 96, height: 96, objectFit: 'cover', ...raised, background: '#fff', display: 'block', marginBottom: '8px' }}
+                    alt={artistName}
+                  />
+                  <div style={{ ...sunken, background: '#efefef', padding: '4px 6px' }}>
+                    <div style={{ ...winFont, fontSize: '9px', color: '#666' }}>Validation</div>
+                    <div style={{ ...winFont, color: validated ? '#0a5f00' : '#666', fontWeight: 'bold' }}>{validationText}</div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <div style={{ minWidth: 0 }}>
-              <div style={{ ...winFont, fontSize: '18px', fontWeight: 'bold', marginBottom: '4px' }}>{artistName}</div>
-              <div style={{ ...winFont, color: '#444', marginBottom: '10px' }}>
-                {artist.style || '—'}
-                {artist.type_performance ? ` · ${artist.type_performance}` : ''}
-              </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ ...winFont, fontSize: '18px', fontWeight: 'bold', marginBottom: '4px' }}>{artistName}</div>
+                  <div style={{ ...winFont, color: '#444', marginBottom: '10px' }}>{styleText}</div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px', marginBottom: '10px' }}>
-                <InfoChip label="Statut" value={statusText} color="#000080" strong />
-                <InfoChip label="Localisation" value={locationText || '—'} />
-                <InfoChip label="Sous-genre" value={artist.sous_genre || '—'} />
-                <InfoChip label="Source" value={artist.source_type || '—'} />
-              </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px', marginBottom: '10px' }}>
+                    <InfoChip label="Statut" value={statusText} color="#000080" strong />
+                    <InfoChip label="Localisation" value={locationText} />
+                    <InfoChip label="Sous-genre" value={artist.sous_genre || '—'} />
+                    <InfoChip label="Source" value={artist.source_type || '—'} />
+                  </div>
 
-              <div style={{ ...sunken, background: '#fcfcfc', padding: '8px', marginBottom: '10px' }}>
-                <div style={{ ...winFont, fontSize: '9px', color: '#666', marginBottom: '3px' }}>Preuves / qualification</div>
-                <div style={{ ...winFont, color: '#333', whiteSpace: 'pre-wrap' }}>
-                  {artist.preuves || 'Aucune preuve renseignée'}
-                  {artist.date_preuve ? ` [Le ${artist.date_preuve}]` : ''}
-                  {artist.source_localite ? ` (ref: ${artist.source_localite})` : ''}
+                  <div style={{ ...sunken, background: '#fcfcfc', padding: '8px', marginBottom: '10px' }}>
+                    <div style={{ ...winFont, fontSize: '9px', color: '#666', marginBottom: '3px' }}>Preuves / qualification</div>
+                    <div style={{ ...winFont, color: '#333', whiteSpace: 'pre-wrap' }}>
+                      {artist.preuves || 'Aucune preuve renseignée'}
+                      {artist.date_preuve ? ` [Le ${artist.date_preuve}]` : ''}
+                      {artist.source_localite ? ` (ref: ${artist.source_localite})` : ''}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {onToggleValidation && (
+                      <Win95Button onClick={() => onToggleValidation(artist)} style={{ fontWeight: 'bold' }}>
+                        {validated ? '↺ Retirer 🐗' : '🐗 Valider'}
+                      </Win95Button>
+                    )}
+                    {hasAudio && (
+                      <Win95Button onClick={() => playTrack(artist)} style={{ fontWeight: 'bold' }}>▷ Écouter</Win95Button>
+                    )}
+                    <Win95Button onClick={onEdit}>Ouvrir...</Win95Button>
+                  </div>
                 </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {onToggleValidation && (
-                  <Win95Button onClick={() => onToggleValidation(artist)} style={{ fontWeight: 'bold' }}>
-                    {validated ? '↺ Retirer 🐗' : '🐗 Valider'}
-                  </Win95Button>
-                )}
-                {hasAudio && (
-                  <Win95Button onClick={() => playTrack(artist)} style={{ fontWeight: 'bold' }}>▷ Écouter</Win95Button>
-                )}
-                <Win95Button onClick={onEdit}>Ouvrir...</Win95Button>
               </div>
             </div>
 
             {hasAudio && (
-              <div style={{ ...sunken, background: '#efefef', padding: '8px', minWidth: 0 }}>
+              <div style={{ flex: '0 1 250px', width: 250, minWidth: 220, ...sunken, background: '#efefef', padding: '8px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                   <div style={{ ...winFont, fontWeight: 'bold', color: '#000080' }}>
                     ▷ Mini player{miniPlayer?.label ? ` — ${miniPlayer.label}` : ''}
                   </div>
                   <div style={{ ...winFont, fontSize: '9px', color: '#666' }}>desktop</div>
                 </div>
+
                 {miniPlayer ? (
                   <iframe
                     src={miniPlayer.url}
@@ -179,6 +179,7 @@ export function ArtistDetailView({ artist, onClose, onEdit, playTrack, onToggleV
                     Lecture intégrée non dispo pour ce lien......
                   </div>
                 )}
+
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   {artist.soundcloud && <LinkPill href={artist.soundcloud}>SoundCloud</LinkPill>}
                   {artist.bandcamp && <LinkPill href={artist.bandcamp}>Bandcamp</LinkPill>}
@@ -193,7 +194,7 @@ export function ArtistDetailView({ artist, onClose, onEdit, playTrack, onToggleV
 
           <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '8px', alignItems: 'start' }}>
             <span style={winFont}>Localisation :</span>
-            <span style={winFont}>{locationText || '—'}</span>
+            <span style={winFont}>{locationText}</span>
 
             <span style={winFont}>Sous-genre :</span>
             <span style={winFont}>{artist.sous_genre || '—'}</span>
@@ -201,16 +202,8 @@ export function ArtistDetailView({ artist, onClose, onEdit, playTrack, onToggleV
             <span style={winFont}>Qualif / Source :</span>
             <span style={winFont}>{artist.source_type || '—'} {artist.source_localite ? `(ref: ${artist.source_localite})` : ''}</span>
 
-            <span style={winFont}>Preuves :</span>
-            <span style={{ ...winFont, fontStyle: 'italic', color: '#555' }}>
-              {artist.preuves || 'Aucune preuve renseignée'}
-              {artist.date_preuve ? ` [Le ${artist.date_preuve}]` : ''}
-            </span>
-
             <span style={winFont}>Validation Bernard :</span>
-            <span style={{ ...winFont, color: validated ? '#0a5f00' : '#666', fontWeight: 'bold' }}>
-              {validated ? `🐗 Validé${validationDate ? ` le ${validationDate}` : ''}` : 'Non validé'}
-            </span>
+            <span style={{ ...winFont, color: validated ? '#0a5f00' : '#666', fontWeight: 'bold' }}>{validationText}</span>
           </div>
 
           <div style={{ height: '2px', ...sunken, margin: '12px 0' }} />
