@@ -6,6 +6,12 @@ Objectif actuel :
 - garder une version **lecture seule** exploitable tout de suite
 - preparer plus tard une vraie version editable via D1 / Functions
 
+## Etat actuel
+
+- la version **D1 editable en ligne** existe maintenant sur la branche `V8`
+- `V8` est la branche principale de travail actuelle
+- convention voulue : les branches numérotées avancent par version (`V8`, puis `V9`, etc.) sans retour systématique vers la branche numérotée précédente
+
 ## Ce qui est deja prepare dans le repo
 
 - le build du front exporte maintenant des JSON statiques depuis les CSV du depot
