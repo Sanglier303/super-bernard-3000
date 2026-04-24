@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "server": "node server.js",
-    "build": "vite build",
+    "export:static-data": "node scripts/export-static-data.mjs",
+    "build": "npm run export:static-data && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

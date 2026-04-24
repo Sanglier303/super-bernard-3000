@@ -175,6 +175,7 @@ export default function App() {
   const [stickies, setStickies] = useState([])
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState(null)
+  const [dataMode, setDataMode] = useState('api')
   const [currentTrack, setCurrentTrack] = useState(null) // { artist, url, source, trackIndex, trackCount, sourceKey, sourceIndex, sourceCount }
   const [radioOpen, setRadioOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(() => {
@@ -252,12 +253,23 @@ export default function App() {
   const fetchGeneric = useCallback(async (type, setter) => {
     try {
       const res = await fetch('/api/data/' + type)
+      if (!res.ok) throw new Error(`API ${type} HTTP ${res.status}`)
       const data = await res.json()
+      setDataMode(prev => (prev === 'static' ? prev : 'api'))
       setter(data.data || [])
       return data.data
     } catch {
-      showToast('Erreur de chargement')
-      return []
+      try {
+        const res = await fetch('/data/' + type + '.json')
+        if (!res.ok) throw new Error(`STATIC ${type} HTTP ${res.status}`)
+        const data = await res.json()
+        setDataMode('static')
+        setter(data.data || [])
+        return data.data
+      } catch {
+        showToast('Erreur de chargement')
+        return []
+      }
     }
   }, [showToast])
 
@@ -305,7 +317,18 @@ export default function App() {
     }
   }, [isMobile])
 
+  useEffect(() => {
+    if (dataMode !== 'static') return undefined
+    showToast('Mode lecture seule active')
+    return undefined
+  }, [dataMode, showToast])
+
   const saveData = async (type, updatedData, actionLabel) => {
+    if (dataMode === 'static') {
+      showToast('Version en ligne en lecture seule')
+      return
+    }
+
     try {
       const clean = updatedData.map(item => {
         // Keep 'id', remove volatile '_id'
@@ -395,6 +418,9 @@ export default function App() {
                     <div style={{ fontWeight: "bold", fontSize: "14px" }}>Super Bernard 3000</div>
                     <div style={{ fontSize: "10px", opacity: 0.7 }}>Version 4.0.0 (build 20260405)</div>
                     <div style={{ fontSize: "10px", opacity: 0.7 }}>© 1995–2026 Base de Données Musique</div>
+                    {dataMode === 'static' && (
+                      <div style={{ fontSize: "10px", opacity: 0.7 }}>Mode Cloudflare Pages : lecture seule</div>
+                    )}
                   </div>
                 </div>
                 <div className="win95-sunken" style={{ background: "white", padding: "8px", fontSize: "10px", lineHeight: "1.5", marginBottom: "12px" }}>
