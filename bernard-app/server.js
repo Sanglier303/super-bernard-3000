@@ -182,6 +182,40 @@ app.post('/api/data/:type', async (req, res) => {
   }
 });
 
+app.get('/api/soundcloud/oembed', async (req, res) => {
+  const url = String(req.query.url || '').trim();
+  if (!url) return res.status(400).json({ status: 'error', message: 'Missing url' });
+
+  try {
+    const response = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`, {
+      headers: {
+        'User-Agent': 'Bernard/1.0 (+https://soundcloud.com)'
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(502).json({ status: 'error', message: `SoundCloud oEmbed HTTP ${response.status}` });
+    }
+
+    const data = await response.json();
+    const html = String(data?.html || '');
+    const match = html.match(/src="([^"]+)"/i);
+    const embedUrl = match?.[1] ? match[1].replace(/&amp;/g, '&') : '';
+
+    res.json({
+      status: 'ok',
+      embedUrl,
+      html,
+      title: data?.title || '',
+      authorName: data?.author_name || '',
+      authorUrl: data?.author_url || '',
+    });
+  } catch (err) {
+    console.error('[server] soundcloudOembedError:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
 // ─── Static frontend (optional) ───
 // Serves the Vite build if it exists — useful for production/local-network mode.
 // In dev, Vite's own server on :5173 takes over and this block is bypassed.

@@ -178,6 +178,7 @@ export function Desktop({
         
         if (["artistes", "collectifs", "lieux", "festivals", "projets"].includes(id)) { w = 700; h = 460; }
         if (id === "calendar") { w = 540; h = 420; }
+        if (id === "radio") { w = 520; h = 470; }
         if (id === "notepad") { w = 480; h = 400; }
         if (id === "stats") { w = 340; h = 480; }
         if (id === "about") { w = 360; h = 280; }
