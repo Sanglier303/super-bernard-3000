@@ -7,6 +7,7 @@
     "dev": "vite",
     "server": "node server.js",
     "export:static-data": "node scripts/export-static-data.mjs",
+    "d1:seed:generate": "node scripts/generate-d1-seed.mjs",
     "build": "npm run export:static-data && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

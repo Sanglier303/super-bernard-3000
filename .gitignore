@@ -1,2 +1,3 @@
 bernard-app/node_modules/
+bernard-app/d1/*.generated.sql
 .DS_Store
